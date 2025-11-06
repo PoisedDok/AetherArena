@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: MessageManager requests (getOrCreateActiveTrail(), addExecutionToTrail(), finalizeTrail()) --- {method_call, javascript_api}
- * Processing: Manage active trail state with atomic numbering, create trails via TrailDOMRenderer, finalize trails with race condition prevention, integrate with chat content DOM, emit lifecycle events, track execution nodes and phases --- {9 jobs: JOB_CLEAR_STATE, JOB_DELEGATE_TO_MODULE, JOB_EMIT_EVENT, JOB_GET_STATE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_TRACK_ENTITY, JOB_UPDATE_DOM_ELEMENT, JOB_UPDATE_STATE}
- * Outgoing: TrailDOMRenderer methods (createTrailContainer(), createExecutionNode()), EventBus.emit() (lifecycle events), DOM appendChild() (chat content integration) --- {method_calls | dom_types.trail_container_element | event_types.trail_lifecycle, javascript_api | html | json}
+ * Incoming: MessageManager requests (getOrCreateActiveTrail(), addExecutionToTrail(), finalizeTrail(), saveTrailState(), restoreTrailState()), window.storageAPI (database persistence) --- {method_call, javascript_api}
+ * Processing: Manage active trail state with atomic numbering, create trails via TrailDOMRenderer, finalize trails with race condition prevention, integrate with chat content DOM, emit lifecycle events, track execution nodes and phases, persist trail state to PostgreSQL database via storageAPI, restore trail state from database on chat load, serialize trail DOM to JSON for database storage --- {14 jobs: JOB_CLEAR_STATE, JOB_DELEGATE_TO_MODULE, JOB_EMIT_EVENT, JOB_GET_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_ROUTE_BY_TYPE, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_SERIALIZE, JOB_TRACK_ENTITY, JOB_UPDATE_DOM_ELEMENT, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA}
+ * Outgoing: TrailDOMRenderer methods (createTrailContainer(), createExecutionNode()), EventBus.emit() (lifecycle events), DOM appendChild() (chat content integration), storageAPI.saveTrailState/loadTrailState/deleteTrailState (database persistence via IPC → backend → PostgreSQL) --- {method_calls | dom_types.trail_container_element | event_types.trail_lifecycle | database_types.trail_state_json, javascript_api | html | json}
  * 
  * 
  * @module renderer/chat/modules/trail/TrailContainerManager
@@ -13,6 +13,11 @@
  * TrailContainerManager - Trail Lifecycle Management
  * ============================================================================
  * Manages trail container lifecycle, state, positioning, and finalization logic.
+ * 
+ * Database Persistence:
+ * - Trail state (DOM snapshots + metadata) saved to PostgreSQL on chat switch
+ * - Trails persist across frontend restarts
+ * - Falls back to in-memory storage if database unavailable
  */
 
 class TrailContainerManager {
@@ -34,10 +39,28 @@ class TrailContainerManager {
     this.executions = new Map(); // executionId -> { phases: [], element: HTMLElement }
     
     // Trail state persistence per chat (chatId -> saved trail HTML and state)
+    // LEGACY: In-memory fallback for when database is unavailable
     this._savedTrailStates = new Map();
     this._currentChatId = null;
     
+    // Database persistence via storageAPI
+    this.storageAPI = null;
+    this._initializeStorageAPI();
+    
     this._log('Initialized');
+  }
+  
+  /**
+   * Initialize storage API for database persistence
+   * @private
+   */
+  _initializeStorageAPI() {
+    if (typeof window !== 'undefined' && window.storageAPI) {
+      this.storageAPI = window.storageAPI;
+      console.log('[TrailContainerManager] 💾 Database persistence enabled via storageAPI');
+    } else {
+      console.warn('[TrailContainerManager] ⚠️  storageAPI not available - using in-memory fallback');
+    }
   }
   
   /**
@@ -347,7 +370,7 @@ class TrailContainerManager {
    * Save trail state for current chat
    * @param {string} chatId - Chat ID to save state for
    */
-  saveTrailState(chatId) {
+  async saveTrailState(chatId) {
     if (!chatId || !this.container) {
       console.warn('[TrailContainerManager] Cannot save trail state - no chatId or container');
       return;
@@ -369,6 +392,17 @@ class TrailContainerManager {
     
     if (trailContainers.length === 0) {
       console.log(`[TrailContainerManager] No trails to save for chat ${chatId.slice(0,8)}`);
+      
+      // Delete from database if no trails exist
+      if (this.storageAPI && typeof this.storageAPI.deleteTrailState === 'function') {
+        try {
+          await this.storageAPI.deleteTrailState(chatId);
+          console.log(`[TrailContainerManager] 🗑️  Deleted trail state from database (no trails)`);
+        } catch (error) {
+          console.warn('[TrailContainerManager] Failed to delete trail state (non-critical):', error);
+        }
+      }
+      
       return;
     }
     
@@ -399,26 +433,58 @@ class TrailContainerManager {
       };
     });
     
-    this._savedTrailStates.set(chatId, {
+    const trailState = {
       trails: savedTrails,
       nextTrailNumber: this._nextTrailNumber,
       savedAt: Date.now()
-    });
+    };
     
-    console.log(`[TrailContainerManager] ✅ Saved ${savedTrails.length} trails for chat ${chatId.slice(0,8)}`);
+    // Save to in-memory cache (fallback)
+    this._savedTrailStates.set(chatId, trailState);
+    
+    // Save to database via storageAPI
+    if (this.storageAPI && typeof this.storageAPI.saveTrailState === 'function') {
+      try {
+        await this.storageAPI.saveTrailState(chatId, trailState);
+        console.log(`[TrailContainerManager] ✅ Saved ${savedTrails.length} trails to database for chat ${chatId.slice(0,8)}`);
+      } catch (error) {
+        console.warn('[TrailContainerManager] Failed to save trail state to database (using in-memory fallback):', error);
+      }
+    } else {
+      console.log(`[TrailContainerManager] ✅ Saved ${savedTrails.length} trails in-memory for chat ${chatId.slice(0,8)}`);
+    }
   }
   
   /**
    * Restore trail state for a chat
    * @param {string} chatId - Chat ID to restore state for
    */
-  restoreTrailState(chatId) {
+  async restoreTrailState(chatId) {
     if (!chatId || !this.container) {
       console.warn('[TrailContainerManager] Cannot restore trail state - no chatId or container');
       return;
     }
     
-    const savedState = this._savedTrailStates.get(chatId);
+    // Try to load from database first
+    let savedState = null;
+    
+    if (this.storageAPI && typeof this.storageAPI.loadTrailState === 'function') {
+      try {
+        savedState = await this.storageAPI.loadTrailState(chatId);
+        if (savedState && savedState.trails && savedState.trails.length > 0) {
+          console.log(`[TrailContainerManager] 📂 Loaded ${savedState.trails.length} trails from database for chat ${chatId.slice(0,8)}`);
+          // Cache in memory for faster subsequent access
+          this._savedTrailStates.set(chatId, savedState);
+        }
+      } catch (error) {
+        console.warn('[TrailContainerManager] Failed to load trail state from database, trying in-memory:', error);
+      }
+    }
+    
+    // Fallback to in-memory if database didn't return trails
+    if (!savedState || !savedState.trails || savedState.trails.length === 0) {
+      savedState = this._savedTrailStates.get(chatId);
+    }
     
     if (!savedState || !savedState.trails || savedState.trails.length === 0) {
       console.log(`[TrailContainerManager] No saved trails for chat ${chatId.slice(0,8)}`);

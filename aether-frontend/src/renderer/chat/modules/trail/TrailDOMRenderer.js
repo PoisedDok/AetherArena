@@ -444,9 +444,9 @@ class TrailDOMRenderer {
       
       console.log(`[TrailDOMRenderer] 📤 Sending IPC to artifacts window - tab: ${tab}, artifact: ${phase.artifactId.slice(0,8)}`);
       
-      // Send IPC messages to artifacts window to switch tab and focus artifact
-      window.aether.ipc.send('artifacts:switch-tab', tab);
-      window.aether.ipc.send('artifacts:focus-artifacts', {
+      // Send IPC message to artifacts window to show artifact
+      // Using show-artifact which the ArtifactsController handles via onShowArtifact listener
+      window.aether.ipc.send('artifacts:show-artifact', {
         artifactId: phase.artifactId,
         tab: tab
       });
@@ -454,7 +454,7 @@ class TrailDOMRenderer {
       // Ensure artifacts window is visible
       window.aether.ipc.send('artifacts:ensure-visible');
       
-      console.log(`[TrailDOMRenderer] ✅ IPC messages sent to artifacts window`);
+      console.log(`[TrailDOMRenderer] ✅ IPC message sent to artifacts window`);
     } else {
       console.error('[TrailDOMRenderer] ❌ IPC not available - cannot open artifacts window');
     }

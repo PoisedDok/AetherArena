@@ -1,13 +1,13 @@
 """
 Storage Endpoints (PostgreSQL)
 
-Production-ready endpoints for persistent chat/message/artifact storage in PostgreSQL.
-Uses ChatRepository for all database operations with proper transaction management.
+Production-ready endpoints for persistent chat/message/artifact/trail storage in PostgreSQL.
+Uses ChatRepository and StorageRepository for all database operations with proper transaction management.
 
 @.architecture
-Incoming: api/v1/router.py, Frontend (HTTP GET/POST/PUT/DELETE) --- {HTTP requests to /v1/api/storage/*, ChatCreate, MessageCreate, ArtifactCreate JSON payloads}
-Processing: list_chats(), create_chat(), get_chat(), update_chat(), delete_chat(), get_messages(), create_message(), get_artifacts(), create_artifact(), update_artifact_message_id(), get_storage_stats(), health_check() --- {12 jobs: artifact_crud, chat_crud, data_validation, dependency_injection, error_handling, health_checking, http_communication, message_crud, query_execution, serialization, statistics_collection, transaction_management}
-Outgoing: data/database/repositories/chat.py, data/database/repositories/storage.py, Frontend (HTTP) --- {ChatRepository, StorageRepository method calls, ChatResponse, MessageResponse, ArtifactResponse schemas}
+Incoming: api/v1/router.py, Frontend (HTTP GET/POST/PUT/DELETE) --- {HTTP requests to /v1/api/storage/*, /v1/api/trails/*, ChatCreate, MessageCreate, ArtifactCreate, TrailState JSON payloads}
+Processing: list_chats(), create_chat(), get_chat(), update_chat(), delete_chat(), get_messages(), create_message(), get_artifacts(), create_artifact(), update_artifact_message_id(), save_trail_state(), load_trail_state(), delete_trail_state(), save_traceability_data(), load_traceability_data(), get_storage_stats(), health_check() --- {15 jobs: artifact_crud, chat_crud, data_validation, dependency_injection, error_handling, health_checking, http_communication, json_persistence, message_crud, query_execution, serialization, statistics_collection, traceability_persistence, trail_state_persistence, transaction_management}
+Outgoing: data/database/repositories/chat.py, data/database/repositories/storage.py, Frontend (HTTP) --- {ChatRepository, StorageRepository method calls, ChatResponse, MessageResponse, ArtifactResponse, TrailStateResponse, TraceabilityResponse schemas}
 """
 
 from typing import List, Dict, Any
@@ -589,6 +589,220 @@ async def update_artifact_message_id(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update artifact message ID"
+        )
+
+
+# =============================================================================
+# Traceability Endpoints
+# =============================================================================
+
+@router.post("/traceability", summary="Save traceability data")
+async def save_traceability_data(
+    data: Dict[str, Any],
+    _context: dict = Depends(setup_request_context),
+    storage_repo: StorageRepository = Depends(get_storage_repository)
+) -> Dict[str, Any]:
+    """
+    Save traceability data (message-artifact relationships and indexes).
+    
+    Traceability data tracks relationships between messages, artifacts, and correlations
+    for debugging and audit trail purposes. Stored as versioned JSON.
+    
+    Args:
+        data: Traceability data structure with indexes
+        
+    Returns:
+        Success status
+    """
+    try:
+        # Store traceability data using storage repository
+        # For now, we'll use a simple approach - store as metadata in storage
+        await storage_repo.save_traceability_data(data)
+        
+        logger.info(f"Saved traceability data: {data.get('messages', [])[:10]} messages, {len(data.get('artifacts', []))} artifacts")
+        
+        return {
+            "success": True,
+            "version": data.get('version', '2.0'),
+            "timestamp": data.get('timestamp'),
+            "message_count": len(data.get('messages', [])),
+            "artifact_count": len(data.get('artifacts', []))
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to save traceability data: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save traceability data"
+        )
+
+
+@router.get("/traceability/{chat_id}", summary="Load traceability data for chat")
+async def load_traceability_data(
+    chat_id: UUID,
+    _context: dict = Depends(setup_request_context),
+    storage_repo: StorageRepository = Depends(get_storage_repository)
+) -> Dict[str, Any]:
+    """
+    Load traceability data for a specific chat.
+    
+    Returns message-artifact relationships and tracking indexes.
+    
+    Args:
+        chat_id: Chat UUID
+        
+    Returns:
+        Traceability data structure with indexes
+    """
+    try:
+        data = await storage_repo.load_traceability_data(str(chat_id))
+        
+        if not data:
+            # Return empty structure if no data exists
+            return {
+                "version": "2.0",
+                "timestamp": None,
+                "messages": [],
+                "artifacts": [],
+                "correlationIndex": [],
+                "messageArtifactsIndex": [],
+                "artifactMessageIndex": [],
+                "chatMessagesIndex": [],
+                "chatArtifactsIndex": []
+            }
+        
+        logger.info(f"Loaded traceability data for chat {chat_id}")
+        return data
+        
+    except Exception as e:
+        logger.error(f"Failed to load traceability data for chat {chat_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to load traceability data"
+        )
+
+
+# =============================================================================
+# Trail State Endpoints (Execution Trail UI Persistence)
+# =============================================================================
+
+@router.post("/trails/{chat_id}", summary="Save trail state for chat")
+async def save_trail_state(
+    chat_id: str,
+    trail_data: Dict[str, Any],
+    _context: dict = Depends(setup_request_context),
+    storage_repo: StorageRepository = Depends(get_storage_repository)
+) -> Dict[str, Any]:
+    """
+    Save trail container state for a chat.
+    
+    Trail state includes DOM snapshots and metadata for execution trail UI.
+    Allows trails to persist across frontend restarts.
+    
+    Args:
+        chat_id: Chat ID
+        trail_data: Trail state structure with trails array and metadata
+        
+    Returns:
+        Success status
+    """
+    try:
+        await storage_repo.save_trail_state(chat_id, trail_data)
+        
+        logger.info(f"Saved trail state for chat {chat_id}: {len(trail_data.get('trails', []))} trails")
+        
+        return {
+            "success": True,
+            "chat_id": chat_id,
+            "trail_count": len(trail_data.get('trails', [])),
+            "saved_at": trail_data.get('savedAt')
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to save trail state for chat {chat_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save trail state"
+        )
+
+
+@router.get("/trails/{chat_id}", summary="Load trail state for chat")
+async def load_trail_state(
+    chat_id: str,
+    _context: dict = Depends(setup_request_context),
+    storage_repo: StorageRepository = Depends(get_storage_repository)
+) -> Dict[str, Any]:
+    """
+    Load trail container state for a chat.
+    
+    Returns trail state including DOM snapshots and metadata.
+    
+    Args:
+        chat_id: Chat ID
+        
+    Returns:
+        Trail state structure or empty structure if not found
+    """
+    try:
+        data = await storage_repo.load_trail_state(chat_id)
+        
+        if not data:
+            # Return empty structure if no trails exist
+            return {
+                "trails": [],
+                "nextTrailNumber": 1,
+                "savedAt": None
+            }
+        
+        logger.info(f"Loaded trail state for chat {chat_id}: {len(data.get('trails', []))} trails")
+        return data
+        
+    except Exception as e:
+        logger.error(f"Failed to load trail state for chat {chat_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to load trail state"
+        )
+
+
+@router.delete("/trails/{chat_id}", summary="Delete trail state for chat")
+async def delete_trail_state(
+    chat_id: str,
+    _context: dict = Depends(setup_request_context),
+    storage_repo: StorageRepository = Depends(get_storage_repository)
+) -> Dict[str, Any]:
+    """
+    Delete trail container state for a chat.
+    
+    Args:
+        chat_id: Chat ID
+        
+    Returns:
+        Success status
+    """
+    try:
+        deleted = await storage_repo.delete_trail_state(chat_id)
+        
+        if not deleted:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Trail state not found for chat {chat_id}"
+            )
+        
+        logger.info(f"Deleted trail state for chat {chat_id}")
+        
+        return {
+            "success": True,
+            "chat_id": chat_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete trail state for chat {chat_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete trail state"
         )
 
 

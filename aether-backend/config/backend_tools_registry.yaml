@@ -1,6 +1,6 @@
 metadata:
   version: 1.0.0
-  generated: '2025-11-06T22:18:45.519639'
+  generated: '2025-11-06T23:32:19.127844'
   source: Aether Backend API
   backend_version: 2.0.0
   backend_url: http://127.0.0.1:8765
@@ -1207,6 +1207,185 @@ categories:
       - 'Use storage backend API: Update artifact message ID'
       examples:
       - computer.put_storage_artifacts_update-message-id(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: post_storage_traceability
+      path: computer.post_storage_traceability
+      api_endpoint: /v1/api/storage/traceability
+      http_method: POST
+      complexity: moderate
+      description: "Save traceability data (message-artifact relationships and indexes).\n\
+        \nTraceability data tracks relationships between messages, artifacts, and\
+        \ correlations\nfor debugging and audit trail purposes. Stored as versioned\
+        \ JSON.\n\nArgs:\n    data: Traceability data structure with indexes\n   \
+        \ \nReturns:\n    Success status"
+      signature: 'post_storage_traceability(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Save traceability data'
+      examples:
+      - computer.post_storage_traceability(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: storage_traceability
+      path: computer.storage_traceability
+      api_endpoint: /v1/api/storage/traceability/{chat_id}
+      http_method: GET
+      complexity: moderate
+      description: "Load traceability data for a specific chat.\n\nReturns message-artifact\
+        \ relationships and tracking indexes.\n\nArgs:\n    chat_id: Chat UUID\n \
+        \   \nReturns:\n    Traceability data structure with indexes"
+      signature: 'storage_traceability(chat_id: string, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: chat_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Load traceability data for chat'
+      examples:
+      - computer.storage_traceability(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: post_storage_trails
+      path: computer.post_storage_trails
+      api_endpoint: /v1/api/storage/trails/{chat_id}
+      http_method: POST
+      complexity: moderate
+      description: "Save trail container state for a chat.\n\nTrail state includes\
+        \ DOM snapshots and metadata for execution trail UI.\nAllows trails to persist\
+        \ across frontend restarts.\n\nArgs:\n    chat_id: Chat ID\n    trail_data:\
+        \ Trail state structure with trails array and metadata\n    \nReturns:\n \
+        \   Success status"
+      signature: 'post_storage_trails(chat_id: string, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: chat_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Save trail state for chat'
+      examples:
+      - computer.post_storage_trails(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: storage_trails
+      path: computer.storage_trails
+      api_endpoint: /v1/api/storage/trails/{chat_id}
+      http_method: GET
+      complexity: moderate
+      description: "Load trail container state for a chat.\n\nReturns trail state\
+        \ including DOM snapshots and metadata.\n\nArgs:\n    chat_id: Chat ID\n \
+        \   \nReturns:\n    Trail state structure or empty structure if not found"
+      signature: 'storage_trails(chat_id: string, x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: chat_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Load trail state for chat'
+      examples:
+      - computer.storage_trails(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: delete_storage_trails
+      path: computer.delete_storage_trails
+      api_endpoint: /v1/api/storage/trails/{chat_id}
+      http_method: DELETE
+      complexity: moderate
+      description: "Delete trail container state for a chat.\n\nArgs:\n    chat_id:\
+        \ Chat ID\n    \nReturns:\n    Success status"
+      signature: 'delete_storage_trails(chat_id: string, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: chat_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Delete trail state for chat'
+      examples:
+      - computer.delete_storage_trails(...)
       tags:
       - storage
       - backend_api

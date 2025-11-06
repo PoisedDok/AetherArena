@@ -169,7 +169,8 @@ class ArtifactSessionManager {
       this.eventBus.emit(EventTypes.ARTIFACTS.ARTIFACT_ADDED, {
         chatId,
         artifactId: artifact.id,
-        type: artifact.type
+        type: artifact.type,
+        artifact: artifact  // Include full artifact for event handlers
       });
     }
     
@@ -191,16 +192,22 @@ class ArtifactSessionManager {
   }
   
   _categorizeArtifact(artifact) {
+    // Categorize based on role and type
+    // Role 'computer' indicates execution output
+    // Role 'assistant' indicates agent-generated content
+    
+    if (artifact.role === 'computer') {
+      // Computer outputs (from code execution)
+      if (artifact.type === 'console') {
+        return 'execution_console';
+      }
+      if (artifact.type === 'output' || artifact.type === 'code') {
+        return 'execution_output';
+      }
+    }
+    
     if (artifact.role === 'assistant' && artifact.type === 'code') {
       return 'code_written';
-    }
-    
-    if (artifact.role === 'computer' && artifact.type === 'console') {
-      return 'execution_console';
-    }
-    
-    if (artifact.role === 'computer' && artifact.type === 'code') {
-      return 'execution_output';
     }
     
     if (artifact.format === 'html') {

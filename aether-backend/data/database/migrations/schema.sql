@@ -123,10 +123,22 @@ FROM messages m
 JOIN chats c ON m.chat_id = c.id
 ORDER BY m.timestamp;
 
+-- Traceability data table: Stores message-artifact relationship indexes
+CREATE TABLE IF NOT EXISTS traceability_data (
+    id VARCHAR(50) PRIMARY KEY,
+    data JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Index for traceability data retrieval
+CREATE INDEX IF NOT EXISTS idx_traceability_data_updated ON traceability_data(updated_at DESC);
+
 -- Comment documentation
 COMMENT ON TABLE chats IS 'Top-level conversation containers';
 COMMENT ON TABLE messages IS 'All user and assistant messages with LLM tracking';
 COMMENT ON TABLE artifacts IS 'Generated outputs (code, files, etc) linked to chats and messages';
+COMMENT ON TABLE traceability_data IS 'Message-artifact relationship indexes for debugging and audit trails';
 COMMENT ON COLUMN messages.correlation_id IS 'Links user request to assistant response for traceability';
 COMMENT ON COLUMN messages.llm_model IS 'Model used (e.g., gpt-4, claude-3-sonnet)';
 COMMENT ON COLUMN messages.llm_provider IS 'Provider (e.g., openai, anthropic)';

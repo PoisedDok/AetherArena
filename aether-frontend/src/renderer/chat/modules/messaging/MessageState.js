@@ -103,7 +103,10 @@ class MessageState {
         });
       }
 
-      if (this.ipcBridge) {
+      // Notify artifacts window of new chat using proper API
+      if (window.aether && window.aether.artifacts && typeof window.aether.artifacts.switchChat === 'function') {
+        window.aether.artifacts.switchChat(chat.id);
+      } else if (this.ipcBridge) {
         this.ipcBridge.send('artifacts:switch-chat', chat.id);
       }
 

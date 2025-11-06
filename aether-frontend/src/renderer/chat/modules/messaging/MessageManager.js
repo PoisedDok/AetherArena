@@ -645,6 +645,15 @@ class MessageManager {
         this.eventBus.emit('chat:title-changed', { title: chat.title });
       }
       
+      // Save current trail state before switching (async)
+      if (this.trailContainerManager && this.trailContainerManager._currentChatId) {
+        const currentChatId = this.trailContainerManager._currentChatId;
+        if (currentChatId !== chatId) {
+          await this.trailContainerManager.saveTrailState(currentChatId);
+          console.log('[MessageManager] Trail state saved for previous chat');
+        }
+      }
+      
       if (this.trailContainerManager) {
         this.trailContainerManager.switchChat(chatId);
         this.trailContainerManager.setCurrentChat(chatId);
@@ -658,9 +667,13 @@ class MessageManager {
       
       await this._notifyBackendContextSwitch(chatId);
 
-      if (window.ipcBridge && typeof window.ipcBridge.send === 'function') {
-        window.ipcBridge.send('artifacts:switch-chat', chatId);
+      // Notify artifacts window of chat switch using proper API
+      if (window.aether && window.aether.artifacts && typeof window.aether.artifacts.switchChat === 'function') {
+        window.aether.artifacts.switchChat(chatId);
         console.log('[MessageManager] Notified artifacts window of chat switch');
+      } else if (window.aether && window.aether.ipc && typeof window.aether.ipc.send === 'function') {
+        window.aether.ipc.send('artifacts:switch-chat', chatId);
+        console.log('[MessageManager] Notified artifacts window of chat switch via IPC');
       }
 
       const messages = this.messageState.getMessages();
@@ -673,8 +686,9 @@ class MessageManager {
         }
       }
       
+      // Restore trail state from database (async)
       if (this.trailContainerManager) {
-        this.trailContainerManager.restoreTrailState(chatId);
+        await this.trailContainerManager.restoreTrailState(chatId);
         console.log('[MessageManager] Trail state restored for chat');
       }
 

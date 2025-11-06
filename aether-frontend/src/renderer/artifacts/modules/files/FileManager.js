@@ -150,26 +150,52 @@ class FileManager {
 
       this._renderLoading();
 
+      // Try to get artifacts from both session manager (in-memory) and storage API (persisted)
+      let artifacts = [];
+      let groups = [];
+
       if (this.sessionManager) {
-        const sessionData = await this.sessionManager.switchSession(chatId);
-        this.artifacts = sessionData.artifacts || [];
-        this.groups = sessionData.groups || [];
-      } else {
-      if (!window.storageAPI || typeof window.storageAPI.loadArtifacts !== 'function') {
-          throw new Error('Storage API not available');
+        try {
+          const sessionData = await this.sessionManager.switchSession(chatId);
+          artifacts = sessionData.artifacts || [];
+          groups = sessionData.groups || [];
+          console.log(`[FileManager] Loaded from session manager: ${artifacts.length} artifacts, ${groups.length} groups`);
+        } catch (error) {
+          console.warn('[FileManager] Session manager load failed:', error);
+        }
       }
 
-      const artifacts = await window.storageAPI.loadArtifacts(chatId);
-        this.artifacts = artifacts;
-        this.groups = this._groupArtifacts(artifacts);
+      // If session manager didn't provide artifacts, try storage API
+      if (artifacts.length === 0 && window.storageAPI && typeof window.storageAPI.loadArtifacts === 'function') {
+        try {
+          artifacts = await window.storageAPI.loadArtifacts(chatId);
+          groups = this._groupArtifacts(artifacts);
+          console.log(`[FileManager] Loaded from storage API: ${artifacts.length} artifacts, ${groups.length} groups`);
+        } catch (error) {
+          console.warn('[FileManager] Storage API load failed:', error);
+        }
       }
+
+      // If still no artifacts, try getting from controller's in-memory artifacts
+      if (artifacts.length === 0 && this.controller && this.controller.artifacts) {
+        const controllerArtifacts = Array.from(this.controller.artifacts.values())
+          .filter(a => a.chatId === chatId);
+        if (controllerArtifacts.length > 0) {
+          artifacts = controllerArtifacts;
+          groups = this._groupArtifacts(artifacts);
+          console.log(`[FileManager] Loaded from controller: ${artifacts.length} artifacts, ${groups.length} groups`);
+        }
+      }
+
+      this.artifacts = artifacts;
+      this.groups = groups;
 
       this._renderFiles();
 
-      console.log(`[FileManager] Loaded ${this.artifacts.length} artifacts, ${this.groups.length} groups`);
+      console.log(`[FileManager] ✅ Loaded ${this.artifacts.length} artifacts, ${this.groups.length} groups`);
 
     } catch (error) {
-      console.error('[FileManager] Load files failed:', error);
+      console.error('[FileManager] ❌ Load files failed:', error);
       this._renderError(error);
     }
   }
@@ -269,16 +295,38 @@ class FileManager {
 
   _setupEventListeners() {
     const cleanupChatSwitch = this.eventBus.on(EventTypes.ARTIFACTS.CHAT_SWITCHED, (data) => {
+      console.log('[FileManager] Chat switched event:', data);
       this.loadFiles(data.chatId);
     });
     this._eventListeners.push(cleanupChatSwitch);
 
     const cleanupArtifactAdded = this.eventBus.on(EventTypes.ARTIFACTS.ARTIFACT_ADDED, (data) => {
-      if (data.chatId === this.currentChatId) {
+      console.log('[FileManager] Artifact added event:', data);
+      
+      // Auto-detect chat ID from first artifact if we don't have one yet
+      const artifactChatId = data.chatId || data.artifact?.chatId;
+      if (!this.currentChatId && artifactChatId) {
+        console.log(`[FileManager] Auto-detected chat ID from artifact: ${artifactChatId}`);
+        this.loadFiles(artifactChatId);
+        return;
+      }
+      
+      // Reload if artifact belongs to current chat
+      if (this.currentChatId && (data.chatId === this.currentChatId || data.artifact?.chatId === this.currentChatId)) {
+        console.log('[FileManager] Reloading files for current chat:', this.currentChatId);
         this.loadFiles(this.currentChatId);
       }
     });
     this._eventListeners.push(cleanupArtifactAdded);
+
+    // Also listen to SESSION_SWITCHED event for session manager integration
+    const cleanupSessionSwitch = this.eventBus.on(EventTypes.ARTIFACTS.SESSION_SWITCHED, (data) => {
+      console.log('[FileManager] Session switched event:', data);
+      if (data.chatId) {
+        this.loadFiles(data.chatId);
+      }
+    });
+    this._eventListeners.push(cleanupSessionSwitch);
   }
 
   _renderFiles() {

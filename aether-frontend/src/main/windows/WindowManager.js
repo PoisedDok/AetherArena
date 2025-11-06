@@ -63,12 +63,12 @@ class WindowManager {
       // Create chat window
       this.chatWindow = new ChatWindow(this.options.chatWindow);
       this.chatWindow.create();
-      
+
       // Create artifacts window (initially hidden)
       // We create it early to ensure it's ready for messages
-      // this.artifactsWindow = new ArtifactsWindow(this.options.artifactsWindow);
-      // this.artifactsWindow.create();
-      // this.artifactsWindow.hide();
+      this.artifactsWindow = new ArtifactsWindow(this.options.artifactsWindow);
+      this.artifactsWindow.create();
+      this.artifactsWindow.hide();
       
       this.logger.info('Window manager initialized');
     } catch (err) {

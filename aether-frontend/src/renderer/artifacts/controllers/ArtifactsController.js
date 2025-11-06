@@ -188,13 +188,20 @@ class ArtifactsController {
       id: artifact.id,
       type: artifact.type,
       format: artifact.format,
+      role: artifact.role,
       contentLen: artifact.content ? artifact.content.length : 0
     });
 
-    const isCodeArtifact = artifact.type === 'code' && artifact.format !== 'html';
+    // Route artifacts based on role and type:
+    // - assistant + code -> CODE viewer (agent writing code, including HTML source)
+    // - computer + any type -> OUTPUT viewer (execution results)
+    // - any + output type -> OUTPUT viewer (execution output)
+    // - any + console type -> OUTPUT viewer (console output)
+    const isCodeArtifact = artifact.role === 'assistant' && artifact.type === 'code';
+    const isExecutionOutput = artifact.role === 'computer' || artifact.type === 'output' || artifact.type === 'console';
     
-    if (isCodeArtifact) {
-      console.log('[ArtifactsController] Routing to CODE viewer');
+    if (isCodeArtifact && !isExecutionOutput) {
+      console.log('[ArtifactsController] Routing to CODE viewer (assistant-written code)');
       this.switchTab('code');
       if (this.modules.codeViewer) {
         this.modules.codeViewer.loadCode(
@@ -204,7 +211,7 @@ class ArtifactsController {
         );
       }
     } else {
-      console.log('[ArtifactsController] Routing to OUTPUT viewer');
+      console.log('[ArtifactsController] Routing to OUTPUT viewer (execution result, console, or rendered content)');
       this.switchTab('output');
       if (this.modules.outputViewer) {
         const format = artifact.format || 'text';
@@ -275,7 +282,7 @@ class ArtifactsController {
       this.eventBus.emit(EventTypes.ARTIFACTS.EXECUTION_COMPLETE, { result, artifact: outputArtifact });
       this.eventBus.emit(EventTypes.ARTIFACTS.ARTIFACT_ADDED, { 
         artifact: outputArtifact, 
-        chatId: this.currentChatId 
+        chatId: outputArtifact.chatId 
       });
 
       console.log('[ArtifactsController] Execution output routed to Output tab');
@@ -312,7 +319,7 @@ class ArtifactsController {
       this.eventBus.emit(EventTypes.ARTIFACTS.EXECUTION_ERROR, { error, artifact: errorArtifact });
       this.eventBus.emit(EventTypes.ARTIFACTS.ARTIFACT_ADDED, { 
         artifact: errorArtifact, 
-        chatId: this.currentChatId 
+        chatId: errorArtifact.chatId 
       });
 
       throw error;
@@ -640,7 +647,7 @@ class ArtifactsController {
       const throttle = this._logThrottle.get(artifactId) || { lastLog: 0, chunkCount: 0 };
       
       if (data.start) {
-        console.log(`[ArtifactsController] 🚀 Stream started: ${data.type}/${data.format} (ID: ${artifactId.slice(0,8)}...)`);
+        console.log(`[ArtifactsController] 🚀 Stream started: ${data.type}/${data.format}, role=${data.role} (ID: ${artifactId.slice(0,8)}...)`);
         throttle.chunkCount = 0;
         throttle.lastLog = Date.now();
         this._logThrottle.set(artifactId, throttle);
@@ -651,6 +658,7 @@ class ArtifactsController {
       let artifact = this.artifacts.get(artifactId);
       
       if (!artifact) {
+        // Create new artifact - preserve role from backend (defaults to assistant if not provided)
         artifact = {
           id: artifactId,
           backend_id: data.backendId || data._backend_id,
@@ -658,7 +666,7 @@ class ArtifactsController {
           content: '',
           language: data.language || data.format || 'text',
           format: data.format || 'text',
-          role: data.role || 'assistant',
+          role: data.role || 'assistant', // Preserve role from backend
           chatId: data.chatId || this.currentChatId,
           messageId: data.messageId,
           parentId: data.parentId,
@@ -667,6 +675,19 @@ class ArtifactsController {
           chunkCount: 0
         };
         this.artifacts.set(artifactId, artifact);
+        console.log(`[ArtifactsController] Created artifact: role=${artifact.role}, type=${artifact.type}, format=${artifact.format}`);
+      } else {
+        // Update existing artifact - preserve original role, update other metadata if provided
+        if (data.role && artifact.role !== data.role) {
+          console.warn(`[ArtifactsController] Role change detected: ${artifact.role} → ${data.role} for artifact ${artifactId.slice(0,8)}`);
+          artifact.role = data.role;
+        }
+        if (data.type && artifact.type !== data.type) {
+          artifact.type = data.type;
+        }
+        if (data.format && artifact.format !== data.format) {
+          artifact.format = data.format;
+        }
       }
       
       if (data.content) {
@@ -683,17 +704,17 @@ class ArtifactsController {
       
       if (data.end || (!data.start && !data.end)) {
         if (data.end) {
-          console.log(`[ArtifactsController] ✅ Stream complete: ${artifact.chunkCount} chunks, ${artifact.content.length} chars`);
+          console.log(`[ArtifactsController] ✅ Stream complete: ${artifact.chunkCount} chunks, ${artifact.content.length} chars, role=${artifact.role}`);
           this._logThrottle.delete(artifactId);
           
           if (this.modules.sessionManager) {
             this.modules.sessionManager.addArtifact(artifact);
           }
 
-          // Emit artifact added for FileManager
+          // Emit artifact added for FileManager - use artifact's chatId to ensure proper routing
           this.eventBus.emit(EventTypes.ARTIFACTS.ARTIFACT_ADDED, {
             artifact,
-            chatId: this.currentChatId
+            chatId: artifact.chatId
           });
         }
         this.loadArtifact(artifact);
@@ -837,7 +858,7 @@ class ArtifactsController {
   _handleShowArtifact(data) {
     try {
       const { artifactId, tab } = data;
-      console.log(`[ArtifactsController] Show artifact: ${artifactId?.slice(0,8)}, tab: ${tab}`);
+      console.log(`[ArtifactsController] Show artifact: ${artifactId?.slice(0,8)}, requested tab: ${tab}`);
 
       let artifact = this.artifacts.get(artifactId);
 
@@ -846,13 +867,14 @@ class ArtifactsController {
       }
 
       if (artifact) {
+        // If a specific tab was requested, switch to it first
+        if (tab) {
+          console.log(`[ArtifactsController] Switching to requested tab: ${tab}`);
+          this.switchTab(tab);
+        }
         this.loadArtifact(artifact);
       } else {
         console.warn(`[ArtifactsController] Artifact not found: ${artifactId}`);
-      }
-
-      if (tab) {
-        this.switchTab(tab);
       }
     } catch (error) {
       console.error('[ArtifactsController] Handle show artifact failed:', error);

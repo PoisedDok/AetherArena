@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: Repositories (.loadChats/.saveMessage/.saveArtifact/.updateArtifactMessageId calls) --- {method_call, javascript_api}
- * Processing: Wrap ApiClient with PostgreSQL-specific operations, construct baseURL from config (backend.baseUrl + endpoints.storageApi), CRUD for chats (loadChats/loadChat/createChat/updateChatTitle/deleteChat), CRUD for messages (loadMessages/saveMessage), CRUD for artifacts (loadArtifacts/saveArtifact/updateArtifactMessageId/deleteArtifact), traceability queries (getMessageArtifacts/getArtifactSource), health check, error logging wrapper --- {8 jobs: JOB_DELETE_FROM_DB, JOB_DELEGATE_TO_MODULE, JOB_GET_STATE, JOB_HTTP_REQUEST, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_UPDATE_DB}
- * Outgoing: ApiClient HTTP requests to backend:8765/storage/*, return Promise<json> --- {database_types.chat_record | database_types.message_record | database_types.artifact_record, json}
+ * Incoming: Repositories (.loadChats/.saveMessage/.saveArtifact/.updateArtifactMessageId calls), TrailContainerManager (.saveTrailState/.loadTrailState/.deleteTrailState calls) --- {method_call, javascript_api}
+ * Processing: Wrap ApiClient with PostgreSQL-specific operations, construct baseURL from config (backend.baseUrl + endpoints.storageApi), CRUD for chats (loadChats/loadChat/createChat/updateChatTitle/deleteChat), CRUD for messages (loadMessages/saveMessage), CRUD for artifacts (loadArtifacts/saveArtifact/updateArtifactMessageId/deleteArtifact), CRUD for trail states (saveTrailState/loadTrailState/deleteTrailState), traceability queries (getMessageArtifacts/getArtifactSource), health check, error logging wrapper --- {9 jobs: JOB_DELETE_FROM_DB, JOB_DELEGATE_TO_MODULE, JOB_GET_STATE, JOB_HTTP_REQUEST, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_UPDATE_DB}
+ * Outgoing: ApiClient HTTP requests to backend:8765/storage/* and backend:8765/trails/*, return Promise<json> --- {database_types.chat_record | database_types.message_record | database_types.artifact_record | database_types.trail_state_json, json}
  * 
  * 
  * @module infrastructure/api/storage
@@ -18,6 +18,7 @@
  * - Circuit breaker
  * - Rate limiting
  * - Timeout handling
+ * - Trail state persistence for UI continuity across restarts
  */
 
 const { ApiClient } = require('../../core/communication/ApiClient');
@@ -360,6 +361,106 @@ class StorageAPI {
     return this._withErrorLogging('getLLMMetadata', async () => {
       console.warn('[StorageAPI] getLLMMetadata not yet implemented');
       return null;
+    });
+  }
+
+  /**
+   * Save traceability data (messages, artifacts, and their relationships)
+   * @param {Object} data - Traceability data containing messages and artifacts maps
+   * @returns {Promise<Object>}
+   */
+  async saveTraceabilityData(data) {
+    return this._withErrorLogging('saveTraceabilityData', async () => {
+      const payload = {
+        messages: Array.from(data.messages || new Map()).map(([id, msg]) => ({ id, ...msg })),
+        artifacts: Array.from(data.artifacts || new Map()).map(([id, art]) => ({ id, ...art })),
+        correlationIndex: data.correlationIndex ? Array.from(data.correlationIndex.entries()) : [],
+        messageArtifactsIndex: data.messageArtifactsIndex ? Array.from(data.messageArtifactsIndex.entries()).map(([k, v]) => [k, Array.from(v)]) : [],
+        artifactMessageIndex: data.artifactMessageIndex ? Array.from(data.artifactMessageIndex.entries()) : [],
+        chatMessagesIndex: data.chatMessagesIndex ? Array.from(data.chatMessagesIndex.entries()).map(([k, v]) => [k, Array.from(v)]) : [],
+        chatArtifactsIndex: data.chatArtifactsIndex ? Array.from(data.chatArtifactsIndex.entries()).map(([k, v]) => [k, Array.from(v)]) : []
+      };
+      
+      const result = await this.client.post('/traceability', payload);
+      
+      if (this.enableLogging) {
+        console.log(`[StorageAPI] Saved traceability data: ${payload.messages.length} messages, ${payload.artifacts.length} artifacts`);
+      }
+      
+      return result;
+    });
+  }
+
+  /**
+   * Load traceability data for a specific chat
+   * @param {string} chatId - Chat ID
+   * @returns {Promise<Object>}
+   */
+  async loadTraceabilityData(chatId) {
+    return this._withErrorLogging('loadTraceabilityData', async () => {
+      const data = await this.client.get(`/traceability/${chatId}`);
+      
+      if (this.enableLogging) {
+        console.log(`[StorageAPI] Loaded traceability data for chat ${chatId}`);
+      }
+      
+      return data;
+    });
+  }
+
+  // ==========================================================================
+  // Trail State Operations (Execution Trail UI Persistence)
+  // ==========================================================================
+
+  /**
+   * Save trail state for a chat
+   * @param {string} chatId - Chat ID
+   * @param {Object} trailData - Trail state structure
+   * @returns {Promise<Object>}
+   */
+  async saveTrailState(chatId, trailData) {
+    return this._withErrorLogging('saveTrailState', async () => {
+      const result = await this.client.post(`/trails/${chatId}`, trailData);
+      
+      if (this.enableLogging) {
+        console.log(`[StorageAPI] Saved trail state for chat ${chatId}: ${trailData.trails?.length || 0} trails`);
+      }
+      
+      return result;
+    });
+  }
+
+  /**
+   * Load trail state for a chat
+   * @param {string} chatId - Chat ID
+   * @returns {Promise<Object>}
+   */
+  async loadTrailState(chatId) {
+    return this._withErrorLogging('loadTrailState', async () => {
+      const data = await this.client.get(`/trails/${chatId}`);
+      
+      if (this.enableLogging) {
+        console.log(`[StorageAPI] Loaded trail state for chat ${chatId}: ${data.trails?.length || 0} trails`);
+      }
+      
+      return data;
+    });
+  }
+
+  /**
+   * Delete trail state for a chat
+   * @param {string} chatId - Chat ID
+   * @returns {Promise<Object>}
+   */
+  async deleteTrailState(chatId) {
+    return this._withErrorLogging('deleteTrailState', async () => {
+      const result = await this.client.delete(`/trails/${chatId}`);
+      
+      if (this.enableLogging) {
+        console.log(`[StorageAPI] Deleted trail state for chat ${chatId}`);
+      }
+      
+      return result;
     });
   }
 
