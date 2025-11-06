@@ -1,0 +1,48 @@
+# DATA FLOW STANDARD
+# Abstract structure for documenting data flow in backend files
+# All files must follow this 3-line format
+
+version: "1.0.0"
+standard_name: "Backend Data Flow Documentation Standard"
+
+format:
+  incoming:
+    description: "Data sources entering this file"
+    required_fields:
+      - source_files: "List of exact file paths providing data"
+      - data_types: "Explicit types (Dict, str, AsyncGenerator, etc.)"
+      - data_format: "Structure/schema of incoming data"
+    
+  processing:
+    description: "Operations performed on data within this file"
+    required_fields:
+      - operations: "Exact function/class/method names"
+      - job_count: "Number of distinct operations"
+      - job_types: "Categories (validation, transformation, routing, etc.)"
+    
+  outgoing:
+    description: "Data destinations from this file"
+    required_fields:
+      - destination_files: "List of exact file paths receiving data"
+      - data_types: "Explicit types being sent"
+      - data_format: "Structure/schema of outgoing data"
+
+example_format: |
+  # file: example.py
+  Incoming: source_a.py, source_b.py -- {type: Dict[str, Any], format: JSON}
+  Processing: validate_input(), transform_data(), route_message() -- {jobs: 3, types: [validation, transformation, routing]}
+  Outgoing: destination_x.py, destination_y.py -- {type: AsyncGenerator, format: streaming_chunks}
+
+security_requirements:
+  - "All data types must be explicit and validated"
+  - "Input sources must be authenticated"
+  - "Output destinations must be authorized"
+  - "No implicit type conversions"
+  - "All transformations must be logged"
+
+modularity_requirements:
+  - "Single Responsibility: Each file performs one cohesive function"
+  - "Loose Coupling: Minimal dependencies between files"
+  - "High Cohesion: Related operations grouped together"
+  - "Clear Interfaces: Explicit function signatures"
+  - "No Circular Dependencies: Enforce dependency hierarchy"

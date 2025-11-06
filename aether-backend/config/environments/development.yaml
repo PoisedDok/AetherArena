@@ -1,0 +1,181 @@
+# Development Environment Configuration
+# Optimized for local development with verbose logging and hot-reload
+
+environment: development
+
+# Application settings
+app:
+  name: "Aether Backend (Development)"
+  version: "2.0.0"
+  debug: true
+  reload: true
+
+# Server configuration
+server:
+  host: "127.0.0.1"
+  port: 5002
+  workers: 1
+
+# Security settings (relaxed for development)
+security:
+  cors_enabled: true
+  cors_origins:
+    - "http://localhost"
+    - "http://localhost:3000"
+    - "http://localhost:5173"
+    - "http://127.0.0.1"
+    - "http://127.0.0.1:3000"
+    - "http://127.0.0.1:5173"
+  cors_credentials: true
+  cors_methods: ["*"]
+  cors_headers: ["*"]
+  rate_limit_enabled: false
+  auth_required: false
+
+# Database configuration
+database:
+  url: "postgresql://aether_user:aether_dev_pass@localhost:5432/aether_dev"
+  pool_size: 5
+  max_overflow: 10
+  pool_timeout: 30
+  echo_sql: true
+  log_queries: true
+
+# Logging configuration (clean event-based logging)
+logging:
+  level: "INFO"  # Changed from DEBUG to reduce noise
+  format: "text"  # text for human readability
+  file_enabled: true
+  file_path: "./logs/aether-dev.log"
+  file_rotation: "10 MB"
+  file_retention: "7 days"
+  console_enabled: true
+  json_logs: false
+
+# Monitoring configuration
+monitoring:
+  metrics_enabled: true
+  metrics_port: 9090
+  tracing_enabled: true
+  tracing_endpoint: "http://localhost:4317"
+  health_check_interval: 30
+  profiling_enabled: true
+
+# Integration services (local development)
+integrations:
+  perplexica:
+    url: "http://localhost:3000"
+    enabled: true
+    timeout: 120
+  
+  searxng:
+    url: "http://127.0.0.1:4000"
+    enabled: true
+    timeout: 30
+  
+  docling:
+    url: "http://127.0.0.1:8000"
+    enabled: true
+    timeout: 300
+  
+  xlwings:
+    url: "http://127.0.0.1:8001"
+    enabled: true
+    timeout: 60
+  
+  lm_studio:
+    url: "http://localhost:1234/v1"
+    enabled: true
+    timeout: 600
+  
+  mcp:
+    enabled: true
+    auto_start: true
+    health_check_interval: 30
+
+# LLM configuration
+llm:
+  provider: "openai-compatible"
+  api_base: "http://localhost:1234/v1"
+  model: "qwen/qwen3-4b-2507"
+  context_window: 100000
+  max_tokens: 4096
+  temperature: 0.7
+  stream: true
+
+# Open Interpreter configuration
+interpreter:
+  auto_run: false
+  safe_mode: "off"
+  loop: false
+  profile: "GURU.py"
+  offline: true
+  disable_telemetry: true
+  debug: true
+
+# Storage configuration
+storage:
+  base_path: "./data/storage"
+  max_upload_size_mb: 100
+  allowed_extensions:
+    - ".pdf"
+    - ".txt"
+    - ".md"
+    - ".doc"
+    - ".docx"
+    - ".xls"
+    - ".xlsx"
+    - ".csv"
+    - ".json"
+    - ".yaml"
+    - ".yml"
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".gif"
+    - ".webp"
+
+# Memory/retrieval configuration
+memory:
+  enabled: true
+  type: "sqlite"
+  path: "./data/memory_dev.db"
+  embedder: "local-minilm"
+  top_k: 5
+
+# Cache configuration
+cache:
+  enabled: true
+  type: "memory"  # Use in-memory cache for development
+  ttl_seconds: 3600
+
+# Development-specific features
+development:
+  # Auto-reload on code changes
+  auto_reload: true
+  
+  # Show detailed error pages
+  detailed_errors: true
+  
+  # Enable API documentation
+  docs_enabled: true
+  docs_url: "/docs"
+  redoc_url: "/redoc"
+  openapi_url: "/openapi.json"
+  
+  # Mock external services when unavailable
+  mock_external_services: false
+  
+  # Disable request validation for testing
+  strict_validation: false
+  
+  # Allow all file types for testing
+  allow_all_file_types: false
+
+# Performance (development optimized)
+performance:
+  worker_count: 1
+  thread_pool_size: 10
+  max_concurrent_requests: 5
+  request_queue_size: 50
+

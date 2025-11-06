@@ -1,0 +1,228 @@
+# SearXNG Production Configuration for Aether
+# Robust, reliable search engine configuration
+
+use_default_settings: true
+
+general:
+    instance_name: 'Aether SearXNG'
+    # Enable debug for troubleshooting
+    debug: false
+    
+server:
+    port: 4000
+    bind_address: "127.0.0.1"
+    secret_key: "aether_searxng_secret_key_production_2025"
+    base_url: false
+    image_proxy: false
+    public_instance: false
+    # Limiter settings for production
+    limiter: false
+    default_locale: "en"
+    default_http_headers:
+        X-Content-Type-Options: nosniff
+        X-Frame-Options: SAMEORIGIN
+        X-XSS-Protection: 1; mode=block
+    
+search:
+    safe_search: 0
+    autocomplete: "google"
+    default_lang: "en"
+    # CRITICAL: Force English/US locale to prevent regional result pollution
+    # This was causing the issue where "AetherInc" returned Chinese/Italian results
+    ban_time_on_fail: 5
+    max_ban_time_on_fail: 120
+    formats:
+        - html
+        - json
+        - csv
+        - rss
+    # Default categories
+    default_category: general
+
+# DOI resolver configuration
+default_doi_resolver: "doi.org"
+doi_resolvers:
+    doi.org: "https://doi.org"
+    dx.doi.org: "https://dx.doi.org"
+    
+ui:
+    static_use_hash: false
+    default_locale: "en"
+    default_theme: "simple"
+    theme_args:
+        simple_style: auto
+    center_alignment: false
+    infinite_scroll: false
+    query_in_title: false
+    
+outgoing:
+    # Production-ready timeout settings
+    request_timeout: 4.0
+    max_request_timeout: 12.0
+    useragent_suffix: "AetherSearch"
+    pool_connections: 100
+    pool_maxsize: 20
+    enable_http2: true
+    max_redirects: 10
+    # Retry configuration for reliability
+    retries: 2
+    retry_on_http_error: [429, 500, 502, 503, 504]
+    
+# Engine Configuration - Production Ready
+engines:
+  # Primary engines - Bing & Google with proper configuration
+  - name: bing
+    engine: bing
+    shortcut: bi
+    categories: [general, web]
+    disabled: false
+    # Force en-US market to avoid regional results
+    language: en
+    # Increased timeout for reliability
+    timeout: 5.0
+    
+  - name: google
+    engine: google
+    shortcut: go
+    categories: [general, web]
+    disabled: true
+    language: en
+    timeout: 5.0
+    use_mobile_ui: false
+    
+  # News engines with proper configuration
+  - name: bing news
+    engine: bing_news
+    shortcut: bin
+    categories: news
+    disabled: false
+    language: en
+    timeout: 5.0
+    
+  - name: google news
+    engine: google_news
+    shortcut: gon
+    categories: news
+    disabled: true
+    language: en
+    timeout: 5.0
+    
+  # Backup search engines - reliable alternatives to DDG
+  - name: startpage
+    engine: startpage
+    shortcut: sp
+    categories: [general, web]
+    disabled: true  # Disabled due to persistent CAPTCHA challenges
+    timeout: 5.0
+
+  # Keep DuckDuckGo disabled due to CAPTCHA issues
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+    categories: [general, web]
+    disabled: true
+    timeout: 4.0
+    
+  # Specialized engines
+  - name: wikipedia
+    engine: wikipedia
+    shortcut: wp
+    categories: general
+    disabled: false
+    
+  - name: github
+    engine: github
+    shortcut: gh
+    categories: it
+    disabled: false
+    
+  - name: stackoverflow
+    engine: stackexchange
+    shortcut: so
+    categories: it
+    disabled: false
+    base_url: 'https://stackoverflow.com/'
+    
+  - name: reddit
+    engine: reddit
+    shortcut: re
+    categories: [social media]
+    disabled: false
+    
+  # Academic engines
+  - name: arxiv
+    engine: arxiv
+    shortcut: arx
+    categories: science
+    disabled: false
+    
+  - name: pubmed
+    engine: pubmed
+    shortcut: pub
+    categories: science
+    disabled: false
+    
+  - name: google scholar
+    engine: google_scholar
+    shortcut: gos
+    categories: science
+    disabled: true
+    timeout: 6.0
+    
+  # Media engines
+  - name: youtube
+    engine: youtube_noapi
+    shortcut: yt
+    categories: videos
+    disabled: false
+    
+  - name: google images
+    engine: google_images
+    shortcut: gi
+    categories: images
+    disabled: true
+    
+  - name: bing images
+    engine: bing_images
+    shortcut: bimg
+    categories: images
+    disabled: false
+    
+  # Specialized search - disabled due to missing engine file
+  # To enable: use wolframalpha_api with API key or wolframalpha_noapi
+  # - name: wolframalpha
+  #   engine: wolframalpha_noapi
+  #   shortcut: wa
+  #   disabled: false
+
+# Category configuration
+categories_as_tabs:
+  general:
+    - bing
+    - wikipedia
+  news:
+    - bing news
+  images:
+    - bing images
+  videos:
+    - youtube
+  it:
+    - github
+    - stackoverflow
+  science:
+    - arxiv
+    - pubmed
+  social media:
+    - reddit
+
+# Locales configuration - Force English/US
+locales:
+    en: English
+    en-US: English (United States)
+
+# Default preferences for API usage
+preferences:
+    lock:
+        - language
+        - locale
+        - safesearch

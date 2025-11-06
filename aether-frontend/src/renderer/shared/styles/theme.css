@@ -1,0 +1,538 @@
+/**
+ * @.architecture
+ * 
+ * Incoming: index.css @import directive --- {import_types.css, @import}
+ * Processing: Define CSS custom properties (design tokens: colors, typography, spacing, shadows, transitions, breakpoints), support dark/light themes --- {1 job: JOB_INITIALIZE}
+ * Outgoing: CSS variables to browser CSSOM, consumed by component and window styles --- {css_types.custom_properties, CSSStyleDeclaration}
+ * 
+ * @module renderer/shared/styles/theme.css
+ */
+
+/**
+ * Aether Theme System
+ * ============================================================================
+ * Centralized design tokens and theming using CSS custom properties.
+ * 
+ * Architecture:
+ * - Base theme variables (colors, typography, spacing, shadows, transitions)
+ * - Dark mode (default)
+ * - Light mode (optional, user-toggleable)
+ * - Responsive breakpoints
+ * - Z-index layers
+ * - Animation presets
+ * 
+ * Usage:
+ * Import this file first in all renderer HTML files.
+ * Reference variables: var(--color-bg-primary), var(--spacing-md), etc.
+ */
+
+/* ============================================================================
+   ROOT THEME - Dark Mode (Default)
+   ============================================================================ */
+
+:root {
+  /* --- Color Palette --- */
+  
+  /* Background colors */
+  --color-bg-primary: #0a0a0a;
+  --color-bg-secondary: #121212;
+  --color-bg-tertiary: #1a1a1a;
+  --color-bg-elevated: #1e1e1e;
+  --color-bg-overlay: rgba(10, 10, 10, 0.95);
+  
+  /* Surface colors */
+  --color-surface-base: rgba(255, 255, 255, 0.03);
+  --color-surface-hover: rgba(255, 255, 255, 0.06);
+  --color-surface-active: rgba(255, 255, 255, 0.10);
+  
+  /* Text colors */
+  --color-text-primary: rgba(255, 255, 255, 0.95);
+  --color-text-secondary: rgba(255, 255, 255, 0.75);
+  --color-text-tertiary: rgba(255, 255, 255, 0.60);
+  --color-text-disabled: rgba(255, 255, 255, 0.40);
+  --color-text-inverse: rgba(0, 0, 0, 0.90);
+  
+  /* Border colors */
+  --color-border-base: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.15);
+  --color-border-hover: rgba(255, 255, 255, 0.30);
+  --color-border-focus: rgba(255, 255, 255, 0.90);
+  
+  /* Brand colors */
+  --color-primary: rgba(255, 100, 0, 1);
+  --color-primary-light: rgba(255, 150, 50, 1);
+  --color-primary-dark: rgba(200, 80, 0, 1);
+  --color-primary-alpha: rgba(255, 100, 0, 0.1);
+  
+  /* Semantic colors */
+  --color-success: #86efac;
+  --color-success-bg: rgba(134, 239, 172, 0.16);
+  --color-success-border: rgba(134, 239, 172, 0.40);
+  
+  --color-warning: #fde047;
+  --color-warning-bg: rgba(253, 224, 71, 0.16);
+  --color-warning-border: rgba(253, 224, 71, 0.40);
+  
+  --color-error: #fca5a5;
+  --color-error-bg: rgba(252, 165, 165, 0.18);
+  --color-error-border: rgba(252, 165, 165, 0.40);
+  
+  --color-info: #93c5fd;
+  --color-info-bg: rgba(147, 197, 253, 0.16);
+  --color-info-border: rgba(147, 197, 253, 0.40);
+  
+  /* State colors */
+  --color-dormant: rgba(255, 255, 255, 0.50);
+  --color-listening: rgba(255, 255, 255, 0.90);
+  --color-processing: #b088ff;
+  --color-speaking: #ff9500;
+  
+  /* --- Typography --- */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', Courier, monospace;
+  
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-size-3xl: 1.875rem;   /* 30px */
+  --font-size-4xl: 2.25rem;    /* 36px */
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* --- Spacing Scale --- */
+  --spacing-xs: 0.25rem;  /* 4px */
+  --spacing-sm: 0.5rem;   /* 8px */
+  --spacing-md: 1rem;     /* 16px */
+  --spacing-lg: 1.5rem;   /* 24px */
+  --spacing-xl: 2rem;     /* 32px */
+  --spacing-2xl: 3rem;    /* 48px */
+  --spacing-3xl: 4rem;    /* 64px */
+  
+  /* --- Border Radius --- */
+  --radius-sm: 0.375rem;  /* 6px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+  --radius-2xl: 1.25rem;  /* 20px */
+  --radius-full: 9999px;
+  
+  /* --- Shadows --- */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-glow: 0 0 15px rgba(255, 255, 255, 0.3);
+  
+  /* --- Backdrop Filters --- */
+  --backdrop-blur-sm: blur(4px);
+  --backdrop-blur-base: blur(10px);
+  --backdrop-blur-md: blur(15px);
+  --backdrop-blur-lg: blur(20px);
+  --backdrop-blur-xl: blur(25px);
+  
+  /* --- Transitions --- */
+  --transition-fast: 0.1s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  --transition-slowest: 0.5s ease;
+  
+  --transition-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-sharp: cubic-bezier(0.4, 0, 0.6, 1);
+  
+  /* --- Animation Durations --- */
+  --duration-instant: 0ms;
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+  --duration-slowest: 1000ms;
+  
+  /* --- Z-index Layers --- */
+  --z-base: 0;
+  --z-canvas: 0;
+  --z-content: 10;
+  --z-controls: 100;
+  --z-overlay: 1000;
+  --z-dropdown: 1100;
+  --z-modal: 2000;
+  --z-popover: 2100;
+  --z-toast: 3000;
+  --z-tooltip: 4000;
+  
+  /* --- Breakpoints (for JS consumption) --- */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  
+  /* --- Window Sizes --- */
+  --window-widget-size: 200px;
+  --window-normal-width: 1200px;
+  --window-normal-height: 800px;
+  --window-min-width: 400px;
+  --window-min-height: 300px;
+}
+
+
+/* ============================================================================
+   LIGHT MODE THEME
+   ============================================================================ */
+
+[data-theme="light"] {
+  /* Background colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-bg-tertiary: #f3f4f6;
+  --color-bg-elevated: #ffffff;
+  --color-bg-overlay: rgba(255, 255, 255, 0.95);
+  
+  /* Surface colors */
+  --color-surface-base: rgba(0, 0, 0, 0.03);
+  --color-surface-hover: rgba(0, 0, 0, 0.06);
+  --color-surface-active: rgba(0, 0, 0, 0.10);
+  
+  /* Text colors */
+  --color-text-primary: rgba(0, 0, 0, 0.90);
+  --color-text-secondary: rgba(0, 0, 0, 0.70);
+  --color-text-tertiary: rgba(0, 0, 0, 0.55);
+  --color-text-disabled: rgba(0, 0, 0, 0.40);
+  --color-text-inverse: rgba(255, 255, 255, 0.95);
+  
+  /* Border colors */
+  --color-border-base: rgba(0, 0, 0, 0.08);
+  --color-border-strong: rgba(0, 0, 0, 0.15);
+  --color-border-hover: rgba(0, 0, 0, 0.30);
+  --color-border-focus: rgba(0, 0, 0, 0.90);
+  
+  /* Brand colors - keep same */
+  
+  /* Semantic colors - adjust for light mode */
+  --color-success: #16a34a;
+  --color-success-bg: rgba(22, 163, 74, 0.10);
+  --color-success-border: rgba(22, 163, 74, 0.30);
+  
+  --color-warning: #ca8a04;
+  --color-warning-bg: rgba(202, 138, 4, 0.10);
+  --color-warning-border: rgba(202, 138, 4, 0.30);
+  
+  --color-error: #dc2626;
+  --color-error-bg: rgba(220, 38, 38, 0.10);
+  --color-error-border: rgba(220, 38, 38, 0.30);
+  
+  --color-info: #2563eb;
+  --color-info-bg: rgba(37, 99, 235, 0.10);
+  --color-info-border: rgba(37, 99, 235, 0.30);
+  
+  /* Shadows - stronger in light mode */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.08);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.10);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.06);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.30);
+  --shadow-glow: 0 0 15px rgba(0, 0, 0, 0.15);
+}
+
+
+/* ============================================================================
+   GLOBAL RESETS & BASE STYLES
+   ============================================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+/* Electron specific */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-app-region: no-drag;
+}
+
+/* Allow text selection in specific areas */
+input,
+textarea,
+[contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+
+/* ============================================================================
+   SCROLLBAR STYLING
+   ============================================================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+/* Visibility */
+.hidden {
+  display: none !important;
+}
+
+.invisible {
+  visibility: hidden !important;
+}
+
+/* Layout */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-sm {
+  gap: var(--spacing-sm);
+}
+
+.gap-md {
+  gap: var(--spacing-md);
+}
+
+.gap-lg {
+  gap: var(--spacing-lg);
+}
+
+/* Transitions */
+.transition {
+  transition: all var(--transition-base);
+}
+
+.transition-fast {
+  transition: all var(--transition-fast);
+}
+
+.transition-slow {
+  transition: all var(--transition-slow);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn var(--duration-normal) var(--transition-smooth);
+}
+
+.animate-slideUp {
+  animation: slideUp var(--duration-normal) var(--transition-smooth);
+}
+
+.animate-slideDown {
+  animation: slideDown var(--duration-normal) var(--transition-smooth);
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+
+/* ============================================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================================ */
+
+/* Small devices (landscape phones, 640px and up) */
+@media (min-width: 640px) {
+  .sm\:hidden {
+    display: none;
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+  .md\:hidden {
+    display: none;
+  }
+}
+
+/* Large devices (desktops, 1024px and up) */
+@media (min-width: 1024px) {
+  .lg\:hidden {
+    display: none;
+  }
+}
+
+/* Extra large devices (large desktops, 1280px and up) */
+@media (min-width: 1280px) {
+  .xl\:hidden {
+    display: none;
+  }
+}
+
+
+/* ============================================================================
+   ACCESSIBILITY
+   ============================================================================ */
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+

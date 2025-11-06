@@ -1,0 +1,300 @@
+<!--
+  @.architecture
+  
+  Incoming: Electron BrowserWindow creation (main/windows/WindowManager.js) --- {window_types.main, BrowserWindow}
+  Processing: Define HTML structure, load stylesheets, render UI elements (canvas, telemetry widgets, settings modal), load bundled renderer script --- {3 jobs: JOB_CREATE_DOM_ELEMENT, JOB_INITIALIZE, JOB_RENDER_MARKDOWN}
+  Outgoing: DOM tree rendered to main window, script execution → build/renderer/main.js --- {html_types.document, Document}
+  
+  @module renderer/main/index.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Aether</title>
+    
+    <!-- Import shared styles first -->
+    <link rel="stylesheet" href="../shared/styles/index.css" />
+    <!-- Then window-specific styles -->
+    <link rel="stylesheet" href="styles/main.css" />
+</head>
+<body>
+    <!-- Neural network visualization canvas (always present) -->
+    <canvas id="scene-canvas"></canvas>
+    
+    <div id="root">
+        <div class="widget-container" style="display: none;">
+            <!-- Widget mode: canvas visible, controls hidden -->
+        </div>
+        <div class="normal-container">
+            <!-- Normal mode: full UI with controls -->
+
+    <!-- Control Buttons -->
+    <div class="mic-button" id="mic-button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>
+        <span class="push-to-talk-hint">Hold to talk</span>
+    </div>
+
+    <button id="chat-toggle" class="chat-toggle" title="Open Chat">💬</button>
+    <button id="settings-button" class="settings-button" title="Settings">⚙️</button>
+    <button id="code-panel-toggle" class="artifacts-toggle" title="Artifacts">{ }</button>
+
+    <!-- Telemetry Widgets -->
+    <div class="telemetry-container telemetry-top-left">
+        <div>Welcome to Aether</div>
+        <div class="sensor-readout">
+            <span class="sensor-label">CPU:</span>
+            <span class="sensor-value" id="cpu-usage">0%</span>
+        </div>
+        <div class="sensor-readout">
+            <span class="sensor-label">MEM:</span>
+            <span class="sensor-value" id="memory-usage">0 MB</span>
+        </div>
+        <div class="sensor-readout">
+            <span class="sensor-label">FPS:</span>
+            <span class="sensor-value" id="fps-counter">60</span>
+        </div>
+    </div>
+
+    <div class="telemetry-container telemetry-top-right">
+        <div>AUDIO.MODULE</div>
+        <div class="sensor-readout">
+            <span class="sensor-label">MIC:</span>
+            <span class="sensor-value" id="mic-percentage">0%</span>
+        </div>
+        <div class="mic-level">
+            <div class="mic-level-fill" id="mic-level-fill"></div>
+        </div>
+        <div class="status-indicator status-idle" id="system-status">IDLE</div>
+    </div>
+
+    <div class="telemetry-container telemetry-bottom-left">
+        <div class="sensor-readout">
+            <span class="sensor-label">LAT:</span>
+            <span class="sensor-value" id="network-latency">25ms</span>
+        </div>
+        <div class="sensor-readout">
+            <span class="sensor-label">NODES:</span>
+            <span class="sensor-value" id="node-count">100</span>
+        </div>
+    </div>
+
+    <div class="telemetry-container telemetry-bottom-right">
+        <div>SYSTEM.TIME: <span class="sensor-value" id="system-time">00:00:00</span></div>
+        <div id="connection-status" class="status-indicator">OFFLINE</div>
+        <div id="backend-info"></div>
+    </div>
+
+    <!-- Decorative circles -->
+    <div class="telemetry-circle circle-1"></div>
+    <div class="telemetry-circle circle-2"></div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal hidden" id="settings-modal">
+        <div class="settings-panel">
+            <div class="settings-header">
+                <div class="settings-title">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </div>
+                <div class="settings-actions">
+                    <span id="settings-status" class="settings-status-text"></span>
+                    <button id="settings-cancel" class="btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </button>
+                    <button id="settings-save" class="btn-primary">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+            
+            <div class="settings-body">
+                <div class="settings-sidebar">
+                    <div class="settings-tabs">
+                        <div class="settings-tab active" data-tab="assistant">
+                            <i class="fas fa-robot"></i>
+                            <span>Assistant</span>
+                        </div>
+                        <div class="settings-tab" data-tab="connections">
+                            <i class="fas fa-network-wired"></i>
+                            <span>Connections</span>
+                        </div>
+                        <div class="settings-tab" data-tab="documents">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Other Models</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-main">
+                    <!-- Assistant Tab -->
+                    <div class="settings-section active" id="tab-assistant">
+                        <div class="section-header">
+                            <h3>Assistant Configuration</h3>
+                            <p>Configure your AI assistant settings and model preferences</p>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <h4><i class="fas fa-user-circle"></i> Profile Settings</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="form-field">
+                                    <label for="oi-profile">Profile</label>
+                                    <div class="input-wrapper">
+                                        <select id="oi-profile">
+                                            <option value="">Select a profile...</option>
+                                        </select>
+                                        <div class="field-icon">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </div>
+                                    </div>
+                                    <div class="form-help" id="oi-profile-help">Loading profiles…</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <h4><i class="fas fa-brain"></i> Model Configuration</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="form-row">
+                                    <div class="form-field">
+                                        <label for="llm-provider">Provider</label>
+                                        <div class="input-wrapper">
+                                            <select id="llm-provider">
+                                                <option value="openai-compatible">OpenAI Compatible (LM Studio)</option>
+                                                <option value="ollama">Ollama</option>
+                                                <option value="jan">Jan</option>
+                                            </select>
+                                            <div class="field-icon">
+                                                <i class="fas fa-chevron-down"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-field">
+                                        <label for="llm-api-base">API Base URL</label>
+                                        <div class="input-wrapper">
+                                            <input id="llm-api-base" type="text" placeholder="http://localhost:1234/v1" />
+                                            <div class="field-icon">
+                                                <i class="fas fa-link"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="llm-model">Model</label>
+                                    <div class="input-wrapper">
+                                        <select id="llm-model">
+                                            <option value="">Select a model...</option>
+                                        </select>
+                                        <div class="field-icon">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </div>
+                                    </div>
+                                    <div class="form-help" id="llm-model-help">Loading models…</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Model info card -->
+                        <div class="model-info-card" id="model-info" style="display:none;">
+                            <div class="model-info" id="model-info-content"></div>
+                        </div>
+                    </div>
+
+                    <!-- Connections Tab -->
+                    <div class="settings-section" id="tab-connections">
+                        <div class="section-header">
+                            <h3>Service Connections</h3>
+                            <p>Monitor and manage your service connections</p>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <h4><i class="fas fa-server"></i> Service Status</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="service-grid" id="service-status-grid"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Documents Tab -->
+                    <div class="settings-section" id="tab-documents">
+                        <div class="section-header">
+                            <h3>Document Processing</h3>
+                            <p>Configure document parsing models and pipelines</p>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <h4><i class="fas fa-cogs"></i> Docling Pipeline</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="form-field">
+                                    <label for="docling-pipeline">Processing Pipeline</label>
+                                    <div class="input-wrapper">
+                                        <select id="docling-pipeline">
+                                            <option value="standard">Standard (OCR)</option>
+                                            <option value="vlm">Vision-Language Model</option>
+                                            <option value="asr">Audio Transcription</option>
+                                        </select>
+                                        <div class="field-icon">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </div>
+                                    </div>
+                                    <div class="form-help">Choose how documents are processed. VLM provides best accuracy for complex layouts.</div>
+                                </div>
+
+                                <div class="form-field" id="vision-model-field" style="display: none;">
+                                    <label for="docling-vision-model">Vision Model</label>
+                                    <div class="input-wrapper">
+                                        <select id="docling-vision-model">
+                                            <option value="">Loading models...</option>
+                                        </select>
+                                        <div class="field-icon">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </div>
+                                    </div>
+                                    <div class="form-help" id="vision-model-help">Select a vision model from LM Studio for document understanding</div>
+                                </div>
+
+                                <div class="form-field" id="lm-studio-model-field" style="display: none;">
+                                    <label for="docling-lm-studio-model">LM Studio Model Name</label>
+                                    <div class="input-wrapper">
+                                        <input id="docling-lm-studio-model" type="text" placeholder="e.g., smoldocling-256m-preview-mlx" />
+                                        <div class="field-icon">
+                                            <i class="fas fa-tag"></i>
+                                        </div>
+                                    </div>
+                                    <div class="form-help">Exact model name as configured in LM Studio</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div> <!-- closes normal-container -->
+    </div> <!-- closes root -->
+
+    <!-- Load bundled main renderer script (includes all dependencies) -->
+    <script src="../../../build/renderer/main.js"></script>
+</body>
+</html>

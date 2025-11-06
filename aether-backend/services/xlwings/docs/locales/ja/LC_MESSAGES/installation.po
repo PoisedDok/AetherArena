@@ -1,0 +1,273 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-22 22:27+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../installation.rst:4 ../../installation.rst:22
+msgid "Installation"
+msgstr "インストール"
+
+#: ../../installation.rst:7
+msgid "Prerequisites"
+msgstr "前提条件"
+
+#: ../../installation.rst:9
+msgid ""
+"xlwings (Open Source) requires an **installation of Excel** and therefore"
+" only works on **Windows** and **macOS**. Note that macOS currently does "
+"not support UDFs."
+msgstr ""
+"xlwings (Open Source) は **Excelのインストール** を前提としているため、"
+" **Windows** と **macOS** でしか動作しません。"
+"また、macOSでは現時点ではUDFをサポートしていません。"
+
+#: ../../installation.rst:11
+msgid "xlwings :bdg-secondary:`PRO` offers additional features:"
+msgstr "xlwings :bdg-secondary:`PRO` の追加機能:"
+
+#: ../../installation.rst:11
+msgid ""
+":ref:`File Reader <file_reader>` (new in v0.28.0): Runs additionally on "
+"Linux and doesn't require an installation of Excel."
+msgstr ""
+":ref:`File Reader <file_reader>` (new in v0.28.0): Linux上でも動作し、"
+"Excelのインストールは不要です。"
+
+#: ../../installation.rst:12
+msgid ""
+":ref:`xlwings Server <remote_interpreter>` (new in v0.26.0). Runs "
+"additionally on Linux and doesn't require a local installation of Python."
+" Works with Desktop Excel on Windows and macOS as well as with Excel on "
+"the web and Google Sheets."
+msgstr ""
+":ref:`xlwings Server <remote_interpreter>` (new in v0.26.0): Linux上でも"
+"動作し、Python のローカル インストールは必要ありません。"
+"WindowsとmacOSのデスクトップExcelだけではなく、Web上のExcel、Google Sheetsでも"
+"動作します。"
+
+#: ../../installation.rst:13
+msgid "xlwings requires at least Python 3.7."
+msgstr "xlwingsはPython 3.7以上で動作します。"
+
+#: ../../installation.rst:15
+msgid ""
+"Here are previous versions of xlwings that support older versions of "
+"Python:"
+msgstr ""
+"古いバージョンのPythonをサポートするxlwingsのバージョンは次のとおり:"
+
+#: ../../installation.rst:17
+msgid "Python 3.6: 0.25.3"
+msgstr ""
+
+#: ../../installation.rst:18
+msgid "Python 3.5: 0.19.5"
+msgstr ""
+
+#: ../../installation.rst:19
+msgid "Python 2.7: 0.16.6"
+msgstr ""
+
+#: ../../installation.rst:24
+msgid "xlwings comes pre-installed with"
+msgstr "xlwingsは以下のディストリビューションに含まれます"
+
+#: ../../installation.rst:26
+msgid ""
+"`Anaconda <https://www.anaconda.com/products/individual>`_ (Windows and "
+"macOS)"
+msgstr ""
+
+#: ../../installation.rst:27
+msgid ""
+"`WinPython <https://winpython.github.io>`_ (Windows only) Make sure "
+"**not** to take the ``dot`` version as this only contains Python."
+msgstr ""
+"`WinPython <https://winpython.github.io>`_ (Windowsのみ) Pythonしか含まれない "
+"``dot`` バージョンを **使用しない** こと"
+
+#: ../../installation.rst:29
+msgid ""
+"If you are new to Python or have trouble installing xlwings, one of these"
+" distributions is highly recommended. Otherwise, you can also install it "
+"with pip::"
+msgstr ""
+"Pythonを初めて使う場合や、xlwingsのインストールでトラブルが起きる場合には、"
+"上記いずれかのディストリビューションの利用を強く推奨します。それ以外には、"
+"pipを使ってインストールすることもできます:"
+
+#: ../../installation.rst:33
+msgid "or conda::"
+msgstr "もしくはcondaで::"
+
+#: ../../installation.rst:37
+msgid ""
+"Note that the official conda package might be a few releases behind. You "
+"can, however, use the ``conda-forge`` channel (replace ``install`` with "
+"``upgrade`` if xlwings is already installed)::"
+msgstr ""
+"公式のcondaからインストールしたパッケージは少し前にリリースされた"
+"バージョンの場合があります。その場合、 ``conda-forge`` チャネルを"
+"使いましょう（xlwingsがインストール済みなら ``install`` を ``upgrade`` "
+"に置き換えて下さい）::"
+
+#: ../../installation.rst:43
+msgid "Add-in"
+msgstr "アドイン"
+
+#: ../../installation.rst:45
+msgid "To install the add-in, run the following command::"
+msgstr "アドインをインストールするには、以下のコマンドを実行します::"
+
+#: ../../installation.rst:49
+msgid ""
+"To automate Excel from Python, you don't need an add-in. Also, you can "
+"use a single file VBA module (*standalone workbook*) instead of the add-"
+"in. For more details, see :ref:`xlwings_addin`."
+msgstr ""
+"PythonでExcelの自動化を行う場合はアドインは不要です。また、アドインの代わりに"
+"単独のVBAモジュール（*スタンドアローンのワークブック*）を使うこともできます。"
+"詳細は :ref:`xlwings_addin` をご覧ください。"
+
+#: ../../installation.rst:52
+msgid ""
+"The add-in needs to be the same version as the Python package. Make sure "
+"to run ``xlwings add install`` again after upgrading the xlwings package."
+msgstr ""
+"アドインはPythonのパッケージと同じバージョンでなければなりません。"
+"xlwingsのパッケージをアップデートした際は、再度 ``xlwings add install`` を"
+"実行してください。"
+
+#: ../../installation.rst:55
+msgid ""
+"When you are on macOS and are using the VBA standalone module instead of "
+"the add-in, you need to run ``$ xlwings runpython install`` once."
+msgstr ""
+"macOSで、かつ、アドインの代わりにVBAスタンドアローン モジュールを使っている場合、"
+" ``$ xlwings runpython install`` を一度実行する必要があります。"
+
+#: ../../installation.rst:58
+msgid "Dependencies"
+msgstr "依存関係"
+
+#: ../../installation.rst:60
+msgid "For automating Excel, you'll need the following dependencies:"
+msgstr "Excelの自動化には、以下の依存関係"
+
+#: ../../installation.rst:62
+msgid "**Windows**: ``pywin32``"
+msgstr "**Windows**: ``pywin32``"
+
+#: ../../installation.rst:64
+msgid "**Mac**: ``psutil``, ``appscript``"
+msgstr ""
+
+#: ../../installation.rst:66
+msgid ""
+"The dependencies are automatically installed via ``conda`` or ``pip``. If"
+" you would like to install xlwings without dependencies, you can run "
+"``pip install xlwings --no-deps``."
+msgstr ""
+"``conda`` か ``pip`` でxlwingsをインストールすれば、依存パッケージも自動的に"
+"インストールされます。依存パッケージなしでxlwingsのみをインストールするには、"
+"``pip install xlwings --no-deps`` を実行します。"
+
+
+#: ../../installation.rst:70
+msgid "How to activate xlwings :bdg-secondary:`PRO`"
+msgstr ":bdg-secondary:`PRO` を有効かするには"
+
+#: ../../installation.rst:72
+msgid "See :ref:`xlwings PRO <pro>`."
+msgstr ":ref:`xlwings PRO <pro>` を参照してください。"
+
+#: ../../installation.rst:75
+msgid "Optional Dependencies"
+msgstr "必須ではない依存関係"
+
+#: ../../installation.rst:77
+msgid "NumPy"
+msgstr ""
+
+#: ../../installation.rst:78
+msgid "pandas"
+msgstr ""
+
+#: ../../installation.rst:79
+msgid "Matplotlib"
+msgstr ""
+
+#: ../../installation.rst:80
+msgid "Pillow"
+msgstr ""
+
+#: ../../installation.rst:81
+msgid "Jinja2 (for xlwings.pro.reports)"
+msgstr ""
+
+#: ../../installation.rst:82
+msgid "requests (for permissioning)"
+msgstr ""
+
+#: ../../installation.rst:84
+msgid ""
+"These packages are not required but highly recommended as they play very "
+"nicely with xlwings. They are all pre-installed with Anaconda. With pip, "
+"you can install xlwings with all optional dependencies as follows::"
+msgstr "これらのパッケージは必須ではありませんが、xlwingsと強力に連携することからインストールを強く推奨します。これらは全てAnacondaに初めからインストールされています。pipの場合、これらを含めてxlwingsをインストールするには、次のようにします::"
+
+#: ../../installation.rst:89
+msgid "Update"
+msgstr "アップデート"
+
+#: ../../installation.rst:91
+msgid ""
+"To update to the latest xlwings version, run the following in a command "
+"prompt::"
+msgstr "xlwingsを最新バージョンにアップデートするには、コマンド プロンプトで以下を実行します::"
+
+#: ../../installation.rst:95 ../../installation.rst:114
+msgid "or::"
+msgstr "もしくは::"
+
+#: ../../installation.rst:99
+msgid ""
+"Make sure to keep your version of the Excel add-in in sync with your "
+"Python package by running the following (make sure to close Excel "
+"first)::"
+msgstr "ExcelアドインのバージョンはPythonパッケージのバージョンと同期させてください。同期するには、Excelを閉じた上で以下を実行します::"
+
+#: ../../installation.rst:104
+msgid "Uninstall"
+msgstr "アンインストール"
+
+#: ../../installation.rst:106
+msgid ""
+"To uninstall xlwings completely, first uninstall the add-in, then "
+"uninstall the xlwings package using the same method (pip or conda) that "
+"you used for installing it::"
+msgstr "xlwingsをアンインストールするには、初めにアドインをアンインストールしてください。次に、インストールと同じ方法（pipまたはconda）で、xlwingsパッケージをアンインストールしてください。"
+
+#: ../../installation.rst:110
+msgid "Then ::"
+msgstr "続いて ::"
+
+#: ../../installation.rst:118
+msgid ""
+"Finally, manually remove the ``.xlwings`` directory in your home folder "
+"if it exists."
+msgstr ""
+"最後に ``.xlwings`` ディレクトリーがホーム フォルダーにあれば、それも削除します。"

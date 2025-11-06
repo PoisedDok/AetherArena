@@ -1,0 +1,314 @@
+# FRONTEND DATA FLOW STANDARD - Abstract Flow Patterns
+# =============================================================================
+# Defines standard flow patterns for data movement through the system.
+# All files MUST conform to one or more of these flow patterns.
+# =============================================================================
+
+version: "1.0.0"
+domain: "frontend"
+
+# =============================================================================
+# FLOW PATTERN TYPES
+# =============================================================================
+
+flow_patterns:
+  
+  # PATTERN 1: Entry Point (Network → System)
+  entry_point:
+    description: "Receives external data and emits internal events"
+    jobs:
+      - "JOB_WS_RECEIVE | JOB_HTTP_REQUEST"
+      - "JOB_PARSE_JSON"
+      - "JOB_VALIDATE_SCHEMA"
+      - "JOB_EMIT_EVENT"
+    data_flow:
+      incoming:
+        source: "external (backend WebSocket | HTTP API)"
+        type: "websocket_types.* | http_response"
+        format: "json | binary"
+      processing:
+        count: "3-5 jobs"
+        sequence: "receive → parse → validate → emit"
+      outgoing:
+        destination: "internal (event listeners)"
+        type: "event_types.custom_event"
+        format: "json"
+  
+  # PATTERN 2: Relay (System → System via IPC)
+  relay:
+    description: "Transforms data between processes/windows"
+    jobs:
+      - "JOB_PARSE_JSON | receive event"
+      - "JOB_TRANSFORM_TO_CHUNK"
+      - "JOB_SEND_IPC"
+    data_flow:
+      incoming:
+        source: "internal (event bus | WebSocket events)"
+        type: "event_types.*"
+        format: "json"
+      processing:
+        count: "2-4 jobs"
+        sequence: "receive → transform → route"
+      outgoing:
+        destination: "other_process (IPC channel)"
+        type: "ipc_types.*"
+        format: "json"
+  
+  # PATTERN 3: Orchestrator (Coordinate Multiple Modules)
+  orchestrator:
+    description: "Delegates work to specialized modules"
+    jobs:
+      - "JOB_INITIALIZE (submodules)"
+      - "JOB_ROUTE_BY_TYPE"
+      - "JOB_DELEGATE_TO_MODULE (n times)"
+    data_flow:
+      incoming:
+        source: "internal (IPC | events | API calls)"
+        type: "any"
+        format: "json"
+      processing:
+        count: "1-3 jobs (routing only, not transformation)"
+        sequence: "receive → classify → delegate"
+      outgoing:
+        destination: "internal (submodules)"
+        type: "any (delegates)"
+        format: "json"
+  
+  # PATTERN 4: Processor (Transform & Accumulate)
+  processor:
+    description: "Processes stream data and accumulates state"
+    jobs:
+      - "JOB_DEDUPLICATE_CHUNK"
+      - "JOB_DETECT_NEW_STREAM"
+      - "JOB_ACCUMULATE_TEXT | JOB_PARSE_THINK_TAGS"
+      - "JOB_UPDATE_STATE"
+      - "JOB_DELEGATE_TO_MODULE (for side effects)"
+    data_flow:
+      incoming:
+        source: "internal (IPC | events)"
+        type: "stream_types.*"
+        format: "json"
+      processing:
+        count: "4-7 jobs"
+        sequence: "validate → detect → transform → accumulate → delegate"
+      outgoing:
+        destination: "internal (renderer + persistence modules)"
+        type: "message_types.* | database_types.*"
+        format: "json"
+  
+  # PATTERN 5: Renderer (Data → DOM)
+  renderer:
+    description: "Converts data to visual DOM elements"
+    jobs:
+      - "JOB_RENDER_MARKDOWN | JOB_ESCAPE_HTML"
+      - "JOB_SANITIZE_MARKDOWN (if needed)"
+      - "JOB_CREATE_DOM_ELEMENT | JOB_UPDATE_DOM_ELEMENT"
+      - "JOB_APPEND_TO_CONTAINER"
+      - "JOB_SCROLL_TO_BOTTOM"
+    data_flow:
+      incoming:
+        source: "internal (processor modules)"
+        type: "message_types.* | artifact_types.*"
+        format: "json"
+      processing:
+        count: "3-5 jobs"
+        sequence: "render → sanitize → create/update → append → scroll"
+      outgoing:
+        destination: "DOM (browser)"
+        type: "dom_types.*"
+        format: "HTMLElement"
+  
+  # PATTERN 6: Persister (Data → Database)
+  persister:
+    description: "Stores data in PostgreSQL via IPC"
+    jobs:
+      - "JOB_VALIDATE_SCHEMA"
+      - "JOB_SAVE_TO_DB | JOB_LOAD_FROM_DB | JOB_UPDATE_DB"
+      - "JOB_CACHE_LOCALLY"
+      - "JOB_EMIT_EVENT (success/failure)"
+    data_flow:
+      incoming:
+        source: "internal (processor | orchestrator)"
+        type: "message_types.* | artifact_types.*"
+        format: "json"
+      processing:
+        count: "3-4 jobs"
+        sequence: "validate → persist → cache → notify"
+      outgoing:
+        destination: "external (PostgreSQL via IPC → backend)"
+        type: "database_types.*"
+        format: "json"
+  
+  # PATTERN 7: ID Generator (Stateful ID Creation)
+  id_generator:
+    description: "Generates deterministic IDs with relationships"
+    jobs:
+      - "JOB_GET_STATE (active session)"
+      - "JOB_GENERATE_SESSION_ID | specific ID job"
+      - "JOB_TRACK_ENTITY"
+      - "JOB_UPDATE_STATE (sequence increment)"
+    data_flow:
+      incoming:
+        source: "internal (any module needing ID)"
+        type: "null | string (parent id)"
+        format: "void | string"
+      processing:
+        count: "3-4 jobs"
+        sequence: "get_session → generate → track → update_state"
+      outgoing:
+        destination: "internal (caller)"
+        type: "session_types.session_id"
+        format: "string"
+  
+  # PATTERN 8: Artifact Classifier (Type Detection & Routing)
+  artifact_classifier:
+    description: "Detects artifact type and routes to specialized handler"
+    jobs:
+      - "JOB_ROUTE_BY_TYPE"
+      - "JOB_GENERATE_ARTIFACT_ID"
+      - "JOB_TRACK_ENTITY"
+      - "JOB_SEND_IPC"
+    data_flow:
+      incoming:
+        source: "internal (event: 'lmc')"
+        type: "artifact_types.* (unclassified)"
+        format: "json"
+      processing:
+        count: "4-5 jobs"
+        sequence: "classify → generate_id → enrich → track → route"
+      outgoing:
+        destination: "other_process (artifacts window)"
+        type: "artifact_types.* (classified)"
+        format: "json"
+
+# =============================================================================
+# FLOW VALIDATION RULES
+# =============================================================================
+
+validation_rules:
+  
+  incoming_requirements:
+    - "MUST specify exact source file/module/channel"
+    - "MUST specify data type from data_types.yaml"
+    - "MUST specify format (json | binary | HTMLElement | etc)"
+  
+  processing_requirements:
+    - "MUST list exact job types from job_types.yaml"
+    - "MUST specify job count (helps detect bloat)"
+    - "MUST specify sequence (if jobs are order-dependent)"
+  
+  outgoing_requirements:
+    - "MUST specify exact destination file/module/channel"
+    - "MUST specify data type from data_types.yaml"
+    - "MUST specify format (json | binary | HTMLElement | etc)"
+
+# =============================================================================
+# EDGE CASE FLOW PATTERNS
+# =============================================================================
+
+special_patterns:
+  
+  bidirectional_sync:
+    description: "Two-way data synchronization"
+    example: "DOM ↔ State synchronization"
+    jobs:
+      - "JOB_UPDATE_DOM_ELEMENT (state → DOM)"
+      - "JOB_UPDATE_STATE (DOM event → state)"
+    constraints:
+      - "MUST prevent infinite loops"
+      - "MUST use event delegation"
+  
+  fan_out:
+    description: "One input, multiple outputs"
+    example: "WebSocket message → both chat window and artifacts window"
+    jobs:
+      - "JOB_EMIT_EVENT (multiple listeners)"
+      - "JOB_SEND_IPC (multiple channels)"
+    constraints:
+      - "MUST handle individual failures"
+      - "SHOULD execute in parallel if possible"
+  
+  fan_in:
+    description: "Multiple inputs, one output"
+    example: "Multiple modules → single persistence layer"
+    jobs:
+      - "JOB_ROUTE_BY_TYPE (classify source)"
+      - "JOB_SAVE_TO_DB (unified)"
+    constraints:
+      - "MUST serialize conflicting writes"
+      - "MUST preserve order for same entity"
+  
+  pipeline:
+    description: "Sequential transformations"
+    example: "Text → Markdown → HTML → Sanitized HTML → DOM"
+    jobs:
+      - "JOB_RENDER_MARKDOWN"
+      - "JOB_SANITIZE_MARKDOWN"
+      - "JOB_CREATE_DOM_ELEMENT"
+    constraints:
+      - "MUST NOT skip steps"
+      - "MUST handle errors at each stage"
+
+# =============================================================================
+# FILE DOCUMENTATION TEMPLATE
+# =============================================================================
+
+file_documentation_template: |
+  /**
+   * [FileName] - [Brief Description]
+   * ==========================================================================
+   * 
+   * INCOMING: [Source files/channels] --- {data_types.*, format}
+   * 
+   * PROCESSING: [What this file does] --- {N jobs: JOB_X, JOB_Y, JOB_Z}
+   * 
+   * OUTGOING: [Destination files/channels] --- {data_types.*, format}
+   * 
+   * PATTERN: [flow_pattern_name from this file]
+   * JOBS: [List of JOB_* from job_types.yaml]
+   * SPECIAL: [Any deviations from standard pattern, or 'none']
+   */
+
+example_documentation: |
+  /**
+   * GuruConnection - WebSocket Entry Point & Event Emitter
+   * ==========================================================================
+   * 
+   * INCOMING: Backend WebSocket (ws://localhost:8765) --- {websocket_stream_chunk, json}
+   * 
+   * PROCESSING: Parse, validate, restore IDs, emit events --- {4 jobs: JOB_WS_RECEIVE, JOB_PARSE_JSON, JOB_RESTORE_ID, JOB_EMIT_EVENT}
+   * 
+   * OUTGOING: UIManager, ArtifactsStreamHandler --- {custom_event, json}
+   * 
+   * PATTERN: entry_point
+   * JOBS: JOB_WS_RECEIVE, JOB_PARSE_JSON, JOB_RESTORE_ID, JOB_VALIDATE_SCHEMA, JOB_EMIT_EVENT
+   * SPECIAL: Also emits 'lmc' event for artifact-type messages
+   */
+
+# =============================================================================
+# COMPLIANCE & ENFORCEMENT
+# =============================================================================
+
+compliance:
+  mandatory_fields:
+    - "INCOMING (source, type, format)"
+    - "PROCESSING (description, job count, job list)"
+    - "OUTGOING (destination, type, format)"
+    - "PATTERN (from flow_patterns)"
+    - "JOBS (from job_types.yaml)"
+  
+  optional_fields:
+    - "SPECIAL (deviations or edge cases)"
+  
+  enforcement:
+    level: "strict"
+    validation: "automated linting (future)"
+    review: "manual code review required"
+  
+  benefits:
+    - "Instant understanding of file's role in system"
+    - "Easy to trace data flow across files"
+    - "Detects architectural violations"
+    - "Enables automated dependency analysis"
+    - "Facilitates onboarding of new developers"
+

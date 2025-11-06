@@ -1,0 +1,42 @@
+# FILE ANALYSIS DIRECTIVE
+# =============================================================================
+# Authoritative instructions for engineers to document every frontend file.
+# Must be followed verbatim. See data_types.yaml, job_types.yaml, data_flow_standard.yaml.
+# =============================================================================
+
+version: "1.0.0"
+purpose: "Standardise file-level documentation across frontend codebase--both js and html and other files"
+
+references:
+  - "./data_types.yaml"
+  - "./job_types.yaml"
+  - "./data_flow_standard.yaml"
+
+template:
+  description: "Three-line documentation template, no additions"
+  lines:
+    - "Incoming: <source refs> --- {<data_type ref>, <format>}"
+    - "Processing: <actions summary> --- {<N> jobs: JOB_X, JOB_Y, …}"
+    - "Outgoing: <dest refs> --- {<data_type ref>, <format>}"
+
+rules:
+  scope: ["frontend"]
+  analysis:
+    - "Engineers MUST read full file via read_file tool (no partial reads) and THEN ONLY use edit tool to make changes."
+    - "Summaries MUST NOT include code; only behaviour."
+    - "Incoming/Outgoing sources are file names, IPC channels or modules."
+    - "Data types MUST reference keys from data_types.yaml."
+    - "Job codes MUST reference keys from job_types.yaml, listed alphabetically."
+    - "If section not applicable, use 'none'."
+    - "No markdown, bullets or explanatory prose beyond template lines."
+  format:
+    - "Exactly three lines per file block."
+    - "No leading/trailing whitespace."
+    - "Sections separated by single space after colon."
+  compliance:
+    validation: "Must satisfy file_documentation_template in data_flow_standard.yaml"
+    rejection_policy: "Non-conforming submissions are rejected without review."
+
+tool_usage:
+  - "Use read_file for complete contents."
+  - "Token / time cost is authorised."

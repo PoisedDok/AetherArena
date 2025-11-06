@@ -1,0 +1,2705 @@
+metadata:
+  version: 1.0.0
+  generated: '2025-11-06T00:39:23.400448'
+  source: Aether Backend API
+  backend_version: 2.0.0
+  backend_url: http://127.0.0.1:8765
+  total_integrations: 7
+  enabled_integrations: 6
+  note: Auto-generated from OpenAPI spec + integrations_registry.yaml
+categories:
+  Other:
+    name: Other
+    description: Health APIs
+    integration: health
+    requires_service: false
+    service_url: null
+    tools:
+    - name: status
+      path: computer.status
+      api_endpoint: /v1/api/status
+      http_method: GET
+      complexity: moderate
+      description: Detailed server status endpoint for legacy compatibility
+      signature: 'status(x-request-id: string = None, x-user-id: string = None, x-session-id:
+        string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use health backend API: Detailed server status (legacy)'
+      examples:
+      - computer.status(...)
+      tags:
+      - health
+      - backend_api
+      - aether
+      integration: health
+    - name: launch_terminal
+      path: computer.launch_terminal
+      api_endpoint: /v1/launch_terminal
+      http_method: GET
+      complexity: moderate
+      description: Launch system terminal application
+      signature: 'launch_terminal(x-request-id: string = None, x-user-id: string =
+        None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use terminal backend API: Launch terminal'
+      examples:
+      - computer.launch_terminal(...)
+      tags:
+      - terminal
+      - backend_api
+      - aether
+      integration: terminal
+  System & Terminal:
+    name: System & Terminal
+    description: Profile management APIs
+    integration: profiles
+    requires_service: false
+    service_url: null
+    tools:
+    - name: profiles
+      path: computer.profiles
+      api_endpoint: /v1/profiles
+      http_method: GET
+      complexity: moderate
+      description: List available Open Interpreter profiles
+      signature: 'profiles(x-request-id: string = None, x-user-id: string = None,
+        x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use profiles backend API: List available profiles'
+      examples:
+      - computer.profiles(...)
+      tags:
+      - profiles
+      - backend_api
+      - aether
+      integration: profiles
+    - name: profiles_active
+      path: computer.profiles_active
+      api_endpoint: /v1/profiles/active
+      http_method: GET
+      complexity: moderate
+      description: Get currently active profile information
+      signature: 'profiles_active(x-request-id: string = None, x-user-id: string =
+        None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use profiles backend API: Get active profile'
+      examples:
+      - computer.profiles_active(...)
+      tags:
+      - profiles
+      - backend_api
+      - aether
+      integration: profiles
+    - name: post_profiles_switch
+      path: computer.post_profiles_switch
+      api_endpoint: /v1/profiles/switch
+      http_method: POST
+      complexity: moderate
+      description: Switch to a different profile
+      signature: 'post_profiles_switch(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use profiles backend API: Switch profile'
+      examples:
+      - computer.post_profiles_switch(...)
+      tags:
+      - profiles
+      - backend_api
+      - aether
+      integration: profiles
+    - name: profiles
+      path: computer.profiles
+      api_endpoint: /v1/profiles/{profile_name}
+      http_method: GET
+      complexity: moderate
+      description: Get detailed information about a specific profile
+      signature: 'profiles(profile_name: string, x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: profile_name
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use profiles backend API: Get profile details'
+      examples:
+      - computer.profiles(...)
+      tags:
+      - profiles
+      - backend_api
+      - aether
+      integration: profiles
+    - name: skills
+      path: computer.skills
+      api_endpoint: /v1/skills
+      http_method: GET
+      complexity: moderate
+      description: List all available Open Interpreter skills
+      signature: 'skills(x-request-id: string = None, x-user-id: string = None, x-session-id:
+        string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use skills backend API: List available skills'
+      examples:
+      - computer.skills(...)
+      tags:
+      - skills
+      - backend_api
+      - aether
+      integration: skills
+    - name: post_skills_new
+      path: computer.post_skills_new
+      api_endpoint: /v1/skills/new
+      http_method: POST
+      complexity: moderate
+      description: Create a new skill from template or content
+      signature: 'post_skills_new(x-request-id: string = None, x-user-id: string =
+        None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use skills backend API: Create new skill'
+      examples:
+      - computer.post_skills_new(...)
+      tags:
+      - skills
+      - backend_api
+      - aether
+      integration: skills
+    - name: post_skills_import
+      path: computer.post_skills_import
+      api_endpoint: /v1/skills/import
+      http_method: POST
+      complexity: moderate
+      description: Import a skill from external source
+      signature: 'post_skills_import(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use skills backend API: Import skill'
+      examples:
+      - computer.post_skills_import(...)
+      tags:
+      - skills
+      - backend_api
+      - aether
+      integration: skills
+    - name: post_notebook_sys-path_add
+      path: computer.post_notebook_sys-path_add
+      api_endpoint: /v1/notebook/sys-path/add
+      http_method: POST
+      complexity: moderate
+      description: Add filesystem path to Python module search path
+      signature: 'post_notebook_sys-path_add(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use notebook backend API: Add path to sys.path'
+      examples:
+      - computer.post_notebook_sys-path_add(...)
+      tags:
+      - notebook
+      - backend_api
+      - aether
+      integration: notebook
+    - name: notebook_sys-path_list
+      path: computer.notebook_sys-path_list
+      api_endpoint: /v1/notebook/sys-path/list
+      http_method: GET
+      complexity: moderate
+      description: Get all paths in Python module search path
+      signature: 'notebook_sys-path_list(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use notebook backend API: List sys.path'
+      examples:
+      - computer.notebook_sys-path_list(...)
+      tags:
+      - notebook
+      - backend_api
+      - aether
+      integration: notebook
+    - name: post_notebook_import
+      path: computer.post_notebook_import
+      api_endpoint: /v1/notebook/import
+      http_method: POST
+      complexity: moderate
+      description: Import module and optionally expose globally
+      signature: 'post_notebook_import(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use notebook backend API: Import Python module'
+      examples:
+      - computer.post_notebook_import(...)
+      tags:
+      - notebook
+      - backend_api
+      - aether
+      integration: notebook
+    - name: post_notebook_import_from-path
+      path: computer.post_notebook_import_from-path
+      api_endpoint: /v1/notebook/import/from-path
+      http_method: POST
+      complexity: moderate
+      description: Import module from specific file path
+      signature: 'post_notebook_import_from-path(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use notebook backend API: Import from file path'
+      examples:
+      - computer.post_notebook_import_from-path(...)
+      tags:
+      - notebook
+      - backend_api
+      - aether
+      integration: notebook
+    - name: post_notebook_packages_list
+      path: computer.post_notebook_packages_list
+      api_endpoint: /v1/notebook/packages/list
+      http_method: POST
+      complexity: moderate
+      description: List installed Python packages with optional filtering
+      signature: 'post_notebook_packages_list(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use notebook backend API: List installed packages'
+      examples:
+      - computer.post_notebook_packages_list(...)
+      tags:
+      - notebook
+      - backend_api
+      - aether
+      integration: notebook
+    - name: post_notebook_modules_search
+      path: computer.post_notebook_modules_search
+      api_endpoint: /v1/notebook/modules/search
+      http_method: POST
+      complexity: moderate
+      description: Search for importable modules by name
+      signature: 'post_notebook_modules_search(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use notebook backend API: Search importable modules'
+      examples:
+      - computer.post_notebook_modules_search(...)
+      tags:
+      - notebook
+      - backend_api
+      - aether
+      integration: notebook
+    - name: post_notebook_modules_info
+      path: computer.post_notebook_modules_info
+      api_endpoint: /v1/notebook/modules/info
+      http_method: POST
+      complexity: moderate
+      description: Get detailed information about a specific module
+      signature: 'post_notebook_modules_info(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use notebook backend API: Get module information'
+      examples:
+      - computer.post_notebook_modules_info(...)
+      tags:
+      - notebook
+      - backend_api
+      - aether
+      integration: notebook
+    - name: notebook_health
+      path: computer.notebook_health
+      api_endpoint: /v1/notebook/health
+      http_method: GET
+      complexity: moderate
+      description: Check notebook runtime system availability
+      signature: 'notebook_health(x-request-id: string = None, x-user-id: string =
+        None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use notebook backend API: Notebook runtime health check'
+      examples:
+      - computer.notebook_health(...)
+      tags:
+      - notebook
+      - backend_api
+      - aether
+      integration: notebook
+    - name: backends_list
+      path: computer.backends_list
+      api_endpoint: /v1/backends/list
+      http_method: GET
+      complexity: moderate
+      description: Get comprehensive list of all backend integrations with metadata
+      signature: 'backends_list(x-request-id: string = None, x-user-id: string = None,
+        x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use backends backend API: List all sub-backends'
+      examples:
+      - computer.backends_list(...)
+      tags:
+      - backends
+      - backend_api
+      - aether
+      integration: backends
+    - name: backends
+      path: computer.backends
+      api_endpoint: /v1/backends/{backend_name}
+      http_method: GET
+      complexity: moderate
+      description: Get detailed information about a specific backend
+      signature: 'backends(backend_name: string, x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: backend_name
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use backends backend API: Get backend details'
+      examples:
+      - computer.backends(...)
+      tags:
+      - backends
+      - backend_api
+      - aether
+      integration: backends
+    - name: backends_health
+      path: computer.backends_health
+      api_endpoint: /v1/backends/{backend_name}/health
+      http_method: GET
+      complexity: moderate
+      description: Perform health check on specific backend
+      signature: 'backends_health(backend_name: string, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: backend_name
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use backends backend API: Check backend health'
+      examples:
+      - computer.backends_health(...)
+      tags:
+      - backends
+      - backend_api
+      - aether
+      integration: backends
+    - name: backends_registry_info
+      path: computer.backends_registry_info
+      api_endpoint: /v1/backends/registry/info
+      http_method: GET
+      complexity: moderate
+      description: Get metadata about the integrations registry
+      signature: 'backends_registry_info(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use backends backend API: Get registry information'
+      examples:
+      - computer.backends_registry_info(...)
+      tags:
+      - backends
+      - backend_api
+      - aether
+      integration: backends
+    - name: backends_health_all
+      path: computer.backends_health_all
+      api_endpoint: /v1/backends/health/all
+      http_method: GET
+      complexity: moderate
+      description: Perform health checks on all backends
+      signature: 'backends_health_all(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use backends backend API: Check all backends health'
+      examples:
+      - computer.backends_health_all(...)
+      tags:
+      - backends
+      - backend_api
+      - aether
+      integration: backends
+  Files & Documents:
+    name: Files & Documents
+    description: File management APIs
+    integration: files
+    requires_service: false
+    service_url: null
+    tools:
+    - name: post_files_upload
+      path: computer.post_files_upload
+      api_endpoint: /v1/files/upload
+      http_method: POST
+      complexity: moderate
+      description: Upload a file for processing
+      signature: 'post_files_upload(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use files backend API: Upload file'
+      examples:
+      - computer.post_files_upload(...)
+      tags:
+      - files
+      - backend_api
+      - aether
+      integration: files
+    - name: post_files_process
+      path: computer.post_files_process
+      api_endpoint: /v1/files/process/{file_id}
+      http_method: POST
+      complexity: moderate
+      description: Process a previously uploaded file with AI
+      signature: 'post_files_process(file_id: string, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: file_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use files backend API: Process file'
+      examples:
+      - computer.post_files_process(...)
+      tags:
+      - files
+      - backend_api
+      - aether
+      integration: files
+    - name: files
+      path: computer.files
+      api_endpoint: /v1/files
+      http_method: GET
+      complexity: moderate
+      description: List all uploaded files
+      signature: 'files(x-request-id: string = None, x-user-id: string = None, x-session-id:
+        string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use files backend API: List files'
+      examples:
+      - computer.files(...)
+      tags:
+      - files
+      - backend_api
+      - aether
+      integration: files
+    - name: storage_chats
+      path: computer.storage_chats
+      api_endpoint: /v1/api/storage/chats
+      http_method: GET
+      complexity: moderate
+      description: "List all chats ordered by most recently updated.\n\nArgs:\n  \
+        \  skip: Number of chats to skip (offset)\n    limit: Maximum number of chats\
+        \ to return\n    \nReturns:\n    List of chat objects with message counts"
+      signature: 'storage_chats(skip: integer = None, limit: integer = None, x-request-id:
+        string = None, x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: skip
+        type: integer
+        required: false
+        description: ''
+      - name: limit
+        type: integer
+        required: false
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: List all chats'
+      examples:
+      - computer.storage_chats(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: post_storage_chats
+      path: computer.post_storage_chats
+      api_endpoint: /v1/api/storage/chats
+      http_method: POST
+      complexity: moderate
+      description: "Create a new chat.\n\nArgs:\n    chat: Chat creation data\n  \
+        \  \nReturns:\n    Created chat object"
+      signature: 'post_storage_chats(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Create chat'
+      examples:
+      - computer.post_storage_chats(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: storage_chats
+      path: computer.storage_chats
+      api_endpoint: /v1/api/storage/chats/{chat_id}
+      http_method: GET
+      complexity: moderate
+      description: "Get a specific chat by ID.\n\nArgs:\n    chat_id: Chat UUID\n\
+        \    \nReturns:\n    Chat object with statistics\n    \nRaises:\n    404:\
+        \ If chat not found"
+      signature: 'storage_chats(chat_id: string, x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: chat_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Get chat by ID'
+      examples:
+      - computer.storage_chats(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: put_storage_chats
+      path: computer.put_storage_chats
+      api_endpoint: /v1/api/storage/chats/{chat_id}
+      http_method: PUT
+      complexity: moderate
+      description: "Update chat (currently only title).\n\nArgs:\n    chat_id: Chat\
+        \ UUID\n    update: Chat update data\n    \nReturns:\n    Updated chat object\n\
+        \    \nRaises:\n    404: If chat not found"
+      signature: 'put_storage_chats(chat_id: string, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: chat_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Update chat'
+      examples:
+      - computer.put_storage_chats(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: delete_storage_chats
+      path: computer.delete_storage_chats
+      api_endpoint: /v1/api/storage/chats/{chat_id}
+      http_method: DELETE
+      complexity: moderate
+      description: "Delete chat and all associated messages/artifacts (CASCADE).\n\
+        \nArgs:\n    chat_id: Chat UUID\n    \nRaises:\n    404: If chat not found"
+      signature: 'delete_storage_chats(chat_id: string, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: chat_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Delete chat'
+      examples:
+      - computer.delete_storage_chats(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: storage_chats_messages
+      path: computer.storage_chats_messages
+      api_endpoint: /v1/api/storage/chats/{chat_id}/messages
+      http_method: GET
+      complexity: advanced
+      description: "Get messages for a chat ordered by timestamp.\n\nArgs:\n    chat_id:\
+        \ Chat UUID\n    limit: Maximum number of messages\n    offset: Number of\
+        \ messages to skip\n    \nReturns:\n    List of message objects"
+      signature: 'storage_chats_messages(chat_id: string, limit: integer = None, offset:
+        integer = None, x-request-id: string = None, x-user-id: string = None, x-session-id:
+        string = None)'
+      parameters:
+      - name: chat_id
+        type: string
+        required: true
+        description: ''
+      - name: limit
+        type: integer
+        required: false
+        description: ''
+      - name: offset
+        type: integer
+        required: false
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: List messages'
+      examples:
+      - computer.storage_chats_messages(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: post_storage_chats_messages
+      path: computer.post_storage_chats_messages
+      api_endpoint: /v1/api/storage/chats/{chat_id}/messages
+      http_method: POST
+      complexity: moderate
+      description: "Create a new message in a chat.\n\nArgs:\n    chat_id: Chat UUID\n\
+        \    message: Message creation data\n    \nReturns:\n    Created message object\n\
+        \    \nRaises:\n    404: If chat not found"
+      signature: 'post_storage_chats_messages(chat_id: string, x-request-id: string
+        = None, x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: chat_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Create message'
+      examples:
+      - computer.post_storage_chats_messages(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: storage_chats_artifacts
+      path: computer.storage_chats_artifacts
+      api_endpoint: /v1/api/storage/chats/{chat_id}/artifacts
+      http_method: GET
+      complexity: advanced
+      description: "Get artifacts for a chat.\n\nArgs:\n    chat_id: Chat UUID\n \
+        \   type: Optional type filter (code, html, output, file, etc.)\n    limit:\
+        \ Maximum number of artifacts\n    offset: Number of artifacts to skip\n \
+        \   \nReturns:\n    List of artifact objects"
+      signature: 'storage_chats_artifacts(chat_id: string, type: string = None, limit:
+        integer = None, offset: integer = None, x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: chat_id
+        type: string
+        required: true
+        description: ''
+      - name: type
+        type: string
+        required: false
+        description: ''
+      - name: limit
+        type: integer
+        required: false
+        description: ''
+      - name: offset
+        type: integer
+        required: false
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: List artifacts'
+      examples:
+      - computer.storage_chats_artifacts(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: post_storage_chats_artifacts
+      path: computer.post_storage_chats_artifacts
+      api_endpoint: /v1/api/storage/chats/{chat_id}/artifacts
+      http_method: POST
+      complexity: moderate
+      description: "Create a new artifact in a chat.\n\nArgs:\n    chat_id: Chat UUID\n\
+        \    artifact: Artifact creation data\n    \nReturns:\n    Created artifact\
+        \ object\n    \nRaises:\n    404: If chat not found"
+      signature: 'post_storage_chats_artifacts(chat_id: string, x-request-id: string
+        = None, x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: chat_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Create artifact'
+      examples:
+      - computer.post_storage_chats_artifacts(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: put_storage_artifacts_update-message-id
+      path: computer.put_storage_artifacts_update-message-id
+      api_endpoint: /v1/api/storage/artifacts/update-message-id
+      http_method: PUT
+      complexity: moderate
+      description: "Link artifact to a message after PostgreSQL persistence.\n\nUsed\
+        \ during streaming when artifact is created before message is persisted.\n\
+        Once message is saved to PostgreSQL and gets a UUID, this endpoint links\n\
+        the artifact to that message for traceability.\n\nArgs:\n    update_request:\
+        \ Contains artifact_id and message_id for linking\n    \nReturns:\n    Update\
+        \ result with count of artifacts linked\n    \nRaises:\n    404: If artifact\
+        \ not found\n    500: If database update fails"
+      signature: 'put_storage_artifacts_update-message-id(x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Update artifact message ID'
+      examples:
+      - computer.put_storage_artifacts_update-message-id(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: storage_stats
+      path: computer.storage_stats
+      api_endpoint: /v1/api/storage/stats
+      http_method: GET
+      complexity: moderate
+      description: "Get storage statistics across all chats and artifacts.\n\nReturns:\n\
+        \    Dict with artifact counts, storage sizes, and timestamps"
+      signature: 'storage_stats(x-request-id: string = None, x-user-id: string = None,
+        x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use storage backend API: Get storage statistics'
+      examples:
+      - computer.storage_stats(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: storage_health
+      path: computer.storage_health
+      api_endpoint: /v1/api/storage/health
+      http_method: GET
+      complexity: simple
+      description: "Check storage/database health.\n\nReturns:\n    Health status\
+        \ with database connectivity and table counts"
+      signature: storage_health()
+      parameters: []
+      use_cases:
+      - 'Use storage backend API: Storage health check'
+      examples:
+      - computer.storage_health(...)
+      tags:
+      - storage
+      - backend_api
+      - aether
+      integration: storage
+    - name: ocr_backends
+      path: computer.ocr_backends
+      api_endpoint: /v1/ocr/backends
+      http_method: GET
+      complexity: moderate
+      description: Get list of available OCR backends and their capabilities
+      signature: 'ocr_backends(x-request-id: string = None, x-user-id: string = None,
+        x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use ocr backend API: List OCR backends'
+      examples:
+      - computer.ocr_backends(...)
+      tags:
+      - ocr
+      - backend_api
+      - aether
+      integration: ocr
+    - name: ocr_health
+      path: computer.ocr_health
+      api_endpoint: /v1/ocr/health
+      http_method: GET
+      complexity: moderate
+      description: Check OCR system health and availability for a specific backend
+      signature: 'ocr_health(backend: string = None, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: backend
+        type: string
+        required: false
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use ocr backend API: OCR health check'
+      examples:
+      - computer.ocr_health(...)
+      tags:
+      - ocr
+      - backend_api
+      - aether
+      integration: ocr
+    - name: post_ocr_load
+      path: computer.post_ocr_load
+      api_endpoint: /v1/ocr/load
+      http_method: POST
+      complexity: moderate
+      description: Load OCR model into memory (required before processing)
+      signature: 'post_ocr_load(x-request-id: string = None, x-user-id: string = None,
+        x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use ocr backend API: Load OCR model'
+      examples:
+      - computer.post_ocr_load(...)
+      tags:
+      - ocr
+      - backend_api
+      - aether
+      integration: ocr
+    - name: post_ocr_unload
+      path: computer.post_ocr_unload
+      api_endpoint: /v1/ocr/unload
+      http_method: POST
+      complexity: moderate
+      description: Unload OCR model from memory to free resources
+      signature: 'post_ocr_unload(backend: string = None, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: backend
+        type: string
+        required: false
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use ocr backend API: Unload OCR model'
+      examples:
+      - computer.post_ocr_unload(...)
+      tags:
+      - ocr
+      - backend_api
+      - aether
+      integration: ocr
+    - name: post_ocr_process_file
+      path: computer.post_ocr_process_file
+      api_endpoint: /v1/ocr/process/file
+      http_method: POST
+      complexity: moderate
+      description: Process PDF or image file with OCR using selected backend
+      signature: 'post_ocr_process_file(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use ocr backend API: Process document file'
+      examples:
+      - computer.post_ocr_process_file(...)
+      tags:
+      - ocr
+      - backend_api
+      - aether
+      integration: ocr
+    - name: post_ocr_process_upload
+      path: computer.post_ocr_process_upload
+      api_endpoint: /v1/ocr/process/upload
+      http_method: POST
+      complexity: moderate
+      description: Upload and process document with OCR using selected backend
+      signature: 'post_ocr_process_upload(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use ocr backend API: Process uploaded document'
+      examples:
+      - computer.post_ocr_process_upload(...)
+      tags:
+      - ocr
+      - backend_api
+      - aether
+      integration: ocr
+    - name: ocr_formats
+      path: computer.ocr_formats
+      api_endpoint: /v1/ocr/formats
+      http_method: GET
+      complexity: moderate
+      description: Get list of supported input and output formats for a backend
+      signature: 'ocr_formats(backend: string = None, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: backend
+        type: string
+        required: false
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use ocr backend API: Get supported formats'
+      examples:
+      - computer.ocr_formats(...)
+      tags:
+      - ocr
+      - backend_api
+      - aether
+      integration: ocr
+    - name: post_omni_screenshot
+      path: computer.post_omni_screenshot
+      api_endpoint: /v1/omni/screenshot
+      http_method: POST
+      complexity: moderate
+      description: Capture screenshot of current screen
+      signature: 'post_omni_screenshot(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use omni backend API: Capture screenshot'
+      examples:
+      - computer.post_omni_screenshot(...)
+      tags:
+      - omni
+      - backend_api
+      - aether
+      integration: omni
+    - name: post_omni_analyze-screen
+      path: computer.post_omni_analyze-screen
+      api_endpoint: /v1/omni/analyze-screen
+      http_method: POST
+      complexity: moderate
+      description: Analyze current screen using vision model
+      signature: 'post_omni_analyze-screen(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use omni backend API: Analyze screen'
+      examples:
+      - computer.post_omni_analyze-screen(...)
+      tags:
+      - omni
+      - backend_api
+      - aether
+      integration: omni
+    - name: post_omni_parse
+      path: computer.post_omni_parse
+      api_endpoint: /v1/omni/parse
+      http_method: POST
+      complexity: moderate
+      description: Parse document using Docling service
+      signature: 'post_omni_parse(x-request-id: string = None, x-user-id: string =
+        None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use omni backend API: Parse document'
+      examples:
+      - computer.post_omni_parse(...)
+      tags:
+      - omni
+      - backend_api
+      - aether
+      integration: omni
+    - name: post_omni_parse_multi-ocr
+      path: computer.post_omni_parse_multi-ocr
+      api_endpoint: /v1/omni/parse/multi-ocr
+      http_method: POST
+      complexity: moderate
+      description: Parse document using multiple OCR engines for best results
+      signature: 'post_omni_parse_multi-ocr(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use omni backend API: Multi-OCR parsing'
+      examples:
+      - computer.post_omni_parse_multi-ocr(...)
+      tags:
+      - omni
+      - backend_api
+      - aether
+      integration: omni
+    - name: post_omni_parse_batch
+      path: computer.post_omni_parse_batch
+      api_endpoint: /v1/omni/parse/batch
+      http_method: POST
+      complexity: moderate
+      description: Find and parse multiple documents in batch
+      signature: 'post_omni_parse_batch(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use omni backend API: Batch document processing'
+      examples:
+      - computer.post_omni_parse_batch(...)
+      tags:
+      - omni
+      - backend_api
+      - aether
+      integration: omni
+    - name: omni_workflows
+      path: computer.omni_workflows
+      api_endpoint: /v1/omni/workflows
+      http_method: GET
+      complexity: moderate
+      description: Get paralegal workflow templates with examples
+      signature: 'omni_workflows(x-request-id: string = None, x-user-id: string =
+        None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use omni backend API: Get available workflows'
+      examples:
+      - computer.omni_workflows(...)
+      tags:
+      - omni
+      - backend_api
+      - aether
+      integration: omni
+    - name: omni_health
+      path: computer.omni_health
+      api_endpoint: /v1/omni/health
+      http_method: GET
+      complexity: moderate
+      description: Check OmniParser integration health
+      signature: 'omni_health(x-request-id: string = None, x-user-id: string = None,
+        x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use omni backend API: Omni tools health check'
+      examples:
+      - computer.omni_health(...)
+      tags:
+      - omni
+      - backend_api
+      - aether
+      integration: omni
+  MCP Tools:
+    name: MCP Tools
+    description: Dynamic MCP server management and tool registration
+    integration: mcp
+    requires_service: false
+    service_url: null
+    tools:
+    - name: post_mcp_servers
+      path: computer.post_mcp_servers
+      api_endpoint: /v1/api/mcp/servers
+      http_method: POST
+      complexity: moderate
+      description: Register and optionally start a new MCP server
+      signature: 'post_mcp_servers(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use mcp backend API: Register new MCP server'
+      examples:
+      - computer.post_mcp_servers(...)
+      tags:
+      - mcp
+      - backend_api
+      - aether
+      integration: mcp
+    - name: mcp_servers
+      path: computer.mcp_servers
+      api_endpoint: /v1/api/mcp/servers
+      http_method: GET
+      complexity: moderate
+      description: List all registered MCP servers with status
+      signature: 'mcp_servers(enabled_only: boolean = None, x-request-id: string =
+        None, x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: enabled_only
+        type: boolean
+        required: false
+        description: Only return enabled servers
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use mcp backend API: List all MCP servers'
+      examples:
+      - computer.mcp_servers(...)
+      tags:
+      - mcp
+      - backend_api
+      - aether
+      integration: mcp
+    - name: post_mcp_servers_start
+      path: computer.post_mcp_servers_start
+      api_endpoint: /v1/api/mcp/servers/start
+      http_method: POST
+      complexity: moderate
+      description: Start a registered MCP server
+      signature: 'post_mcp_servers_start(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use mcp backend API: Start MCP server'
+      examples:
+      - computer.post_mcp_servers_start(...)
+      tags:
+      - mcp
+      - backend_api
+      - aether
+      integration: mcp
+    - name: mcp_servers
+      path: computer.mcp_servers
+      api_endpoint: /v1/api/mcp/servers/{server_id}
+      http_method: GET
+      complexity: moderate
+      description: Get detailed information about a specific server
+      signature: 'mcp_servers(server_id: string, x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: server_id
+        type: string
+        required: true
+        description: Server UUID
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use mcp backend API: Get server details'
+      examples:
+      - computer.mcp_servers(...)
+      tags:
+      - mcp
+      - backend_api
+      - aether
+      integration: mcp
+    - name: delete_mcp_servers
+      path: computer.delete_mcp_servers
+      api_endpoint: /v1/api/mcp/servers/{server_id}
+      http_method: DELETE
+      complexity: moderate
+      description: Delete an MCP server (stops it first if running)
+      signature: 'delete_mcp_servers(server_id: string, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: server_id
+        type: string
+        required: true
+        description: Server UUID
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use mcp backend API: Delete server'
+      examples:
+      - computer.delete_mcp_servers(...)
+      tags:
+      - mcp
+      - backend_api
+      - aether
+      integration: mcp
+    - name: mcp_servers_tools
+      path: computer.mcp_servers_tools
+      api_endpoint: /v1/api/mcp/servers/{server_id}/tools
+      http_method: GET
+      complexity: moderate
+      description: List all tools provided by a server
+      signature: 'mcp_servers_tools(server_id: string, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: server_id
+        type: string
+        required: true
+        description: Server UUID
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use mcp backend API: Get server tools'
+      examples:
+      - computer.mcp_servers_tools(...)
+      tags:
+      - mcp
+      - backend_api
+      - aether
+      integration: mcp
+    - name: mcp_servers_tools
+      path: computer.mcp_servers_tools
+      api_endpoint: /v1/api/mcp/servers/{server_name}/tools
+      http_method: GET
+      complexity: moderate
+      description: List all tools provided by a server (by name)
+      signature: 'mcp_servers_tools(server_name: string, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: server_name
+        type: string
+        required: true
+        description: Server name
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use mcp backend API: Get server tools by name'
+      examples:
+      - computer.mcp_servers_tools(...)
+      tags:
+      - mcp
+      - backend_api
+      - aether
+      integration: mcp
+    - name: post_mcp_servers_tools
+      path: computer.post_mcp_servers_tools
+      api_endpoint: /v1/api/mcp/servers/{server_id}/tools/{tool_name}
+      http_method: POST
+      complexity: moderate
+      description: Execute a specific tool on a server
+      signature: 'post_mcp_servers_tools(server_id: string, tool_name: string, x-request-id:
+        string = None, x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: server_id
+        type: string
+        required: true
+        description: Server UUID
+      - name: tool_name
+        type: string
+        required: true
+        description: Tool name
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use mcp backend API: Execute tool'
+      examples:
+      - computer.post_mcp_servers_tools(...)
+      tags:
+      - mcp
+      - backend_api
+      - aether
+      integration: mcp
+    - name: mcp_servers_health
+      path: computer.mcp_servers_health
+      api_endpoint: /v1/api/mcp/servers/{server_id}/health
+      http_method: GET
+      complexity: moderate
+      description: Check if server is healthy and responsive
+      signature: 'mcp_servers_health(server_id: string, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: server_id
+        type: string
+        required: true
+        description: Server UUID
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use mcp backend API: Check server health'
+      examples:
+      - computer.mcp_servers_health(...)
+      tags:
+      - mcp
+      - backend_api
+      - aether
+      integration: mcp
+    - name: mcp_servers_stats
+      path: computer.mcp_servers_stats
+      api_endpoint: /v1/api/mcp/servers/{server_id}/stats
+      http_method: GET
+      complexity: moderate
+      description: Get execution statistics for a server
+      signature: 'mcp_servers_stats(server_id: string, x-request-id: string = None,
+        x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: server_id
+        type: string
+        required: true
+        description: Server UUID
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use mcp backend API: Get server statistics'
+      examples:
+      - computer.mcp_servers_stats(...)
+      tags:
+      - mcp
+      - backend_api
+      - aether
+      integration: mcp
+    - name: mcp_executions
+      path: computer.mcp_executions
+      api_endpoint: /v1/api/mcp/executions
+      http_method: GET
+      complexity: moderate
+      description: Get recent tool execution history across all servers
+      signature: 'mcp_executions(server_id: string = None, limit: integer = None,
+        x-request-id: string = None, x-user-id: string = None, x-session-id: string
+        = None)'
+      parameters:
+      - name: server_id
+        type: string
+        required: false
+        description: Filter by server UUID
+      - name: limit
+        type: integer
+        required: false
+        description: Maximum number of results
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use mcp backend API: Get execution history'
+      examples:
+      - computer.mcp_executions(...)
+      tags:
+      - mcp
+      - backend_api
+      - aether
+      integration: mcp
+    - name: mcp_health
+      path: computer.mcp_health
+      api_endpoint: /v1/api/mcp/health
+      http_method: GET
+      complexity: moderate
+      description: Check overall MCP system health
+      signature: 'mcp_health(x-request-id: string = None, x-user-id: string = None,
+        x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use mcp backend API: MCP system health'
+      examples:
+      - computer.mcp_health(...)
+      tags:
+      - mcp
+      - backend_api
+      - aether
+      integration: mcp
+  AI & LLM:
+    name: AI & LLM
+    description: Chat and conversation APIs
+    integration: chat
+    requires_service: false
+    service_url: null
+    tools:
+    - name: post_chat
+      path: computer.post_chat
+      api_endpoint: /v1/chat
+      http_method: POST
+      complexity: moderate
+      description: Send a message and get response from AI assistant
+      signature: 'post_chat(x-request-id: string = None, x-user-id: string = None,
+        x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use chat backend API: Send chat message'
+      examples:
+      - computer.post_chat(...)
+      tags:
+      - chat
+      - backend_api
+      - aether
+      integration: chat
+    - name: post_chat_stream
+      path: computer.post_chat_stream
+      api_endpoint: /v1/chat/stream
+      http_method: POST
+      complexity: moderate
+      description: Send message and stream the response in real-time
+      signature: 'post_chat_stream(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use chat backend API: Stream chat response'
+      examples:
+      - computer.post_chat_stream(...)
+      tags:
+      - chat
+      - backend_api
+      - aether
+      integration: chat
+    - name: chat_history
+      path: computer.chat_history
+      api_endpoint: /v1/chat/history/{session_id}
+      http_method: GET
+      complexity: moderate
+      description: Retrieve chat history for a session
+      signature: 'chat_history(session_id: string, x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: session_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use chat backend API: Get chat history'
+      examples:
+      - computer.chat_history(...)
+      tags:
+      - chat
+      - backend_api
+      - aether
+      integration: chat
+  Audio & Speech:
+    name: Audio & Speech
+    description: Text-to-speech synthesis APIs
+    integration: tts
+    requires_service: false
+    service_url: null
+    tools:
+    - name: tts_engines
+      path: computer.tts_engines
+      api_endpoint: /v1/tts/engines
+      http_method: GET
+      complexity: moderate
+      description: Get list of available text-to-speech engines
+      signature: 'tts_engines(x-request-id: string = None, x-user-id: string = None,
+        x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use tts backend API: List available TTS engines'
+      examples:
+      - computer.tts_engines(...)
+      tags:
+      - tts
+      - backend_api
+      - aether
+      integration: tts
+    - name: post_tts_synthesize
+      path: computer.post_tts_synthesize
+      api_endpoint: /v1/tts/synthesize
+      http_method: POST
+      complexity: moderate
+      description: Convert text to audio using specified TTS engine
+      signature: 'post_tts_synthesize(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use tts backend API: Synthesize text to speech'
+      examples:
+      - computer.post_tts_synthesize(...)
+      tags:
+      - tts
+      - backend_api
+      - aether
+      integration: tts
+    - name: post_tts_stream
+      path: computer.post_tts_stream
+      api_endpoint: /v1/tts/stream
+      http_method: POST
+      complexity: moderate
+      description: Stream audio synthesis in real-time
+      signature: 'post_tts_stream(x-request-id: string = None, x-user-id: string =
+        None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use tts backend API: Stream text to speech'
+      examples:
+      - computer.post_tts_stream(...)
+      tags:
+      - tts
+      - backend_api
+      - aether
+      integration: tts
+    - name: tts_health
+      path: computer.tts_health
+      api_endpoint: /v1/tts/health
+      http_method: GET
+      complexity: moderate
+      description: Check TTS system health and availability
+      signature: 'tts_health(x-request-id: string = None, x-user-id: string = None,
+        x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use tts backend API: TTS health check'
+      examples:
+      - computer.tts_health(...)
+      tags:
+      - tts
+      - backend_api
+      - aether
+      integration: tts
+    - name: post_tts_initialize
+      path: computer.post_tts_initialize
+      api_endpoint: /v1/tts/initialize
+      http_method: POST
+      complexity: moderate
+      description: Initialize specific TTS engine with configuration
+      signature: 'post_tts_initialize(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use tts backend API: Initialize TTS engine'
+      examples:
+      - computer.post_tts_initialize(...)
+      tags:
+      - tts
+      - backend_api
+      - aether
+      integration: tts
+  Excel Automation:
+    name: Excel Automation
+    description: Excel workbook creation, manipulation, and automation
+    integration: xlwings
+    requires_service: false
+    service_url: null
+    tools:
+    - name: post_xlwings_workbook_create
+      path: computer.post_xlwings_workbook_create
+      api_endpoint: /v1/xlwings/workbook/create
+      http_method: POST
+      complexity: moderate
+      description: Create new Excel workbook
+      signature: 'post_xlwings_workbook_create(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use xlwings backend API: Create workbook'
+      examples:
+      - computer.post_xlwings_workbook_create(...)
+      tags:
+      - xlwings
+      - backend_api
+      - aether
+      integration: xlwings
+    - name: post_xlwings_workbook_save
+      path: computer.post_xlwings_workbook_save
+      api_endpoint: /v1/xlwings/workbook/save
+      http_method: POST
+      complexity: moderate
+      description: Save workbook to file
+      signature: 'post_xlwings_workbook_save(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use xlwings backend API: Save workbook'
+      examples:
+      - computer.post_xlwings_workbook_save(...)
+      tags:
+      - xlwings
+      - backend_api
+      - aether
+      integration: xlwings
+    - name: xlwings_workbook_info
+      path: computer.xlwings_workbook_info
+      api_endpoint: /v1/xlwings/workbook/{workbook_id}/info
+      http_method: GET
+      complexity: moderate
+      description: Get workbook metadata
+      signature: 'xlwings_workbook_info(workbook_id: string, x-request-id: string
+        = None, x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: workbook_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use xlwings backend API: Get workbook info'
+      examples:
+      - computer.xlwings_workbook_info(...)
+      tags:
+      - xlwings
+      - backend_api
+      - aether
+      integration: xlwings
+    - name: post_xlwings_workbook_close
+      path: computer.post_xlwings_workbook_close
+      api_endpoint: /v1/xlwings/workbook/{workbook_id}/close
+      http_method: POST
+      complexity: moderate
+      description: Close workbook and release resources
+      signature: 'post_xlwings_workbook_close(workbook_id: string, x-request-id: string
+        = None, x-user-id: string = None, x-session-id: string = None)'
+      parameters:
+      - name: workbook_id
+        type: string
+        required: true
+        description: ''
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use xlwings backend API: Close workbook'
+      examples:
+      - computer.post_xlwings_workbook_close(...)
+      tags:
+      - xlwings
+      - backend_api
+      - aether
+      integration: xlwings
+    - name: post_xlwings_sheet_create
+      path: computer.post_xlwings_sheet_create
+      api_endpoint: /v1/xlwings/sheet/create
+      http_method: POST
+      complexity: moderate
+      description: Create new sheet in workbook
+      signature: 'post_xlwings_sheet_create(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use xlwings backend API: Create sheet'
+      examples:
+      - computer.post_xlwings_sheet_create(...)
+      tags:
+      - xlwings
+      - backend_api
+      - aether
+      integration: xlwings
+    - name: post_xlwings_data_write
+      path: computer.post_xlwings_data_write
+      api_endpoint: /v1/xlwings/data/write
+      http_method: POST
+      complexity: moderate
+      description: Write data to Excel sheet
+      signature: 'post_xlwings_data_write(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use xlwings backend API: Write data'
+      examples:
+      - computer.post_xlwings_data_write(...)
+      tags:
+      - xlwings
+      - backend_api
+      - aether
+      integration: xlwings
+    - name: post_xlwings_data_read
+      path: computer.post_xlwings_data_read
+      api_endpoint: /v1/xlwings/data/read
+      http_method: POST
+      complexity: moderate
+      description: Read data from Excel sheet
+      signature: 'post_xlwings_data_read(x-request-id: string = None, x-user-id: string
+        = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use xlwings backend API: Read data'
+      examples:
+      - computer.post_xlwings_data_read(...)
+      tags:
+      - xlwings
+      - backend_api
+      - aether
+      integration: xlwings
+    - name: post_xlwings_chart_create
+      path: computer.post_xlwings_chart_create
+      api_endpoint: /v1/xlwings/chart/create
+      http_method: POST
+      complexity: moderate
+      description: Create chart in worksheet
+      signature: 'post_xlwings_chart_create(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use xlwings backend API: Create chart'
+      examples:
+      - computer.post_xlwings_chart_create(...)
+      tags:
+      - xlwings
+      - backend_api
+      - aether
+      integration: xlwings
+    - name: post_xlwings_format_range
+      path: computer.post_xlwings_format_range
+      api_endpoint: /v1/xlwings/format/range
+      http_method: POST
+      complexity: moderate
+      description: Apply formatting to range
+      signature: 'post_xlwings_format_range(x-request-id: string = None, x-user-id:
+        string = None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use xlwings backend API: Format range'
+      examples:
+      - computer.post_xlwings_format_range(...)
+      tags:
+      - xlwings
+      - backend_api
+      - aether
+      integration: xlwings
+    - name: xlwings_health
+      path: computer.xlwings_health
+      api_endpoint: /v1/xlwings/health
+      http_method: GET
+      complexity: moderate
+      description: Check XLWings service health
+      signature: 'xlwings_health(x-request-id: string = None, x-user-id: string =
+        None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use xlwings backend API: XLWings health check'
+      examples:
+      - computer.xlwings_health(...)
+      tags:
+      - xlwings
+      - backend_api
+      - aether
+      integration: xlwings
+integration_info:
+  perplexica:
+    type: service
+    description: Comprehensive web search and research with multiple focus modes
+    priority: 1
+    category: web_search_extraction
+    tool_count: 11
+    requires_service: true
+    service_url: http://localhost:3000
+    namespace: computer
+    api_prefix: /v1/perplexica
+  docling:
+    type: service
+    description: Advanced document conversion using SmolDocling and InternVL
+    priority: 2
+    category: document_processing_vision
+    tool_count: 1
+    requires_service: true
+    service_url: http://localhost:8000
+    namespace: computer
+    api_prefix: /v1/docling
+  xlwings:
+    type: library
+    description: Excel workbook creation, manipulation, and automation
+    priority: 3
+    category: excel_automation_data_analysis
+    tool_count: 27
+    requires_service: false
+    service_url: null
+    namespace: computer
+    api_prefix: /v1/xlwings
+  omni:
+    type: bridge
+    description: OmniParser vision tools for screen analysis and document parsing
+    priority: 4
+    category: document_processing_vision
+    tool_count: 6
+    requires_service: false
+    service_url: null
+    namespace: computer.omni
+    api_prefix: /v1/omni
+  notebook:
+    type: library
+    description: Python runtime environment inspection and module management
+    priority: 5
+    category: system_operations
+    tool_count: 7
+    requires_service: false
+    service_url: null
+    namespace: computer
+    api_prefix: /v1/notebook
+  mcp:
+    type: dynamic
+    description: Dynamic MCP server management and tool registration
+    priority: 7
+    category: mcp_tools
+    tool_count: dynamic
+    requires_service: false
+    service_url: null
+    namespace: computer
+    api_prefix: /v1/mcp

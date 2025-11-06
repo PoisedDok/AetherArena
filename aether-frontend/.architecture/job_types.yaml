@@ -1,0 +1,421 @@
+# FRONTEND JOB TYPES - Abstract Operation Definitions
+# =============================================================================
+# Defines ALL possible operations/jobs in the frontend system.
+# Each file MUST declare which jobs it performs from this registry.
+# =============================================================================
+
+version: "1.0.0"
+domain: "frontend"
+
+# =============================================================================
+# NETWORK JOBS (Category: I/O)
+# =============================================================================
+
+network_jobs:
+  JOB_WS_CONNECT:
+    category: "network"
+    description: "Establish WebSocket connection to backend"
+    input: "string (WebSocket URL)"
+    output: "WebSocket connection object"
+    errors: ["connection_failed", "timeout"]
+  
+  JOB_WS_SEND:
+    category: "network"
+    description: "Send data through WebSocket"
+    input: "json | binary (ArrayBuffer)"
+    output: "void"
+    errors: ["not_connected", "send_failed"]
+  
+  JOB_WS_RECEIVE:
+    category: "network"
+    description: "Receive and parse WebSocket data"
+    input: "WebSocket.MessageEvent"
+    output: "json | binary"
+    errors: ["parse_failed", "invalid_format"]
+  
+  JOB_HTTP_REQUEST:
+    category: "network"
+    description: "HTTP API call to backend"
+    input: "object (method, url, body, headers)"
+    output: "json (response)"
+    errors: ["network_error", "http_error", "timeout"]
+
+# =============================================================================
+# DATA TRANSFORMATION JOBS (Category: Processing)
+# =============================================================================
+
+transform_jobs:
+  JOB_PARSE_JSON:
+    category: "transform"
+    description: "Parse JSON string to object"
+    input: "string (JSON)"
+    output: "object"
+    errors: ["parse_error"]
+  
+  JOB_STRINGIFY_JSON:
+    category: "transform"
+    description: "Convert object to JSON string"
+    input: "object"
+    output: "string (JSON)"
+    errors: ["stringify_error"]
+  
+  JOB_RESTORE_ID:
+    category: "transform"
+    description: "Restore frontend_id to id field"
+    input: "object (with frontend_id field)"
+    output: "object (id restored, frontend_id removed)"
+    errors: []
+  
+  JOB_TRANSFORM_TO_CHUNK:
+    category: "transform"
+    description: "Transform WebSocket message to IPC chunk format"
+    input: "object (WebSocket message)"
+    output: "object (IPC chunk)"
+    errors: []
+  
+  JOB_ACCUMULATE_TEXT:
+    category: "transform"
+    description: "Accumulate text chunks into complete message"
+    input: "string (chunk)"
+    output: "string (accumulated)"
+    errors: []
+  
+  JOB_PARSE_THINK_TAGS:
+    category: "transform"
+    description: "Extract visible and thinking text from <think> tags"
+    input: "string (text with tags)"
+    output: "object (visible, thinking)"
+    errors: []
+
+# =============================================================================
+# VALIDATION JOBS (Category: Security)
+# =============================================================================
+
+validation_jobs:
+  JOB_VALIDATE_SCHEMA:
+    category: "validation"
+    description: "Validate data against schema"
+    input: "object (data), object (schema)"
+    output: "boolean (valid)"
+    errors: ["validation_failed"]
+  
+  JOB_VALIDATE_IPC_SOURCE:
+    category: "validation"
+    description: "Validate IPC message source"
+    input: "IpcRendererEvent"
+    output: "boolean (valid)"
+    errors: ["untrusted_source"]
+  
+  JOB_DEDUPLICATE_CHUNK:
+    category: "validation"
+    description: "Check if chunk is duplicate"
+    input: "object (chunk)"
+    output: "boolean (is_duplicate)"
+    errors: []
+
+# =============================================================================
+# SANITIZATION JOBS (Category: Security)
+# =============================================================================
+
+sanitization_jobs:
+  JOB_ESCAPE_HTML:
+    category: "sanitization"
+    description: "Escape HTML entities"
+    input: "string (text)"
+    output: "string (escaped)"
+    errors: []
+  
+  JOB_SANITIZE_MARKDOWN:
+    category: "sanitization"
+    description: "Sanitize markdown-rendered HTML"
+    input: "string (HTML)"
+    output: "string (sanitized HTML)"
+    errors: []
+  
+  JOB_SANDBOX_IFRAME:
+    category: "sanitization"
+    description: "Wrap HTML in sandboxed iframe"
+    input: "string (HTML)"
+    output: "HTMLElement (iframe)"
+    errors: []
+
+# =============================================================================
+# ID GENERATION JOBS (Category: Identity)
+# =============================================================================
+
+id_jobs:
+  JOB_GENERATE_SESSION_ID:
+    category: "id_generation"
+    description: "Generate deterministic session-based ID"
+    input: "string (chatId), string (type suffix)"
+    output: "string (session_id format)"
+    errors: ["no_active_session"]
+  
+  JOB_GENERATE_USER_MSG_ID:
+    category: "id_generation"
+    description: "Generate user message ID"
+    input: "void"
+    output: "string (format: chatId_NNNNNN_UM)"
+    errors: ["no_active_session"]
+  
+  JOB_GENERATE_ASSISTANT_MSG_ID:
+    category: "id_generation"
+    description: "Generate assistant message ID"
+    input: "string (parent user message id) | null"
+    output: "string (format: chatId_NNNNNN_AM)"
+    errors: ["no_active_session"]
+  
+  JOB_GENERATE_ARTIFACT_ID:
+    category: "id_generation"
+    description: "Generate artifact ID"
+    input: "string (parent message id), string (artifact type)"
+    output: "string (format: chatId_NNNNNN_AC/AO/AH)"
+    errors: ["no_active_session"]
+
+# =============================================================================
+# ROUTING JOBS (Category: Message Passing)
+# =============================================================================
+
+routing_jobs:
+  JOB_ROUTE_BY_TYPE:
+    category: "routing"
+    description: "Route message to handler based on type"
+    input: "object (message)"
+    output: "void (delegates to handler)"
+    errors: ["unknown_type", "no_handler"]
+  
+  JOB_EMIT_EVENT:
+    category: "routing"
+    description: "Emit event to listeners"
+    input: "string (event name), any (data)"
+    output: "void"
+    errors: []
+  
+  JOB_SEND_IPC:
+    category: "routing"
+    description: "Send IPC message to window"
+    input: "string (channel), any (data)"
+    output: "void"
+    errors: ["ipc_unavailable", "window_destroyed"]
+  
+  JOB_DELEGATE_TO_MODULE:
+    category: "routing"
+    description: "Delegate processing to submodule"
+    input: "string (module name), any (data)"
+    output: "any (module result)"
+    errors: ["module_not_found", "module_error"]
+
+# =============================================================================
+# RENDERING JOBS (Category: UI)
+# =============================================================================
+
+rendering_jobs:
+  JOB_RENDER_MARKDOWN:
+    category: "rendering"
+    description: "Convert markdown to HTML"
+    input: "string (markdown)"
+    output: "string (HTML)"
+    errors: ["render_failed"]
+  
+  JOB_CREATE_DOM_ELEMENT:
+    category: "rendering"
+    description: "Create DOM element from data"
+    input: "object (message data)"
+    output: "HTMLElement"
+    errors: []
+  
+  JOB_UPDATE_DOM_ELEMENT:
+    category: "rendering"
+    description: "Update existing DOM element"
+    input: "string (element id), string (new content)"
+    output: "void"
+    errors: ["element_not_found"]
+  
+  JOB_APPEND_TO_CONTAINER:
+    category: "rendering"
+    description: "Append element to container"
+    input: "HTMLElement (child), HTMLElement (parent)"
+    output: "void"
+    errors: ["container_not_found"]
+  
+  JOB_SCROLL_TO_BOTTOM:
+    category: "rendering"
+    description: "Scroll container to bottom"
+    input: "HTMLElement (container)"
+    output: "void"
+    errors: []
+
+# =============================================================================
+# PERSISTENCE JOBS (Category: Storage)
+# =============================================================================
+
+persistence_jobs:
+  JOB_SAVE_TO_DB:
+    category: "persistence"
+    description: "Persist data to PostgreSQL via IPC"
+    input: "object (data)"
+    output: "object (saved record with uuid)"
+    errors: ["db_unavailable", "insert_failed"]
+  
+  JOB_LOAD_FROM_DB:
+    category: "persistence"
+    description: "Load data from PostgreSQL via IPC"
+    input: "string (query identifier), object (params)"
+    output: "object | array (records)"
+    errors: ["db_unavailable", "query_failed"]
+  
+  JOB_UPDATE_DB:
+    category: "persistence"
+    description: "Update database record"
+    input: "string (record id), object (updates)"
+    output: "object (updated record)"
+    errors: ["db_unavailable", "update_failed", "not_found"]
+  
+  JOB_CACHE_LOCALLY:
+    category: "persistence"
+    description: "Store in local memory cache"
+    input: "string (key), any (value)"
+    output: "void"
+    errors: []
+  
+  JOB_WRITE_FILE:
+    category: "persistence"
+    description: "Write data to file"
+    input: "string (path), any (data)"
+    output: "void"
+    errors: ["write_failed", "permission_denied"]
+
+# =============================================================================
+# STATE MANAGEMENT JOBS (Category: State)
+# =============================================================================
+
+state_jobs:
+  JOB_UPDATE_STATE:
+    category: "state"
+    description: "Update internal state variable"
+    input: "string (state key), any (value)"
+    output: "void"
+    errors: []
+  
+  JOB_GET_STATE:
+    category: "state"
+    description: "Retrieve state variable"
+    input: "string (state key)"
+    output: "any (value)"
+    errors: ["state_not_found"]
+  
+  JOB_CLEAR_STATE:
+    category: "state"
+    description: "Clear state variables"
+    input: "void"
+    output: "void"
+    errors: []
+  
+  JOB_TRACK_ENTITY:
+    category: "state"
+    description: "Track entity in registry"
+    input: "string (id), object (metadata)"
+    output: "void"
+    errors: []
+
+# =============================================================================
+# LIFECYCLE JOBS (Category: Management)
+# =============================================================================
+
+lifecycle_jobs:
+  JOB_INITIALIZE:
+    category: "lifecycle"
+    description: "Initialize module with dependencies"
+    input: "object (options/dependencies)"
+    output: "void"
+    errors: ["init_failed", "missing_dependency"]
+  
+  JOB_START:
+    category: "lifecycle"
+    description: "Start listening/processing"
+    input: "void"
+    output: "void"
+    errors: ["already_started"]
+  
+  JOB_STOP:
+    category: "lifecycle"
+    description: "Stop listening/processing"
+    input: "void"
+    output: "void"
+    errors: ["not_started"]
+  
+  JOB_DISPOSE:
+    category: "lifecycle"
+    description: "Clean up resources and references"
+    input: "void"
+    output: "void"
+    errors: []
+  
+  JOB_CREATE_BRIDGE:
+    category: "lifecycle"
+    description: "Create IPC bridge between processes"
+    input: "object (bridge config)"
+    output: "object (bridge instance)"
+    errors: ["bridge_creation_failed"]
+  
+  JOB_ATTACH_TO_WINDOW:
+    category: "lifecycle"
+    description: "Attach API to window object"
+    input: "object (API methods)"
+    output: "void"
+    errors: ["window_not_available"]
+
+# =============================================================================
+# STREAM CONTROL JOBS (Category: Flow Control)
+# =============================================================================
+
+stream_jobs:
+  JOB_DETECT_NEW_STREAM:
+    category: "stream_control"
+    description: "Detect new streaming request"
+    input: "string (current request id), string (new request id)"
+    output: "boolean (is_new)"
+    errors: []
+  
+  JOB_FINALIZE_STREAM:
+    category: "stream_control"
+    description: "Complete and persist stream"
+    input: "void (uses current state)"
+    output: "void"
+    errors: ["finalization_failed"]
+  
+  JOB_CANCEL_STREAM:
+    category: "stream_control"
+    description: "Cancel active stream"
+    input: "string (request id)"
+    output: "void"
+    errors: ["request_not_found"]
+
+# =============================================================================
+# JOB EXECUTION RULES
+# =============================================================================
+
+execution_rules:
+  synchronous_jobs:
+    - "JOB_PARSE_JSON"
+    - "JOB_STRINGIFY_JSON"
+    - "JOB_ESCAPE_HTML"
+    - "JOB_GENERATE_SESSION_ID"
+    - "JOB_CREATE_DOM_ELEMENT"
+  
+  asynchronous_jobs:
+    - "JOB_WS_CONNECT"
+    - "JOB_HTTP_REQUEST"
+    - "JOB_SAVE_TO_DB"
+    - "JOB_LOAD_FROM_DB"
+    - "JOB_FINALIZE_STREAM"
+  
+  sequential_required:
+    - "JOB_PARSE_JSON → JOB_VALIDATE_SCHEMA"
+    - "JOB_GENERATE_SESSION_ID → JOB_CREATE_DOM_ELEMENT"
+    - "JOB_RENDER_MARKDOWN → JOB_SANITIZE_MARKDOWN"
+  
+  parallel_allowed:
+    - "JOB_RENDER_MARKDOWN + JOB_GENERATE_SESSION_ID"
+    - "JOB_EMIT_EVENT + JOB_SEND_IPC"
+

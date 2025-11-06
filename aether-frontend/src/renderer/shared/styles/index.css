@@ -1,0 +1,30 @@
+/**
+ * @.architecture
+ *
+ * INCOMING: HTML link tags renderer/index.html - import_types.css, import
+ * PROCESSING: Aggregate and load shared stylesheets (theme tokens, component styles) in cascade order - 1 job JOB_DELEGATE_TO_MODULE
+ * OUTGOING: Cascaded CSS rules to browser rendering engine - css_types.stylesheet, CSSOM
+ *
+ * PATTERN: orchestrator
+ * JOBS: JOB_DELEGATE_TO_MODULE
+ *
+ * @module renderer/shared/styles/index.css
+ */
+
+/**
+ * Shared Styles - Main Import
+ * ============================================================================
+ * Import all shared styles in the correct order.
+ * 
+ * Usage:
+ * <link rel="stylesheet" href="path/to/shared/styles/index.css">
+ * 
+ * Or in individual HTML files:
+ * <link rel="stylesheet" href="path/to/shared/styles/theme.css">
+ * <link rel="stylesheet" href="path/to/shared/styles/components.css">
+ */
+
+/* Import order is critical */
+@import './theme.css';
+@import './components.css';
+

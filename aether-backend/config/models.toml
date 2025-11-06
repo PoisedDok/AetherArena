@@ -1,0 +1,86 @@
+# Model Configuration
+# Single source of truth for all model and provider settings
+
+[MODELS]
+# Primary models for production use
+primary_chat_model = "qwen/qwen3-4b-2507"
+primary_embedding_model = "text-embedding-nomic-embed-text-v1.5"
+
+# Fallback models for redundancy
+fallback_chat_model = "google/gemma-3-12b"
+fallback_embedding_model = "xenova-bge-small-en-v1.5"
+
+# Specialized models
+vision_model = "internvl2-2b"
+
+[PROVIDERS]
+# LM Studio (primary LLM provider)
+lm_studio_url = "http://localhost:1234/v1"
+lm_studio_api_key = "not-needed"
+
+# Ollama (alternative LLM provider)
+ollama_url = "http://127.0.0.1:11434"
+
+# External service integrations
+perplexica_url = "http://localhost:3000"
+searxng_url = "http://127.0.0.1:4000"
+docling_url = "http://127.0.0.1:8000"
+xlwings_url = "http://127.0.0.1:8001"
+
+[OPEN_INTERPRETER]
+# Open Interpreter runtime configuration
+context_window = 100000
+max_tokens = 4096
+supports_vision = false
+supports_functions = false
+offline = true
+disable_telemetry = true
+
+[PERPLEXICA]
+# Perplexica search configuration
+similarity_measure = "cosine"
+keep_alive = "5m"
+optimization_mode = "balanced"
+timeout = 120
+
+[XLWINGS]
+# XLWings Excel automation configuration
+default_save_dir = "data/files"
+auto_launch_excel = true
+excel_timeout = 30
+workbook_cache_timeout = 3600
+
+[PROVIDER_PREFERENCES]
+# Provider selection priority order
+chat_providers = ["lmstudio", "custom_openai", "ollama"]
+embedding_providers = ["lmstudio", "transformers", "ollama"]
+
+[DOCLING]
+# Docling document processing configuration
+default_pipeline = "standard"
+enable_ocr = true
+enable_table_extraction = true
+enable_vision = true
+max_pages = 1000
+timeout = 300
+
+[SECURITY]
+# Security-related model settings
+enable_content_filtering = false
+enable_pii_detection = false
+max_prompt_tokens = 50000
+max_completion_tokens = 4096
+
+[PERFORMANCE]
+# Performance tuning
+batch_size = 1
+num_workers = 4
+enable_caching = true
+cache_ttl_seconds = 3600
+
+[LIMITS]
+# Resource limits
+max_concurrent_requests = 10
+max_queue_size = 100
+request_timeout_seconds = 600
+

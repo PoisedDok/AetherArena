@@ -1,0 +1,207 @@
+# SECURITY & COMPLIANCE STANDARD
+# Abstract security requirements for all backend code
+# Enforces cybersecurity best practices
+
+version: "1.0.0"
+standard_name: "Backend Security & Compliance Standard"
+
+authentication:
+  requirements:
+    - "All API endpoints must authenticate requests"
+    - "Use industry-standard protocols (OAuth2, JWT)"
+    - "Token expiration and rotation"
+    - "Secure credential storage (never in code)"
+  
+  implementation:
+    token_based:
+      - "Short-lived access tokens"
+      - "Refresh token mechanism"
+      - "Token revocation support"
+      - "Signature validation"
+    
+    session_based:
+      - "Secure session IDs"
+      - "Session timeout"
+      - "Session invalidation"
+      - "CSRF protection"
+
+authorization:
+  principles:
+    - "Principle of Least Privilege"
+    - "Role-Based Access Control (RBAC)"
+    - "Resource-level permissions"
+    - "Explicit deny by default"
+  
+  enforcement:
+    - "Middleware-level checks"
+    - "Decorator-based guards"
+    - "Policy-based decisions"
+    - "Audit logging"
+
+input_validation:
+  requirements:
+    - "Validate all external input"
+    - "Type checking and conversion"
+    - "Length/size limits"
+    - "Format validation (regex, schemas)"
+  
+  sanitization:
+    - "SQL injection prevention"
+    - "XSS attack prevention"
+    - "Command injection prevention"
+    - "Path traversal prevention"
+  
+  tools:
+    - "Pydantic models for schema validation"
+    - "DOMPurify for HTML sanitization"
+    - "Parameterized queries"
+    - "Whitelist validation"
+
+data_protection:
+  at_rest:
+    - "Database encryption"
+    - "File system encryption"
+    - "Key management (KMS)"
+    - "Secure deletion"
+  
+  in_transit:
+    - "TLS 1.3 minimum"
+    - "Certificate validation"
+    - "Perfect forward secrecy"
+    - "HSTS headers"
+  
+  in_memory:
+    - "Secure memory allocation"
+    - "Clear sensitive data after use"
+    - "No sensitive data in logs"
+    - "Memory protection flags"
+
+secrets_management:
+  requirements:
+    - "Never hardcode secrets"
+    - "Use environment variables"
+    - "Secrets rotation policy"
+    - "Access logging"
+  
+  storage:
+    - "Encrypted storage (e.g., HashiCorp Vault)"
+    - "Separate secrets per environment"
+    - "Principle of least privilege"
+    - "Audit trail"
+  
+  prohibited:
+    - "Secrets in source code"
+    - "Secrets in git history"
+    - "Secrets in error messages"
+    - "Secrets in URLs"
+
+rate_limiting:
+  strategy:
+    - "Token bucket algorithm"
+    - "Per-IP and per-user limits"
+    - "Graceful degradation"
+    - "Exponential backoff"
+  
+  enforcement:
+    - "Middleware-level protection"
+    - "Distributed rate limiting"
+    - "Redis-backed counters"
+    - "429 status codes"
+
+logging_and_auditing:
+  security_events:
+    - "Authentication attempts"
+    - "Authorization failures"
+    - "Input validation failures"
+    - "Configuration changes"
+  
+  requirements:
+    - "Structured logging (JSON)"
+    - "Contextual information (user, IP, timestamp)"
+    - "No sensitive data"
+    - "Tamper-proof storage"
+  
+  retention:
+    - "Minimum 90 days"
+    - "Secure archival"
+    - "Access controls"
+    - "Deletion policy"
+
+dependency_security:
+  requirements:
+    - "Track all dependencies"
+    - "Regular security scans"
+    - "Version pinning"
+    - "Automated updates"
+  
+  tools:
+    - "pip-audit for Python"
+    - "npm audit for Node.js"
+    - "Dependabot for automation"
+    - "SBOM generation"
+
+error_handling_security:
+  requirements:
+    - "No stack traces to external users"
+    - "Generic error messages"
+    - "Detailed internal logging"
+    - "No sensitive data exposure"
+  
+  patterns:
+    - "Catch specific exceptions"
+    - "Log full context internally"
+    - "Return sanitized errors externally"
+    - "Rate limit error responses"
+
+cors_policy:
+  requirements:
+    - "Explicit origin whitelist"
+    - "No wildcard (*) in production"
+    - "Credentials handling"
+    - "Preflight cache"
+  
+  headers:
+    - "Access-Control-Allow-Origin"
+    - "Access-Control-Allow-Methods"
+    - "Access-Control-Allow-Headers"
+    - "Access-Control-Max-Age"
+
+security_headers:
+  required:
+    - "X-Content-Type-Options: nosniff"
+    - "X-Frame-Options: DENY"
+    - "X-XSS-Protection: 1; mode=block"
+    - "Strict-Transport-Security: max-age=31536000"
+    - "Content-Security-Policy: default-src 'self'"
+  
+  recommended:
+    - "Referrer-Policy: no-referrer"
+    - "Permissions-Policy: geolocation=()"
+    - "Cache-Control: no-store"
+
+compliance_requirements:
+  data_privacy:
+    - "GDPR compliance (if applicable)"
+    - "Data minimization"
+    - "User consent management"
+    - "Right to erasure"
+  
+  audit_trail:
+    - "Who accessed what data"
+    - "When data was modified"
+    - "What changes were made"
+    - "Why changes were authorized"
+
+incident_response:
+  detection:
+    - "Anomaly detection"
+    - "Threshold alerts"
+    - "Pattern recognition"
+    - "Automated monitoring"
+  
+  response:
+    - "Incident classification"
+    - "Containment procedures"
+    - "Escalation path"
+    - "Post-incident review"
+

@@ -1,0 +1,111 @@
+# Default Profile - Standard Open Interpreter Configuration
+# Basic profile template for general-purpose AI assistance
+# Version: 2.0.0
+
+# ============================================================================
+# AGENT IDENTITY
+# ============================================================================
+agent:
+  name: Assistant
+  version: "2.0.0"
+  role: General-purpose AI assistant with code execution capabilities
+
+# ============================================================================
+# LLM CONFIGURATION
+# ============================================================================
+llm:
+  # Model settings loaded from config/settings.py
+  temperature: 0.7
+  max_output: 2500
+
+# ============================================================================
+# INTERPRETER CONFIGURATION  
+# ============================================================================
+interpreter:
+  auto_run: false
+  loop: false
+  safe_mode: "off"
+  offline: false
+  disable_telemetry: true
+  
+  # Display settings
+  speak_messages: false
+  conversation_history: true
+  debug: false
+  verbose: false
+  multi_line: false
+  highlight_active_line: false
+  
+  # Image handling
+  shrink_images: true
+  emit_images: false
+
+# ============================================================================
+# COMPUTER API CONFIGURATION
+# ============================================================================
+computer:
+  import_computer_api: true
+  import_skills: false
+  use_context_optimized_tools: false
+  emit_images: false
+  save_skills: false
+  os: false
+  
+  # Supported languages (minimal set)
+  terminal_languages:
+    - python
+    - javascript
+    - shell
+
+# ============================================================================
+# CAPABILITIES
+# ============================================================================
+capabilities:
+  - Code execution (Python, JavaScript, Shell)
+  - File operations
+  - Web browsing
+  - Basic tool usage
+
+# ============================================================================
+# SECURITY RULES
+# ============================================================================
+security_rules:
+  - "Ask before running potentially destructive commands"
+  - "Confirm file deletions"
+  - "Validate user input"
+
+# ============================================================================
+# TOOL DISCOVERY STRATEGY
+# ============================================================================
+tool_discovery:
+  approach: "Use computer.tools.search() to find tools as needed"
+  validation: "Validate tool paths before execution"
+  strategy: "minimal"  # minimal|brief|detailed
+
+# ============================================================================
+# SYSTEM MESSAGE
+# ============================================================================
+system_message: |
+  You are a helpful AI assistant with code execution capabilities.
+  
+  You can:
+  - Write and execute code (Python, JavaScript, Shell)
+  - Read and write files
+  - Browse the web
+  - Use available tools
+  
+  ## Code Execution
+  - Wrap code in appropriate language blocks: ```python, ```javascript, ```shell
+  - Execute code to show results, don't just describe
+  
+  ## Tool Discovery
+  - Use `computer.tools.search("description")` to find tools
+  - Use `computer.tools.list_categories()` to browse available tools
+  - Use `computer.tools.get_info("tool.path")` for tool details
+  
+  ## Guidelines
+  - Be helpful and accurate
+  - Ask for clarification when needed
+  - Show your work through code execution
+  - Keep responses clear and concise
+

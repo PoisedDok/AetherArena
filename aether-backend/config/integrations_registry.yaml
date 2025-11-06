@@ -1,0 +1,434 @@
+metadata:
+  version: 1.0.0
+  updated: '2025-11-02'
+  total_integrations: 8
+  architecture: 4-layer modular abstraction
+integrations:
+  perplexica:
+    enabled: true
+    priority: 1
+    type: service
+    description: Comprehensive web search and research with multiple focus modes
+    layer1_implementation:
+      module: core.integrations.providers.perplexica.search
+      files:
+      - search.py
+    layer2_exposure:
+      init_file: core.integrations.providers.perplexica
+      exports:
+      - perplexica_search
+      - web_search
+      - academic_search
+      - reddit_search
+      - wolfram_search
+      - writing_assistant
+      - quick_search
+      - answer_with_sources
+      - perplexica_discover
+      - perplexica_models
+      - show_current_model
+    layer3_metadata:
+      tool_count: 11
+      category: web_search_extraction
+      requires_service: true
+      service_url: http://localhost:3000
+      health_check: http://localhost:3000/api/health
+    layer4_runtime:
+      namespace: computer
+      loader_method: _load_perplexica
+      initialization_order: 1
+      attach_as: functions
+    dependencies:
+      external:
+      - httpx
+      - requests
+      optional:
+      - Perplexica service running on port 3000
+    tools_reference:
+      registry_file: tools_registry.yaml
+      category: web_search_extraction
+      tool_paths:
+      - computer.perplexica_search
+      - computer.web_search
+      - computer.academic_search
+      - computer.reddit_search
+      - computer.wolfram_search
+      - computer.writing_assistant
+      - computer.quick_search
+      - computer.answer_with_sources
+      - computer.perplexica_discover
+      - computer.perplexica_models
+      - computer.show_current_model
+  docling:
+    enabled: true
+    priority: 2
+    type: service
+    description: Advanced document conversion using SmolDocling and InternVL
+    layer1_implementation:
+      module: core.integrations.providers.docling.implementation
+      files:
+      - implementation.py
+      - converter.py
+    layer2_exposure:
+      init_file: core.integrations.providers.docling
+      exports:
+      - DoclingService
+      - get_docling_service
+      - docling_convert
+    layer3_metadata:
+      tool_count: 1
+      category: document_processing_vision
+      requires_service: true
+      service_url: http://localhost:8000
+      health_check: http://localhost:8000/health
+    layer4_runtime:
+      namespace: computer
+      loader_method: _load_docling
+      initialization_order: 2
+      attach_as: functions
+    dependencies:
+      external:
+      - httpx
+      optional:
+      - Docling API server running on port 8000
+    tools_reference:
+      registry_file: tools_registry.yaml
+      category: document_processing_vision
+      tool_paths:
+      - computer.docling_convert
+  xlwings:
+    enabled: true
+    priority: 3
+    type: library
+    description: Excel workbook creation, manipulation, and automation
+    layer1_implementation:
+      module: core.integrations.libraries.xlwings.excel
+      files:
+      - excel.py
+    layer2_exposure:
+      init_file: core.integrations.libraries.xlwings
+      exports:
+      - create_workbook
+      - load_workbook
+      - save_workbook
+      - create_sheet
+      - write_data
+      - read_data
+      - create_chart
+      - get_workbook_info
+      - close_workbook
+      - xlwings_health
+      # Table management
+      - create_table
+      - get_table_info
+      - update_table
+      # Picture management
+      - add_picture
+      # Named ranges
+      - create_named_range
+      # Formula calculation
+      - calculate_formula
+      # Formatting
+      - format_range
+      - autofit_sheet
+      # Sheet operations
+      - delete_sheet
+      - activate_sheet
+      - copy_sheet
+      # Range operations
+      - clear_range
+      - freeze_panes
+      - show_autofilter
+      # Cell operations
+      - merge_cells
+      # Chart management
+      - update_chart
+      - delete_chart
+      # Data export
+      - export_data
+    layer3_metadata:
+      tool_count: 27
+      category: excel_automation_data_analysis
+      requires_service: false
+    layer4_runtime:
+      namespace: computer
+      loader_method: _load_xlwings
+      initialization_order: 3
+      attach_as: functions
+    dependencies:
+      external:
+      - xlwings
+      platform:
+      - macOS (recommended)
+      - Windows (full support)
+      - Linux (limited)
+    tools_reference:
+      registry_file: tools_registry.yaml
+      category: excel_automation_data_analysis
+      tool_paths:
+      - computer.xlwings.create_workbook
+      - computer.xlwings.load_workbook
+      - computer.xlwings.save_workbook
+      - computer.xlwings.create_sheet
+      - computer.xlwings.write_data
+      - computer.xlwings.read_data
+      - computer.xlwings.create_chart
+      - computer.xlwings.get_workbook_info
+      - computer.xlwings.close_workbook
+      - computer.xlwings.xlwings_health
+      # Table management
+      - computer.xlwings.create_table
+      - computer.xlwings.get_table_info
+      - computer.xlwings.update_table
+      # Picture management
+      - computer.xlwings.add_picture
+      # Named ranges
+      - computer.xlwings.create_named_range
+      # Formula calculation
+      - computer.xlwings.calculate_formula
+      # Formatting
+      - computer.xlwings.format_range
+      - computer.xlwings.autofit_sheet
+      # Sheet operations
+      - computer.xlwings.delete_sheet
+      - computer.xlwings.activate_sheet
+      - computer.xlwings.copy_sheet
+      # Range operations
+      - computer.xlwings.clear_range
+      - computer.xlwings.freeze_panes
+      - computer.xlwings.show_autofilter
+      # Cell operations
+      - computer.xlwings.merge_cells
+      # Chart management
+      - computer.xlwings.update_chart
+      - computer.xlwings.delete_chart
+      # Data export
+      - computer.xlwings.export_data
+  omni:
+    enabled: true
+    priority: 4
+    type: bridge
+    description: OmniParser vision tools for screen analysis and document parsing
+    layer1_implementation:
+      module: core.integrations.libraries.omni.implementation
+      files:
+      - implementation.py
+      - tools.py
+    layer2_exposure:
+      init_file: core.integrations.libraries.omni
+      exports:
+      - OmniParalegalTools
+      - omni_screenshot
+      - omni_analyze_screen
+      - omni_parse_document
+      - omni_multi_ocr_parse
+      - omni_find_and_parse_documents
+      - omni_workflows
+    layer3_metadata:
+      tool_count: 6
+      category: document_processing_vision
+      requires_service: false
+      sub_backend: ../OmniParser
+    layer4_runtime:
+      namespace: computer.omni
+      loader_method: _load_omni
+      initialization_order: 4
+      attach_as: namespace
+      register_discoverable: true
+    dependencies:
+      external:
+      - PIL/Pillow
+      - numpy
+      sub_backend:
+      - OmniParser service (optional)
+    tools_reference:
+      registry_file: tools_registry.yaml
+      category: document_processing_vision
+      tool_paths:
+      - computer.omni.screenshot
+      - computer.omni.analyze_screen
+      - computer.omni.parse_document
+      - computer.omni.multi_ocr_parse
+      - computer.omni.find_and_parse_documents
+      - computer.omni.workflows
+  notebook:
+    enabled: true
+    priority: 5
+    type: library
+    description: Python runtime environment inspection and module management
+    layer1_implementation:
+      module: core.integrations.libraries.notebook.runtime
+      files:
+      - runtime.py
+    layer2_exposure:
+      init_file: core.integrations.libraries.notebook
+      exports:
+      - nb_sys_path_add
+      - nb_import
+      - nb_import_from_path
+      - nb_list_sys_path
+      - nb_list_installed
+      - nb_search_importable
+      - nb_module_info
+    layer3_metadata:
+      tool_count: 7
+      category: system_operations
+      requires_service: false
+    layer4_runtime:
+      namespace: computer
+      loader_method: _load_notebook
+      initialization_order: 5
+      attach_as: functions
+    dependencies:
+      external: []
+      builtin:
+      - sys
+      - importlib
+    tools_reference:
+      registry_file: tools_registry.yaml
+      category: system_operations
+      tool_paths:
+      - computer.nb_sys_path_add
+      - computer.nb_import
+      - computer.nb_import_from_path
+      - computer.nb_list_sys_path
+      - computer.nb_list_installed
+      - computer.nb_search_importable
+      - computer.nb_module_info
+  browser:
+    enabled: false
+    priority: 6
+    type: builtin
+    description: Browser automation and web scraping (OI built-in - skip loading)
+    layer1_implementation:
+      module: interpreter.core.computer.browser.browser
+      files:
+      - browser.py
+    layer2_exposure:
+      init_file: interpreter.core.computer.browser
+      exports:
+      - setup_robust_driver
+    layer3_metadata:
+      tool_count: 1
+      category: browser_automation
+      requires_service: false
+      builtin: true
+    layer4_runtime:
+      namespace: computer.browser
+      loader_method: null
+      initialization_order: 0
+      attach_as: builtin
+    dependencies:
+      external:
+      - selenium
+      - webdriver-manager
+      optional:
+      - Chrome/Firefox browser
+    tools_reference:
+      registry_file: tools_registry.yaml
+      category: browser_automation
+      note: OI provides built-in browser.search() and other methods
+  mcp:
+    enabled: true
+    priority: 7
+    type: dynamic
+    description: Dynamic MCP server management and tool registration
+    layer1_implementation:
+      module: core.mcp.server
+      files:
+      - server.py
+      - manager.py
+      - database.py
+      - sandbox.py
+    layer2_exposure:
+      init_file: core.mcp
+      exports:
+      - McpServer
+      - LocalMcpServer
+      - RemoteMcpServer
+      - MCPServerManager
+      - MCPDatabase
+    layer3_metadata:
+      tool_count: dynamic
+      category: mcp_tools
+      requires_service: false
+      dynamic_registration: true
+    layer4_runtime:
+      namespace: computer
+      loader_method: _load_mcp
+      initialization_order: 7
+      attach_as: classes
+      bridge_file: integrations/runtime/mcp_bridge.py
+    dependencies:
+      external:
+      - mcp
+      - asyncio
+      optional:
+      - PostgreSQL (for persistence)
+    tools_reference:
+      registry_file: tools_registry.yaml
+      category: mcp_tools
+      note: Tools registered dynamically based on active MCP servers
+      dynamic_tool_pattern: computer.mcp_{server}_{tool_name}
+runtime:
+  loader_location: integrations/runtime/integration_loader.py
+  oi_runtime_location: integrations/runtime/oi_runtime.py
+  initialization:
+    order:
+    - browser
+    - perplexica
+    - docling
+    - xlwings
+    - omni
+    - notebook
+    - mcp
+    failure_handling: continue
+    log_level: info
+  health_checks:
+    enabled: true
+    timeout_seconds: 5
+    retry_attempts: 2
+    services:
+    - perplexica
+    - docling
+validation:
+  layer1_requirements:
+  - Implementation in dedicated module files
+  - No direct OI dependencies in service layer
+  - Type hints on all public functions
+  - Docstrings with parameter descriptions
+  layer2_requirements:
+  - __init__.py exports all public functions
+  - __all__ list defined
+  - Clean import structure
+  - No side effects on import
+  layer3_requirements:
+  - Integration registered in this YAML
+  - All tools registered in tools_registry.yaml
+  - Health check endpoint (if service-based)
+  - Dependency list complete
+  layer4_requirements:
+  - Loader method implemented in integration_loader.py
+  - Proper namespace attachment to interpreter.computer
+  - Error handling for failed loads
+  - Logging of integration status
+extension_guide:
+  adding_new_integration:
+    steps:
+    - 1. Create integration/new_integration/ directory
+    - 2. Implement service in new_integration/service.py (Layer 1)
+    - 3. Create __init__.py with exports (Layer 2)
+    - 4. Register integration in this YAML file (Layer 3)
+    - 5. Add tools to tools_registry.yaml (Layer 3)
+    - 6. Implement _load_new_integration() in integration_loader.py (Layer 4)
+    - 7. Test loading via oi_runtime.py
+    - 8. Verify tools appear in computer.tools.search()
+  integration_template: "# Layer 1: Implementation\n# integrations/my_integration/service.py\n\
+    def my_function(param: str) -> dict:\n    \\\"\\\"\\\"Do something useful\\\"\\\
+    \"\\\"\n    return {\"result\": \"success\"}\n\n# Layer 2: Exposure\n# integrations/my_integration/__init__.py\n\
+    from .service import my_function\n__all__ = ['my_function']\n\n# Layer 3: Registry\n\
+    # Add to this YAML and tools_registry.yaml\n\n# Layer 4: Loader\n# In integration_loader.py:\n\
+    def _load_my_integration(self) -> bool:\n    try:\n        from integrations.my_integration\
+    \ import my_function\n        self.computer.my_function = my_function\n      \
+    \  return True\n    except Exception as e:\n        logger.warning(f\"Failed to\
+    \ load: {e}\")\n        return False\n"

@@ -1,0 +1,269 @@
+# FRONTEND DATA TYPES - Abstract Type Definitions
+# =============================================================================
+# Defines ALL possible data types flowing through the frontend system.
+# Files MUST log their conformance to these types or declare special types.
+# =============================================================================
+
+version: "1.0.0"
+domain: "frontend"
+
+# =============================================================================
+# CORE MESSAGE TYPES
+# =============================================================================
+
+message_types:
+  user_message:
+    format: "json"
+    schema:
+      id: "string (uuid or session_id)"
+      role: "string (literal: 'user')"
+      type: "string (literal: 'message')"
+      content: "string"
+      timestamp: "string (ISO8601)"
+      image: "string (base64) | null"
+      correlation_id: "string | null"
+    
+  assistant_message:
+    format: "json"
+    schema:
+      id: "string (uuid or session_id)"
+      role: "string (literal: 'assistant')"
+      type: "string (literal: 'message')"
+      content: "string | null"
+      start: "boolean | undefined"
+      end: "boolean | undefined"
+      timestamp: "string (ISO8601) | undefined"
+      frontend_id: "string | undefined"
+      _backend_id: "string | undefined"
+  
+  system_message:
+    format: "json"
+    schema:
+      id: "string"
+      role: "string (literal: 'server' | 'system')"
+      type: "string (enum: completion, stopped, error, info)"
+      message: "string | null"
+      timestamp: "string (ISO8601) | undefined"
+
+# =============================================================================
+# ARTIFACT TYPES
+# =============================================================================
+
+artifact_types:
+  code_artifact:
+    format: "json"
+    schema:
+      id: "string (session_id format: chatId_NNNNNN_AC)"
+      backendId: "string (uuid) | null"
+      kind: "string (literal: 'code')"
+      content: "string"
+      format: "string (language: python, javascript, etc)"
+      start: "boolean"
+      end: "boolean"
+      messageId: "string (session_id)"
+      parentId: "string (session_id)"
+  
+  output_artifact:
+    format: "json"
+    schema:
+      id: "string (session_id format: chatId_NNNNNN_AO)"
+      backendId: "string (uuid) | null"
+      kind: "string (literal: 'output')"
+      content: "string | object"
+      format: "string (plain | auto)"
+      start: "boolean"
+      end: "boolean"
+      messageId: "string (session_id)"
+      parentId: "string (session_id)"
+  
+  html_artifact:
+    format: "json"
+    schema:
+      id: "string (session_id format: chatId_NNNNNN_AH)"
+      backendId: "string (uuid) | null"
+      kind: "string (literal: 'html')"
+      content: "string (html markup)"
+      format: "string (literal: 'html')"
+      start: "boolean"
+      end: "boolean"
+      messageId: "string (session_id)"
+      parentId: "string (session_id)"
+
+# =============================================================================
+# STREAM CHUNK TYPES
+# =============================================================================
+
+stream_types:
+  ipc_stream_chunk:
+    format: "json"
+    schema:
+      chunk: "string (text delta)"
+      id: "string (frontend message id)"
+      backend_id: "string (backend uuid) | null"
+      start: "boolean"
+      done: "boolean"
+      type: "string (literal: 'message')"
+  
+  websocket_stream_chunk:
+    format: "json"
+    schema:
+      role: "string (assistant | computer | server)"
+      type: "string (message | code | console | etc)"
+      content: "string | null"
+      start: "boolean | undefined"
+      end: "boolean | undefined"
+      id: "string"
+      frontend_id: "string | undefined"
+
+# =============================================================================
+# SESSION & ID TYPES
+# =============================================================================
+
+session_types:
+  session_id:
+    format: "string"
+    pattern: "{chatId}_{sequence}_{type}"
+    examples:
+      - "a0d6fa98_000001_UM"
+      - "a0d6fa98_000002_AM"
+      - "a0d6fa98_000003_AC"
+    components:
+      chatId: "string (8 chars)"
+      sequence: "string (6 digits, zero-padded)"
+      type: "string (2 chars: UM|AM|AC|AO|AH|UA)"
+  
+  uuid:
+    format: "string"
+    pattern: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    source: "PostgreSQL uuid_generate_v4()"
+
+# =============================================================================
+# IPC MESSAGE TYPES
+# =============================================================================
+
+ipc_types:
+  chat_assistant_stream:
+    channel: "chat:assistant-stream"
+    format: "json"
+    schema: "stream_types.ipc_stream_chunk"
+  
+  chat_request_complete:
+    channel: "chat:request-complete"
+    format: "json"
+    schema:
+      requestId: "string"
+      status: "string"
+  
+  artifacts_stream:
+    channel: "artifacts:stream"
+    format: "json"
+    schema: "artifact_types.*"
+
+# =============================================================================
+# DOM DATA TYPES
+# =============================================================================
+
+dom_types:
+  chat_entry_element:
+    format: "HTMLElement"
+    tag: "div"
+    attributes:
+      class: "chat-entry"
+      data-message-id: "string (session_id or uuid)"
+      data-role: "string (user | assistant | system)"
+  
+  message_map:
+    format: "Map<string, HTMLElement>"
+    key: "string (message id)"
+    value: "HTMLElement (chat entry)"
+
+# =============================================================================
+# DATABASE TYPES
+# =============================================================================
+
+database_types:
+  chat_record:
+    format: "json (PostgreSQL row)"
+    schema:
+      id: "string (uuid)"
+      title: "string"
+      created_at: "string (ISO8601)"
+      updated_at: "string (ISO8601)"
+  
+  message_record:
+    format: "json (PostgreSQL row)"
+    schema:
+      id: "string (uuid)"
+      chat_id: "string (uuid)"
+      role: "string (user | assistant | system)"
+      content: "string"
+      timestamp: "string (ISO8601)"
+      correlation_id: "string | null"
+      created_at: "string (ISO8601)"
+      updated_at: "string (ISO8601)"
+  
+  artifact_record:
+    format: "json (PostgreSQL row)"
+    schema:
+      id: "string (uuid)"
+      chat_id: "string (uuid)"
+      message_id: "string (uuid)"
+      kind: "string (code | output | html)"
+      content: "string"
+      format: "string"
+      created_at: "string (ISO8601)"
+      updated_at: "string (ISO8601)"
+
+# =============================================================================
+# EVENT TYPES
+# =============================================================================
+
+event_types:
+  websocket_event:
+    format: "Event"
+    source: "WebSocket.onmessage"
+    data: "string (JSON) | ArrayBuffer (binary)"
+  
+  custom_event:
+    format: "CustomEvent"
+    properties:
+      type: "string"
+      detail: "any"
+      bubbles: "boolean"
+  
+  ipc_event:
+    format: "electron.IpcRendererEvent"
+    properties:
+      channel: "string"
+      data: "any"
+
+# =============================================================================
+# VALIDATION RULES
+# =============================================================================
+
+validation:
+  required_fields:
+    message: ["id", "role", "type", "content"]
+    artifact: ["id", "kind", "content", "format"]
+    stream_chunk: ["chunk", "id", "done"]
+  
+  type_safety:
+    enforcement: "strict"
+    null_handling: "explicit (must use | null)"
+    undefined_handling: "explicit (must use | undefined)"
+
+# =============================================================================
+# SECURITY CONSTRAINTS
+# =============================================================================
+
+security:
+  sanitization_required:
+    - "user_message.content (HTML escape)"
+    - "html_artifact.content (sandbox iframe)"
+    - "output_artifact.content (if contains HTML)"
+  
+  validation_required:
+    - "all IPC messages (source validation)"
+    - "all WebSocket messages (schema validation)"
+    - "all database inputs (SQL injection prevention)"
+

@@ -1,0 +1,215 @@
+# Production Environment Configuration
+# Optimized for production deployment with security and performance
+
+environment: production
+
+# Application settings
+app:
+  name: "Aether Backend"
+  version: "2.0.0"
+  debug: false
+  reload: false
+
+# Server configuration
+server:
+  host: "0.0.0.0"
+  port: 5002
+  workers: 4
+
+# Security settings (strict for production)
+security:
+  cors_enabled: true
+  cors_origins:
+    - "https://aether.yourdomain.com"
+    - "https://app.yourdomain.com"
+  cors_credentials: true
+  cors_methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+  cors_headers: ["Content-Type", "Authorization"]
+  rate_limit_enabled: true
+  rate_limit_requests_per_minute: 60
+  auth_required: true
+  auth_secret_key: "${AUTH_SECRET_KEY}"  # From environment variable
+
+# Database configuration
+database:
+  url: "${DATABASE_URL}"  # From environment variable
+  pool_size: 20
+  max_overflow: 40
+  pool_timeout: 30
+  echo_sql: false
+  log_queries: false
+  ssl_required: true
+
+# Logging configuration (structured for production)
+logging:
+  level: "INFO"
+  format: "json"  # JSON for log aggregation systems
+  file_enabled: true
+  file_path: "/var/log/aether/backend.log"
+  file_rotation: "100 MB"
+  file_retention: "30 days"
+  console_enabled: true
+  json_logs: true
+
+# Monitoring configuration
+monitoring:
+  metrics_enabled: true
+  metrics_port: 9090
+  tracing_enabled: true
+  tracing_endpoint: "${TRACING_ENDPOINT}"
+  tracing_sample_rate: 0.1  # Sample 10% of requests
+  health_check_interval: 60
+  profiling_enabled: false
+
+# Integration services (production URLs)
+integrations:
+  perplexica:
+    url: "${PERPLEXICA_URL}"
+    enabled: true
+    timeout: 120
+  
+  searxng:
+    url: "${SEARXNG_URL}"
+    enabled: true
+    timeout: 30
+  
+  docling:
+    url: "${DOCLING_URL}"
+    enabled: true
+    timeout: 300
+  
+  xlwings:
+    url: "${XLWINGS_URL}"
+    enabled: true
+    timeout: 60
+  
+  lm_studio:
+    url: "${LM_STUDIO_URL}"
+    enabled: true
+    timeout: 600
+  
+  mcp:
+    enabled: true
+    auto_start: false  # Manually managed in production
+    health_check_interval: 60
+
+# LLM configuration
+llm:
+  provider: "openai-compatible"
+  api_base: "${LM_STUDIO_URL}"
+  api_key: "${LM_STUDIO_API_KEY}"
+  model: "qwen/qwen3-4b-2507"
+  context_window: 100000
+  max_tokens: 4096
+  temperature: 0.7
+  stream: true
+
+# Open Interpreter configuration
+interpreter:
+  auto_run: false
+  safe_mode: "ask"  # Safer for production
+  loop: false
+  profile: "GURU.py"
+  offline: true
+  disable_telemetry: true
+  debug: false
+
+# Storage configuration
+storage:
+  base_path: "/var/lib/aether/storage"
+  max_upload_size_mb: 100
+  allowed_extensions:
+    - ".pdf"
+    - ".txt"
+    - ".md"
+    - ".doc"
+    - ".docx"
+    - ".xls"
+    - ".xlsx"
+    - ".csv"
+    - ".json"
+    - ".yaml"
+    - ".yml"
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".gif"
+    - ".webp"
+
+# Memory/retrieval configuration
+memory:
+  enabled: true
+  type: "pgvector"  # Use PostgreSQL with pgvector in production
+  connection_url: "${MEMORY_DATABASE_URL}"
+  embedder: "remote"  # Use remote embedding service
+  embedder_url: "${EMBEDDING_SERVICE_URL}"
+  top_k: 5
+
+# Cache configuration
+cache:
+  enabled: true
+  type: "redis"  # Use Redis for production caching
+  redis_url: "${REDIS_URL}"
+  ttl_seconds: 3600
+  max_memory: "2gb"
+
+# Production-specific features
+production:
+  # Disable auto-reload
+  auto_reload: false
+  
+  # Hide detailed error pages
+  detailed_errors: false
+  
+  # Disable API documentation (or protect with auth)
+  docs_enabled: false
+  
+  # Never mock external services
+  mock_external_services: false
+  
+  # Strict request validation
+  strict_validation: true
+  
+  # Enforce allowed file types
+  allow_all_file_types: false
+  
+  # Enable request/response compression
+  compression_enabled: true
+  
+  # Enable response caching
+  response_caching: true
+
+# Performance (production optimized)
+performance:
+  worker_count: 4
+  thread_pool_size: 20
+  max_concurrent_requests: 100
+  request_queue_size: 1000
+  keepalive_timeout: 65
+  graceful_shutdown_timeout: 30
+
+# Resource limits
+limits:
+  max_request_size_mb: 100
+  max_response_size_mb: 100
+  max_execution_time_seconds: 600
+  max_memory_per_request_mb: 1024
+
+# Backup and disaster recovery
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention_days: 30
+  backup_path: "/var/backups/aether"
+
+# Alerting configuration
+alerting:
+  enabled: true
+  email_enabled: true
+  email_recipients:
+    - "ops@yourdomain.com"
+  slack_enabled: true
+  slack_webhook_url: "${SLACK_WEBHOOK_URL}"
+  error_threshold: 10  # Alert after 10 errors in 5 minutes
+  latency_threshold_ms: 5000  # Alert if p95 latency > 5s
+

@@ -1,0 +1,95 @@
+[build-system]
+requires = ["maturin>=1,<2"]
+build-backend = "maturin"
+
+[project]
+name = "xlwings"
+description = "Make Excel fly: Interact with Excel from Python and vice versa."
+authors = [
+    { name = "Felix Zumstein", email = "felix.zumstein@zoomeranalytics.com" },
+]
+readme = "README.rst"
+requires-python = ">=3.9"
+dependencies = [
+    "pywin32 >= 224;platform_system=='Windows'",
+    "psutil >= 2.0.0;platform_system=='Darwin'",
+    "appscript >= 1.0.1;platform_system=='Darwin'",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Spreadsheet",
+    "License :: OSI Approved :: BSD License",
+]
+
+dynamic = ["version"]
+license = {text = "BSD 3-clause"}
+keywords = ["xls", "excel", "spreadsheet", "workbook", "vba", "macro"]
+
+
+[project.optional-dependencies]
+reports = ["Jinja2", "pdfrw", "mistune"]
+all = [
+    "black",
+    "isort",
+    "Jinja2",
+    "pandas",
+    "matplotlib",
+    "plotly",
+    "flask",
+    "requests",
+    "pdfrw",
+    "pytest",
+    "mistune",
+]
+vba_edit = ["watchgod"]
+
+[project.scripts]
+xlwings = "xlwings.cli:main"
+
+[project.urls]
+Homepage = "https://www.xlwings.org"
+Documentation = "https://docs.xlwings.org"
+Funding = "https://www.xlwings.org/pricing"
+Source = "https://github.com/xlwings/xlwings"
+Changelog = "https://docs.xlwings.org/en/stable/whatsnew.html"
+
+[tool.maturin]
+exclude = ["xlwings/js/tsconfig.json", "xlwings/js/excel.d.ts"]
+module-name = "xlwings.xlwingslib"
+
+[tool.black]
+target-version = ["py39"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+fix = true
+unfixable = [
+    "F401", # prevents imports in __init__.py to be deleted
+]
+ignore = [
+    # Whitespace before ':' (black compatibility)
+    "E203",
+    # Line too long (black doesn't handle long strings)
+    "E501",
+    # Module level import not at top of file
+    "E402",
+]
+select = [
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "I", # isort
+]
+
+[tool.ruff.isort]
+combine-as-imports = true
+known-first-party = ["xlwings"]

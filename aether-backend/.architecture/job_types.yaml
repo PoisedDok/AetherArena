@@ -1,0 +1,1699 @@
+# BACKEND JOB TYPES - Standardized Operation Registry
+# =============================================================================
+# Defines ALL allowed job types in the backend system.
+# Each file MUST use ONLY job types from this registry.
+# Format: snake_case (e.g., health_checking, data_validation)
+# =============================================================================
+
+version: "2.0.0"
+domain: "backend"
+last_updated: "2025-11-05"
+
+# =============================================================================
+# CATEGORY 1: NETWORK & COMMUNICATION (http_, ws_, ipc_)
+# =============================================================================
+
+network_communication:
+  http_communication:
+    category: "network"
+    description: "HTTP request/response handling"
+    level: 1
+    examples: ["FastAPI endpoints", "HTTP clients"]
+  
+  http_client_management:
+    category: "network"
+    description: "Manage HTTP client lifecycle and pooling"
+    level: 2
+    examples: ["httpx client", "connection pools"]
+  
+  connection_pooling:
+    category: "network"
+    description: "Manage persistent connection pools"
+    level: 2
+    examples: ["Database pools", "HTTP pools"]
+  
+  connection_management:
+    category: "network"
+    description: "Handle connection lifecycle"
+    level: 2
+    examples: ["WebSocket connections", "DB connections"]
+  
+  request_retry:
+    category: "network"
+    description: "Retry failed requests with backoff"
+    level: 2
+    examples: ["Exponential backoff", "Circuit breaker"]
+  
+  streaming:
+    category: "network"
+    description: "Handle streaming data transfer"
+    level: 2
+    examples: ["Server-sent events", "Chunked responses"]
+  
+  message_routing:
+    category: "network"
+    description: "Route messages to appropriate handlers"
+    level: 2
+    examples: ["WebSocket routing", "Event routing"]
+  
+  message_parsing:
+    category: "network"
+    description: "Parse incoming message formats"
+    level: 2
+    examples: ["JSON parsing", "Binary parsing"]
+  
+  broadcasting:
+    category: "network"
+    description: "Broadcast messages to multiple clients"
+    level: 2
+    examples: ["WebSocket broadcast", "Multi-client messaging"]
+
+# =============================================================================
+# CATEGORY 2: DATA TRANSFORMATION (transform_, convert_, parse_)
+# =============================================================================
+
+data_transformation:
+  data_validation:
+    category: "transform"
+    description: "Validate data against schemas"
+    level: 1
+    examples: ["Pydantic validation", "Schema checking"]
+  
+  serialization:
+    category: "transform"
+    description: "Convert data to wire format"
+    level: 1
+    examples: ["JSON serialization", "Pydantic dumps"]
+  
+  schema_validation:
+    category: "transform"
+    description: "Validate against formal schemas"
+    level: 2
+    examples: ["JSON Schema", "Pydantic models"]
+  
+  type_checking:
+    category: "transform"
+    description: "Verify data types match expectations"
+    level: 2
+    examples: ["isinstance checks", "type annotations"]
+  
+  formatting:
+    category: "transform"
+    description: "Format data for output"
+    level: 2
+    examples: ["JSON formatting", "Log formatting"]
+  
+  metadata_extraction:
+    category: "transform"
+    description: "Extract metadata from data"
+    level: 2
+    examples: ["File metadata", "Request metadata"]
+  
+  schema_conversion:
+    category: "transform"
+    description: "Convert between schema formats"
+    level: 3
+    examples: ["OpenAPI to internal", "Pydantic to dict"]
+
+# =============================================================================
+# CATEGORY 3: VALIDATION & SANITIZATION (validate_, sanitize_, check_)
+# =============================================================================
+
+validation_security:
+  validation:
+    category: "validation"
+    description: "General validation operations"
+    level: 1
+    examples: ["Input validation", "Config validation"]
+  
+  sanitization:
+    category: "validation"
+    description: "Clean/escape potentially dangerous input"
+    level: 1
+    examples: ["HTML escaping", "Path sanitization"]
+  
+  path_validation:
+    category: "validation"
+    description: "Validate file paths for security"
+    level: 2
+    examples: ["Path traversal prevention", "Allowed paths"]
+  
+  file_validation:
+    category: "validation"
+    description: "Validate uploaded files"
+    level: 2
+    examples: ["File type checking", "Size limits"]
+  
+  size_validation:
+    category: "validation"
+    description: "Check data size limits"
+    level: 2
+    examples: ["Max file size", "Max payload"]
+  
+  injection_detection:
+    category: "validation"
+    description: "Detect injection attacks"
+    level: 2
+    examples: ["SQL injection", "Command injection"]
+  
+  header_injection:
+    category: "validation"
+    description: "Detect HTTP header injection"
+    level: 3
+    examples: ["CRLF injection", "Header manipulation"]
+  
+  verification:
+    category: "validation"
+    description: "Verify data integrity"
+    level: 2
+    examples: ["Checksum validation", "Signature verification"]
+  
+  checksum_validation:
+    category: "validation"
+    description: "Validate checksums"
+    level: 3
+    examples: ["SHA256 validation", "MD5 validation"]
+
+# =============================================================================
+# CATEGORY 4: SECURITY & AUTHORIZATION (auth_, encrypt_, permission_)
+# =============================================================================
+
+security_operations:
+  authentication:
+    category: "security"
+    description: "Verify user identity"
+    level: 1
+    examples: ["Login", "Token validation"]
+  
+  authorization:
+    category: "security"
+    description: "Check user permissions"
+    level: 1
+    examples: ["RBAC", "Permission checks"]
+  
+  encryption:
+    category: "security"
+    description: "Encrypt sensitive data"
+    level: 1
+    examples: ["AES encryption", "Fernet"]
+  
+  decryption:
+    category: "security"
+    description: "Decrypt encrypted data"
+    level: 1
+    examples: ["AES decryption", "Key-based decrypt"]
+  
+  hashing:
+    category: "security"
+    description: "One-way hash sensitive data"
+    level: 1
+    examples: ["Password hashing", "bcrypt"]
+  
+  token_generation:
+    category: "security"
+    description: "Generate security tokens"
+    level: 2
+    examples: ["JWT", "API keys"]
+  
+  token_management:
+    category: "security"
+    description: "Manage token lifecycle"
+    level: 2
+    examples: ["Token refresh", "Token revocation"]
+  
+  api_key_management:
+    category: "security"
+    description: "Manage API keys"
+    level: 2
+    examples: ["Key generation", "Key rotation"]
+  
+  key_derivation:
+    category: "security"
+    description: "Derive encryption keys"
+    level: 2
+    examples: ["PBKDF2", "Key stretching"]
+  
+  session_management:
+    category: "security"
+    description: "Manage user/server sessions"
+    level: 1
+    examples: ["Session creation", "Session tracking"]
+  
+  permission_checking:
+    category: "security"
+    description: "Check specific permissions"
+    level: 2
+    examples: ["Can read", "Can write"]
+  
+  role_management:
+    category: "security"
+    description: "Manage user roles"
+    level: 2
+    examples: ["Assign role", "Remove role"]
+  
+  security_isolation:
+    category: "security"
+    description: "Isolate security contexts"
+    level: 3
+    examples: ["Sandboxing", "Context isolation"]
+  
+  audit_logging:
+    category: "security"
+    description: "Log security-relevant events"
+    level: 2
+    examples: ["Access logs", "Security events"]
+  
+  audit_trail:
+    category: "security"
+    description: "Maintain audit trail"
+    level: 2
+    examples: ["Change history", "Access history"]
+
+# =============================================================================
+# CATEGORY 5: PERSISTENCE & STORAGE (db_, cache_, storage_)
+# =============================================================================
+
+persistence_operations:
+  query_execution:
+    category: "persistence"
+    description: "Execute database queries"
+    level: 1
+    examples: ["SQL execution", "Query building"]
+  
+  transaction_management:
+    category: "persistence"
+    description: "Manage database transactions"
+    level: 1
+    examples: ["Begin/commit/rollback", "Transaction scope"]
+  
+  caching:
+    category: "persistence"
+    description: "Cache data for performance"
+    level: 1
+    examples: ["Redis caching", "In-memory cache"]
+  
+  chat_crud:
+    category: "persistence"
+    description: "CRUD operations for chats"
+    level: 2
+    examples: ["Create chat", "List chats"]
+  
+  message_crud:
+    category: "persistence"
+    description: "CRUD operations for messages"
+    level: 2
+    examples: ["Save message", "Query messages"]
+  
+  artifact_crud:
+    category: "persistence"
+    description: "CRUD operations for artifacts"
+    level: 2
+    examples: ["Create artifact", "Update artifact"]
+  
+  file_crud:
+    category: "persistence"
+    description: "CRUD operations for files"
+    level: 2
+    examples: ["Upload file", "Delete file"]
+  
+  server_crud:
+    category: "persistence"
+    description: "CRUD operations for servers"
+    level: 2
+    examples: ["Register server", "List servers"]
+  
+  schema_initialization:
+    category: "persistence"
+    description: "Initialize database schema"
+    level: 2
+    examples: ["Create tables", "Run migrations"]
+  
+  migration_execution:
+    category: "persistence"
+    description: "Execute database migrations"
+    level: 2
+    examples: ["Apply migration", "Rollback"]
+  
+  rollback_handling:
+    category: "persistence"
+    description: "Handle transaction rollbacks"
+    level: 3
+    examples: ["Rollback on error", "Savepoints"]
+  
+  version_tracking:
+    category: "persistence"
+    description: "Track data versions"
+    level: 2
+    examples: ["Migration versions", "Schema versions"]
+  
+  fulltext_search:
+    category: "persistence"
+    description: "Full-text search operations"
+    level: 2
+    examples: ["PostgreSQL FTS", "Search indexing"]
+  
+  statistics_collection:
+    category: "persistence"
+    description: "Collect usage statistics"
+    level: 2
+    examples: ["Query stats", "Usage metrics"]
+  
+  cleanup_operations:
+    category: "persistence"
+    description: "Cleanup old/unused data"
+    level: 2
+    examples: ["Delete old records", "Purge cache"]
+  
+  key_operations:
+    category: "persistence"
+    description: "Cache key operations"
+    level: 2
+    examples: ["Get", "Set", "Delete"]
+  
+  ttl_management:
+    category: "persistence"
+    description: "Manage time-to-live for cached data"
+    level: 3
+    examples: ["Set expiry", "Extend TTL"]
+  
+  namespace_management:
+    category: "persistence"
+    description: "Manage cache namespaces"
+    level: 3
+    examples: ["Namespace prefix", "Clear namespace"]
+  
+  batch_operations:
+    category: "persistence"
+    description: "Batch database operations"
+    level: 2
+    examples: ["Bulk insert", "Batch update"]
+  
+  storage_management:
+    category: "persistence"
+    description: "Manage file storage"
+    level: 2
+    examples: ["Local storage", "S3 storage"]
+  
+  directory_management:
+    category: "persistence"
+    description: "Manage directories"
+    level: 3
+    examples: ["Create dir", "List dir"]
+  
+  type_categorization:
+    category: "persistence"
+    description: "Categorize file types"
+    level: 3
+    examples: ["Detect MIME type", "Categorize extension"]
+  
+  json_serialization:
+    category: "persistence"
+    description: "Serialize to/from JSON for storage"
+    level: 2
+    examples: ["JSON encode", "JSON decode"]
+
+# =============================================================================
+# CATEGORY 6: MONITORING & OBSERVABILITY (health_, log_, metric_, trace_)
+# =============================================================================
+
+monitoring_operations:
+  health_checking:
+    category: "monitoring"
+    description: "Check component health"
+    level: 1
+    examples: ["Service health", "Database health"]
+  
+  health_monitoring:
+    category: "monitoring"
+    description: "Continuous health monitoring"
+    level: 2
+    examples: ["Health polling", "Health aggregation"]
+  
+  monitoring:
+    category: "monitoring"
+    description: "General monitoring operations"
+    level: 1
+    examples: ["System monitoring", "Resource monitoring"]
+  
+  resource_monitoring:
+    category: "monitoring"
+    description: "Monitor system resources"
+    level: 2
+    examples: ["CPU usage", "Memory usage"]
+  
+  structured_logging:
+    category: "monitoring"
+    description: "Structured log output"
+    level: 1
+    examples: ["JSON logs", "Contextual logging"]
+  
+  log_configuration:
+    category: "monitoring"
+    description: "Configure logging system"
+    level: 2
+    examples: ["Log levels", "Log handlers"]
+  
+  context_injection:
+    category: "monitoring"
+    description: "Inject context into logs"
+    level: 2
+    examples: ["Request ID", "User ID"]
+  
+  logging:
+    category: "monitoring"
+    description: "General logging operations"
+    level: 1
+    examples: ["Log messages", "Log errors"]
+  
+  metric_creation:
+    category: "monitoring"
+    description: "Create metrics"
+    level: 1
+    examples: ["Counter", "Gauge", "Histogram"]
+  
+  recording:
+    category: "monitoring"
+    description: "Record metric values"
+    level: 2
+    examples: ["Increment counter", "Set gauge"]
+  
+  metric_aggregation:
+    category: "monitoring"
+    description: "Aggregate metrics"
+    level: 2
+    examples: ["Sum", "Average", "Percentile"]
+  
+  collection:
+    category: "monitoring"
+    description: "Collect metrics"
+    level: 2
+    examples: ["Collect all", "Collect subset"]
+  
+  export:
+    category: "monitoring"
+    description: "Export metrics"
+    level: 2
+    examples: ["Prometheus format", "JSON export"]
+  
+  tracing:
+    category: "monitoring"
+    description: "Distributed tracing"
+    level: 1
+    examples: ["OpenTelemetry", "Span creation"]
+  
+  span_creation:
+    category: "monitoring"
+    description: "Create trace spans"
+    level: 2
+    examples: ["Start span", "End span"]
+  
+  span_recording:
+    category: "monitoring"
+    description: "Record span data"
+    level: 3
+    examples: ["Add attributes", "Record events"]
+  
+  trace_export:
+    category: "monitoring"
+    description: "Export traces"
+    level: 2
+    examples: ["OTLP export", "JSON export"]
+  
+  context_management:
+    category: "monitoring"
+    description: "Manage trace context"
+    level: 2
+    examples: ["Context propagation", "Baggage"]
+  
+  aggregation:
+    category: "monitoring"
+    description: "Aggregate data"
+    level: 2
+    examples: ["Statistics aggregation", "Health aggregation"]
+  
+  registration:
+    category: "monitoring"
+    description: "Register components for monitoring"
+    level: 2
+    examples: ["Register checker", "Register metric"]
+  
+  health_aggregation:
+    category: "monitoring"
+    description: "Aggregate health status"
+    level: 3
+    examples: ["Overall health", "Component summary"]
+
+# =============================================================================
+# CATEGORY 7: LIFECYCLE & ORCHESTRATION (init_, start_, stop_, cleanup_)
+# =============================================================================
+
+lifecycle_operations:
+  initialization:
+    category: "lifecycle"
+    description: "Initialize components"
+    level: 1
+    examples: ["Module init", "Service init"]
+  
+  lifecycle_management:
+    category: "lifecycle"
+    description: "Manage component lifecycle"
+    level: 1
+    examples: ["Start/stop", "Restart"]
+  
+  application_creation:
+    category: "lifecycle"
+    description: "Create application instance"
+    level: 2
+    examples: ["FastAPI app", "Service app"]
+  
+  middleware_registration:
+    category: "lifecycle"
+    description: "Register middleware"
+    level: 2
+    examples: ["CORS", "Rate limiter"]
+  
+  routing_registration:
+    category: "lifecycle"
+    description: "Register routes"
+    level: 2
+    examples: ["API routes", "WebSocket routes"]
+  
+  server_startup:
+    category: "lifecycle"
+    description: "Start server"
+    level: 2
+    examples: ["Uvicorn startup", "Service start"]
+  
+  config_application:
+    category: "lifecycle"
+    description: "Apply configuration to components"
+    level: 2
+    examples: ["Apply config", "Set configuration"]
+  
+  cleanup:
+    category: "lifecycle"
+    description: "Cleanup resources"
+    level: 2
+    examples: ["Close connections", "Free memory"]
+  
+  resource_cleanup:
+    category: "lifecycle"
+    description: "Clean up specific resources"
+    level: 3
+    examples: ["Close files", "Release locks"]
+  
+  graceful_termination:
+    category: "lifecycle"
+    description: "Gracefully terminate processes/services"
+    level: 2
+    examples: ["Shutdown server", "Close connections"]
+  
+  lifecycle_tracking:
+    category: "lifecycle"
+    description: "Track lifecycle state"
+    level: 2
+    examples: ["State tracking", "Event tracking"]
+  
+  cancellation_management:
+    category: "lifecycle"
+    description: "Manage cancellation"
+    level: 2
+    examples: ["Cancel token", "Cancel stream"]
+  
+  cancellation:
+    category: "lifecycle"
+    description: "Cancel operations"
+    level: 2
+    examples: ["Cancel task", "Cancel request"]
+  
+  cancellation_detection:
+    category: "lifecycle"
+    description: "Detect cancellation"
+    level: 3
+    examples: ["Check cancelled", "Cancellation hook"]
+  
+  cancellation_handling:
+    category: "lifecycle"
+    description: "Handle cancellation"
+    level: 3
+    examples: ["Cleanup on cancel", "Propagate cancel"]
+  
+  state_querying:
+    category: "lifecycle"
+    description: "Query component state"
+    level: 2
+    examples: ["Is running", "Get status"]
+  
+  module_coordination:
+    category: "lifecycle"
+    description: "Coordinate multiple modules"
+    level: 2
+    examples: ["Module dependencies", "Startup order"]
+  
+  dependency_injection:
+    category: "lifecycle"
+    description: "Inject dependencies"
+    level: 2
+    examples: ["FastAPI Depends", "DI container"]
+  
+  resource_management:
+    category: "lifecycle"
+    description: "Manage resources"
+    level: 2
+    examples: ["Resource allocation", "Resource pooling"]
+  
+  context_setup:
+    category: "lifecycle"
+    description: "Setup execution context"
+    level: 3
+    examples: ["Request context", "User context"]
+
+# =============================================================================
+# CATEGORY 8: INTEGRATION & ORCHESTRATION (tool_, integration_, mcp_)
+# =============================================================================
+
+integration_operations:
+  integration_loading:
+    category: "integration"
+    description: "Load integrations"
+    level: 1
+    examples: ["Dynamic loading", "Plugin loading"]
+  
+  integration_orchestration:
+    category: "integration"
+    description: "Orchestrate multiple integrations"
+    level: 1
+    examples: ["Multi-service calls", "Workflow"]
+  
+  tool_registration:
+    category: "integration"
+    description: "Register tools"
+    level: 1
+    examples: ["MCP tools", "OI tools"]
+  
+  tool_discovery:
+    category: "integration"
+    description: "Discover available tools"
+    level: 1
+    examples: ["List tools", "Query capabilities"]
+  
+  tool_execution:
+    category: "integration"
+    description: "Execute tools"
+    level: 1
+    examples: ["Call tool", "Run function"]
+  
+  tool_caching:
+    category: "integration"
+    description: "Cache tool results"
+    level: 2
+    examples: ["Cache responses", "Memoization"]
+  
+  execution_auditing:
+    category: "integration"
+    description: "Audit tool execution"
+    level: 2
+    examples: ["Log execution", "Track usage"]
+  
+  server_registration:
+    category: "integration"
+    description: "Register servers"
+    level: 2
+    examples: ["MCP server", "External service"]
+  
+  server_abstraction:
+    category: "integration"
+    description: "Provide server abstraction layer"
+    level: 2
+    examples: ["Abstract server interface", "Server facade"]
+  
+  stdio_connection:
+    category: "integration"
+    description: "Establish stdio-based connection"
+    level: 2
+    examples: ["Stdio IPC", "Process communication"]
+  
+  subprocess_creation:
+    category: "integration"
+    description: "Create subprocess for integration"
+    level: 2
+    examples: ["Spawn process", "Fork subprocess"]
+  
+  process_monitoring:
+    category: "integration"
+    description: "Monitor subprocess health"
+    level: 2
+    examples: ["Process status", "Health check"]
+  
+  resource_limiting:
+    category: "integration"
+    description: "Limit subprocess resources"
+    level: 2
+    examples: ["CPU limits", "Memory limits"]
+  
+  timeout_enforcement:
+    category: "integration"
+    description: "Enforce execution timeouts"
+    level: 3
+    examples: ["Timeout kill", "Time limits"]
+  
+  stats_collection:
+    category: "integration"
+    description: "Collect execution statistics"
+    level: 3
+    examples: ["Execution stats", "Performance metrics"]
+  
+  sandbox_coordination:
+    category: "integration"
+    description: "Coordinate sandbox operations"
+    level: 2
+    examples: ["Sandbox orchestration", "Isolate execution"]
+  
+  mcp_orchestration:
+    category: "integration"
+    description: "Orchestrate MCP operations"
+    level: 2
+    examples: ["Multi-server calls", "Tool routing"]
+  
+  integration_wrapping:
+    category: "integration"
+    description: "Wrap external integrations"
+    level: 2
+    examples: ["Adapter pattern", "Facade"]
+  
+  namespace_attachment:
+    category: "integration"
+    description: "Attach to namespace"
+    level: 3
+    examples: ["computer.mcp", "computer.tools"]
+  
+  yaml_parsing:
+    category: "integration"
+    description: "Parse YAML configs"
+    level: 2
+    examples: ["Config loading", "Schema parsing"]
+  
+  dynamic_loading:
+    category: "integration"
+    description: "Dynamically load modules"
+    level: 2
+    examples: ["importlib", "Plugin system"]
+  
+  metadata_management:
+    category: "integration"
+    description: "Manage integration metadata"
+    level: 2
+    examples: ["Version info", "Capabilities"]
+  
+  state_management:
+    category: "integration"
+    description: "Manage integration state"
+    level: 2
+    examples: ["Connection state", "Session state"]
+  
+  tool_catalog_generation:
+    category: "integration"
+    description: "Generate tool catalogs"
+    level: 3
+    examples: ["OpenAPI to tools", "Registry to catalog"]
+  
+  tool_generation:
+    category: "integration"
+    description: "Generate tool definitions"
+    level: 3
+    examples: ["Auto-generate", "Template-based"]
+  
+  dynamic_wrapper_generation:
+    category: "integration"
+    description: "Generate dynamic wrappers"
+    level: 3
+    examples: ["Function wrappers", "Proxy generation"]
+  
+  openapi_parsing:
+    category: "integration"
+    description: "Parse OpenAPI specs"
+    level: 2
+    examples: ["Spec parsing", "Route extraction"]
+  
+  metadata_generation:
+    category: "integration"
+    description: "Generate metadata"
+    level: 2
+    examples: ["Schema metadata", "Tool metadata"]
+  
+  yaml_generation:
+    category: "integration"
+    description: "Generate YAML output"
+    level: 3
+    examples: ["Config generation", "Registry generation"]
+
+# =============================================================================
+# CATEGORY 9: PROCESSING & EXECUTION (stream_, process_, execute_)
+# =============================================================================
+
+processing_operations:
+  streaming_orchestration:
+    category: "processing"
+    description: "Orchestrate streaming operations"
+    level: 1
+    examples: ["Stream pipeline", "Stream coordination"]
+  
+  streaming_coordination:
+    category: "processing"
+    description: "Coordinate streaming"
+    level: 2
+    examples: ["Multi-stream", "Stream sync"]
+  
+  stream_relay:
+    category: "processing"
+    description: "Relay stream data"
+    level: 2
+    examples: ["WebSocket relay", "Proxy stream"]
+  
+  oi_initialization:
+    category: "processing"
+    description: "Initialize Open Interpreter"
+    level: 2
+    examples: ["OI setup", "OI config"]
+  
+  profile_application:
+    category: "processing"
+    description: "Apply profile settings"
+    level: 2
+    examples: ["Load profile", "Apply config"]
+  
+  settings_configuration:
+    category: "processing"
+    description: "Configure settings"
+    level: 2
+    examples: ["Apply settings", "Update config"]
+  
+  prompt_generation:
+    category: "processing"
+    description: "Generate prompts"
+    level: 2
+    examples: ["System prompt", "User prompt"]
+  
+  llm_integration:
+    category: "processing"
+    description: "Integrate with LLMs"
+    level: 2
+    examples: ["LiteLLM", "OpenAI API"]
+  
+  request_tracking:
+    category: "processing"
+    description: "Track request lifecycle"
+    level: 2
+    examples: ["Request ID", "Request state"]
+  
+  stream_generation:
+    category: "processing"
+    description: "Generate streaming data"
+    level: 2
+    examples: ["Async generator", "Stream chunks"]
+  
+  history_management:
+    category: "processing"
+    description: "Manage conversation history"
+    level: 2
+    examples: ["Message history", "Context window"]
+  
+  message_handling:
+    category: "processing"
+    description: "Handle incoming messages"
+    level: 1
+    examples: ["Process message", "Route message"]
+  
+  batch_processing:
+    category: "processing"
+    description: "Process in batches"
+    level: 2
+    examples: ["Batch jobs", "Bulk operations"]
+  
+  workflow_management:
+    category: "processing"
+    description: "Manage workflows"
+    level: 2
+    examples: ["Workflow execution", "Step tracking"]
+
+# =============================================================================
+# CATEGORY 10: ROUTING & DELEGATION (route_, delegate_, dispatch_)
+# =============================================================================
+
+routing_operations:
+  router_aggregation:
+    category: "routing"
+    description: "Aggregate routers"
+    level: 1
+    examples: ["Combine routers", "Mount subrouters"]
+  
+  delegation:
+    category: "routing"
+    description: "Delegate to submodules"
+    level: 1
+    examples: ["Call submodule", "Forward request"]
+
+# =============================================================================
+# CATEGORY 11: SPECIALIZED OPERATIONS (ocr_, tts_, document_, model_)
+# =============================================================================
+
+specialized_operations:
+  # OCR Operations
+  ocr_processing:
+    category: "specialized"
+    description: "Optical character recognition"
+    level: 1
+    examples: ["Text extraction", "Layout analysis"]
+  
+  ocr_orchestration:
+    category: "specialized"
+    description: "Orchestrate OCR operations"
+    level: 2
+    examples: ["Multi-engine OCR", "OCR pipeline"]
+  
+  backend_discovery:
+    category: "specialized"
+    description: "Discover OCR backends"
+    level: 2
+    examples: ["List engines", "Check availability"]
+  
+  backend_registration:
+    category: "specialized"
+    description: "Register OCR backends"
+    level: 3
+    examples: ["Register engine", "Add backend"]
+  
+  backend_selection:
+    category: "specialized"
+    description: "Select OCR backend"
+    level: 2
+    examples: ["Choose engine", "Fallback logic"]
+  
+  factory_creation:
+    category: "specialized"
+    description: "Create OCR backend instances"
+    level: 2
+    examples: ["Factory pattern", "Backend creation"]
+  
+  abstraction:
+    category: "specialized"
+    description: "Provide abstraction layer"
+    level: 2
+    examples: ["Interface", "Base class"]
+  
+  capability_management:
+    category: "specialized"
+    description: "Manage capabilities"
+    level: 2
+    examples: ["Feature flags", "Capability query"]
+  
+  result_formatting:
+    category: "specialized"
+    description: "Format OCR results"
+    level: 3
+    examples: ["Structured output", "Format conversion"]
+  
+  # Document Operations
+  document_conversion:
+    category: "specialized"
+    description: "Convert document formats"
+    level: 1
+    examples: ["PDF to text", "HTML to markdown"]
+  
+  document_processing:
+    category: "specialized"
+    description: "Process documents"
+    level: 1
+    examples: ["Parse document", "Extract data"]
+  
+  document_parsing:
+    category: "specialized"
+    description: "Parse document structure"
+    level: 2
+    examples: ["DOM parsing", "Structure extraction"]
+  
+  pipeline_configuration:
+    category: "specialized"
+    description: "Configure processing pipeline"
+    level: 2
+    examples: ["Pipeline setup", "Stage config"]
+  
+  pipeline_loading:
+    category: "specialized"
+    description: "Load processing pipeline"
+    level: 3
+    examples: ["Load model", "Init pipeline"]
+  
+  # Image/Vision Operations
+  image_processing:
+    category: "specialized"
+    description: "Process images"
+    level: 1
+    examples: ["Image resize", "Format conversion"]
+  
+  model_loading:
+    category: "specialized"
+    description: "Load ML models"
+    level: 1
+    examples: ["Load weights", "Init model"]
+  
+  vision_language_processing:
+    category: "specialized"
+    description: "Vision-language model processing"
+    level: 2
+    examples: ["VLM inference", "Image-text"]
+  
+  inference:
+    category: "specialized"
+    description: "Run model inference"
+    level: 1
+    examples: ["Forward pass", "Prediction"]
+  
+  screenshot_capture:
+    category: "specialized"
+    description: "Capture screenshots"
+    level: 2
+    examples: ["Screen capture", "Window capture"]
+  
+  vision_analysis:
+    category: "specialized"
+    description: "Analyze visual content"
+    level: 2
+    examples: ["Object detection", "Scene understanding"]
+  
+  screen_analysis:
+    category: "specialized"
+    description: "Analyze screen content"
+    level: 2
+    examples: ["Screen parsing", "UI analysis"]
+  
+  multi_ocr:
+    category: "specialized"
+    description: "Multi-OCR processing"
+    level: 2
+    examples: ["Multiple OCR engines", "OCR fusion"]
+  
+  multi_ocr_orchestration:
+    category: "specialized"
+    description: "Orchestrate multiple OCR engines"
+    level: 3
+    examples: ["Ensemble OCR", "Multi-engine consensus"]
+  
+  # TTS Operations
+  audio_generation:
+    category: "specialized"
+    description: "Generate audio"
+    level: 1
+    examples: ["TTS synthesis", "Audio creation"]
+  
+  audio_streaming:
+    category: "specialized"
+    description: "Stream audio data"
+    level: 2
+    examples: ["Real-time TTS", "Chunked audio"]
+  
+  audio_synthesis:
+    category: "specialized"
+    description: "Synthesize speech"
+    level: 2
+    examples: ["Text to speech", "Voice generation"]
+  
+  tts_synthesis:
+    category: "specialized"
+    description: "TTS-specific synthesis"
+    level: 3
+    examples: ["Engine-specific TTS", "Voice config"]
+  
+  streaming_synthesis:
+    category: "specialized"
+    description: "Stream TTS synthesis in real-time"
+    level: 3
+    examples: ["Real-time TTS stream", "Incremental audio"]
+  
+  engine_initialization:
+    category: "specialized"
+    description: "Initialize TTS engine"
+    level: 3
+    examples: ["Load voice", "Init TTS"]
+  
+  # Excel/Office Operations
+  excel_automation:
+    category: "specialized"
+    description: "Excel automation"
+    level: 1
+    examples: ["Workbook creation", "Formula execution"]
+  
+  workbook_management:
+    category: "specialized"
+    description: "Manage Excel workbooks"
+    level: 2
+    examples: ["Create", "Open", "Close"]
+  
+  chart_creation:
+    category: "specialized"
+    description: "Create charts"
+    level: 2
+    examples: ["Line chart", "Bar chart"]
+  
+  data_manipulation:
+    category: "specialized"
+    description: "Manipulate data"
+    level: 2
+    examples: ["Transform", "Calculate"]
+  
+  sheet_management:
+    category: "specialized"
+    description: "Manage worksheets"
+    level: 3
+    examples: ["Add sheet", "Delete sheet"]
+  
+  data_operations:
+    category: "specialized"
+    description: "Data operations"
+    level: 2
+    examples: ["Read", "Write", "Update"]
+  
+  # Model Management
+  model_discovery:
+    category: "specialized"
+    description: "Discover available models"
+    level: 1
+    examples: ["List models", "Query models"]
+  
+  model_lifecycle:
+    category: "specialized"
+    description: "Manage model lifecycle"
+    level: 2
+    examples: ["Load", "Unload", "Reload"]
+  
+  capability_detection:
+    category: "specialized"
+    description: "Detect model capabilities"
+    level: 2
+    examples: ["Vision support", "Function calling"]
+  
+  provider_communication:
+    category: "specialized"
+    description: "Communicate with model providers"
+    level: 2
+    examples: ["API calls", "Provider queries"]
+  
+  model_matching:
+    category: "specialized"
+    description: "Match model names"
+    level: 3
+    examples: ["Name normalization", "Alias resolution"]
+  
+  web_search:
+    category: "specialized"
+    description: "Web search operations"
+    level: 1
+    examples: ["Perplexica search", "Query processing"]
+  
+  # Notebook Operations
+  module_inspection:
+    category: "specialized"
+    description: "Inspect Python modules"
+    level: 2
+    examples: ["Get module info", "List exports"]
+  
+  package_discovery:
+    category: "specialized"
+    description: "Discover installed packages"
+    level: 2
+    examples: ["List packages", "Package info"]
+  
+  sys_path_management:
+    category: "specialized"
+    description: "Manage sys.path"
+    level: 3
+    examples: ["Add to path", "Remove from path"]
+  
+  module_discovery:
+    category: "specialized"
+    description: "Discover modules"
+    level: 2
+    examples: ["Find modules", "Search packages"]
+  
+  dynamic_importing:
+    category: "specialized"
+    description: "Dynamically import modules"
+    level: 2
+    examples: ["importlib", "Dynamic load"]
+  
+  # Profile/Settings Management
+  prompt_enrichment:
+    category: "specialized"
+    description: "Enrich prompts with context"
+    level: 2
+    examples: ["Add tool info", "Add instructions"]
+  
+  profile_validation:
+    category: "specialized"
+    description: "Validate profile configurations"
+    level: 2
+    examples: ["Check profile", "Validate settings"]
+  
+  strategy_selection:
+    category: "specialized"
+    description: "Select strategy"
+    level: 3
+    examples: ["Choose approach", "Pick algorithm"]
+  
+  text_generation:
+    category: "specialized"
+    description: "Generate text"
+    level: 2
+    examples: ["Template filling", "Text synthesis"]
+  
+  tool_discovery_injection:
+    category: "specialized"
+    description: "Inject tool discovery"
+    level: 3
+    examples: ["Add tool info to prompt", "Tool instructions"]
+  
+  summary_generation:
+    category: "specialized"
+    description: "Generate summaries"
+    level: 3
+    examples: ["Summarize tools", "Capability summary"]
+  
+  filesystem_scanning:
+    category: "specialized"
+    description: "Scan filesystem"
+    level: 2
+    examples: ["Find files", "List directory"]
+  
+  file_reading:
+    category: "specialized"
+    description: "Read file contents"
+    level: 2
+    examples: ["Read text", "Parse file"]
+  
+  path_resolution:
+    category: "specialized"
+    description: "Resolve file paths"
+    level: 2
+    examples: ["Absolute path", "Relative resolution"]
+  
+  # Settings Operations
+  configuration_loading:
+    category: "specialized"
+    description: "Load configuration"
+    level: 1
+    examples: ["Load TOML", "Load env vars"]
+  
+  config_loading:
+    category: "specialized"
+    description: "Load config files"
+    level: 1
+    examples: ["Load TOML", "Parse config"]
+  
+  environment_variable_merging:
+    category: "specialized"
+    description: "Merge environment variables"
+    level: 3
+    examples: ["Env override", "Config merge"]
+  
+  fallback_generation:
+    category: "specialized"
+    description: "Generate fallback config"
+    level: 3
+    examples: ["Default config", "Fallback values"]
+  
+  setting_extraction:
+    category: "specialized"
+    description: "Extract settings"
+    level: 2
+    examples: ["Get LLM settings", "Extract config"]
+  
+  settings_retrieval:
+    category: "specialized"
+    description: "Retrieve settings"
+    level: 2
+    examples: ["Get settings", "Query config"]
+  
+  settings_mutation:
+    category: "specialized"
+    description: "Mutate settings"
+    level: 2
+    examples: ["Update settings", "Modify config"]
+  
+  settings_reloading:
+    category: "specialized"
+    description: "Reload settings"
+    level: 3
+    examples: ["Refresh config", "Reload from disk"]
+  
+  # Error Handling
+  error_handling:
+    category: "specialized"
+    description: "Handle errors"
+    level: 1
+    examples: ["Try-catch", "Error recovery"]
+  
+  response_interception:
+    category: "specialized"
+    description: "Intercept responses"
+    level: 2
+    examples: ["Response middleware", "Transform response"]
+  
+  request_identification:
+    category: "specialized"
+    description: "Identify requests"
+    level: 2
+    examples: ["Extract request ID", "Request fingerprinting"]
+  
+  tier_classification:
+    category: "specialized"
+    description: "Classify into tiers"
+    level: 3
+    examples: ["Rate limit tier", "Priority tier"]
+  
+  limit_checking:
+    category: "specialized"
+    description: "Check limits"
+    level: 2
+    examples: ["Rate limit check", "Quota check"]
+  
+  exception_catching:
+    category: "specialized"
+    description: "Catch exceptions"
+    level: 2
+    examples: ["Try-except", "Error capture"]
+  
+  error_classification:
+    category: "specialized"
+    description: "Classify errors"
+    level: 3
+    examples: ["Error type", "Severity level"]
+  
+  response_formatting:
+    category: "specialized"
+    description: "Format responses"
+    level: 2
+    examples: ["JSON response", "Error response"]
+  
+  # Other Specialized
+  rate_limiting:
+    category: "specialized"
+    description: "Rate limit requests"
+    level: 1
+    examples: ["Token bucket", "Leaky bucket"]
+  
+  tier_management:
+    category: "specialized"
+    description: "Manage rate limit tiers"
+    level: 3
+    examples: ["Tier config", "Tier assignment"]
+  
+  token_bucket_management:
+    category: "specialized"
+    description: "Manage token bucket"
+    level: 3
+    examples: ["Token refill", "Consume tokens"]
+  
+  expiry_handling:
+    category: "specialized"
+    description: "Handle expiry"
+    level: 3
+    examples: ["Check expired", "Expire tokens"]
+  
+  statistics:
+    category: "specialized"
+    description: "Calculate statistics"
+    level: 2
+    examples: ["Count", "Average", "Sum"]
+  
+  statistics_aggregation:
+    category: "specialized"
+    description: "Aggregate statistics"
+    level: 3
+    examples: ["Group by", "Rollup"]
+  
+  artifact_management:
+    category: "specialized"
+    description: "Manage artifacts"
+    level: 1
+    examples: ["Create artifact", "Store artifact"]
+  
+  artifact_querying:
+    category: "specialized"
+    description: "Query artifacts"
+    level: 2
+    examples: ["Search artifacts", "Filter artifacts"]
+  
+  execution_logging:
+    category: "specialized"
+    description: "Log execution details"
+    level: 2
+    examples: ["Log call", "Track execution"]
+  
+  storage_statistics:
+    category: "specialized"
+    description: "Storage statistics"
+    level: 3
+    examples: ["File count", "Storage size"]
+  
+  file_discovery:
+    category: "specialized"
+    description: "Discover files"
+    level: 2
+    examples: ["Find files", "Search filesystem"]
+  
+  skill_validation:
+    category: "specialized"
+    description: "Validate skills"
+    level: 3
+    examples: ["Check skill", "Verify skill"]
+  
+  file_creation:
+    category: "specialized"
+    description: "Create files"
+    level: 2
+    examples: ["Write file", "Create document"]
+  
+  terminal_launch:
+    category: "specialized"
+    description: "Launch terminal"
+    level: 3
+    examples: ["Open terminal", "Run shell"]
+  
+  component_checking:
+    category: "specialized"
+    description: "Check component status"
+    level: 2
+    examples: ["Component health", "Service status"]
+  
+  engine_management:
+    category: "specialized"
+    description: "Manage engines"
+    level: 2
+    examples: ["Start engine", "Stop engine"]
+  
+  format_conversion:
+    category: "specialized"
+    description: "Convert formats"
+    level: 2
+    examples: ["Convert file type", "Transform format"]
+  
+  registry_loading:
+    category: "specialized"
+    description: "Load registry"
+    level: 3
+    examples: ["Load YAML registry", "Parse registry"]
+  
+  chat_management:
+    category: "specialized"
+    description: "Manage chat sessions"
+    level: 1
+    examples: ["Create chat", "List chats"]
+  
+  message_management:
+    category: "specialized"
+    description: "Manage messages"
+    level: 1
+    examples: ["Send message", "Store message"]
+  
+  history_retrieval:
+    category: "specialized"
+    description: "Retrieve history"
+    level: 2
+    examples: ["Get chat history", "Load messages"]
+  
+  server_lifecycle:
+    category: "specialized"
+    description: "Manage server lifecycle"
+    level: 2
+    examples: ["Start server", "Stop server"]
+  
+  server_discovery:
+    category: "specialized"
+    description: "Discover servers"
+    level: 2
+    examples: ["Find servers", "List servers"]
+  
+  async_to_sync_conversion:
+    category: "specialized"
+    description: "Convert async to sync"
+    level: 3
+    examples: ["asyncio.run", "Sync wrapper"]
+  
+  service_wrapping:
+    category: "specialized"
+    description: "Wrap service"
+    level: 2
+    examples: ["Service facade", "Adapter"]
+  
+  module_import:
+    category: "specialized"
+    description: "Import modules"
+    level: 2
+    examples: ["import", "from...import"]
+
+# =============================================================================
+# CATEGORY 12: TESTING & VALIDATION (test_, verify_, validate_)
+# =============================================================================
+
+testing_operations:
+  architecture_validation:
+    category: "testing"
+    description: "Validate architecture compliance"
+    level: 1
+    examples: ["Layer validation", "Dependency checking"]
+  
+  compliance_checking:
+    category: "testing"
+    description: "Check compliance"
+    level: 2
+    examples: ["Standards compliance", "Policy checking"]
+  
+  metadata_validation:
+    category: "testing"
+    description: "Validate metadata"
+    level: 2
+    examples: ["Schema validation", "Metadata checks"]
+  
+  separation_validation:
+    category: "testing"
+    description: "Validate separation of concerns"
+    level: 3
+    examples: ["Layer separation", "Module boundaries"]
+  
+  import_validation:
+    category: "testing"
+    description: "Validate imports"
+    level: 2
+    examples: ["Check imports", "Dependency validation"]
+  
+  integration_testing:
+    category: "testing"
+    description: "Test integrations"
+    level: 1
+    examples: ["Integration tests", "E2E tests"]
+  
+  lifecycle_testing:
+    category: "testing"
+    description: "Test lifecycle"
+    level: 2
+    examples: ["Load/unload tests", "Lifecycle validation"]
+  
+  signature_validation:
+    category: "testing"
+    description: "Validate function signatures"
+    level: 3
+    examples: ["Signature checks", "Type validation"]
+  
+  integration_verification:
+    category: "testing"
+    description: "Verify integrations"
+    level: 2
+    examples: ["Tool verification", "Integration checks"]
+  
+  tool_testing:
+    category: "testing"
+    description: "Test tools"
+    level: 2
+    examples: ["Tool execution tests", "Tool validation"]
+  
+  service_checking:
+    category: "testing"
+    description: "Check services"
+    level: 2
+    examples: ["Service health", "Service availability"]
+  
+  dependency_checking:
+    category: "testing"
+    description: "Check dependencies"
+    level: 2
+    examples: ["Dependency validation", "Version checking"]
+  
+  config_validation:
+    category: "testing"
+    description: "Validate configuration"
+    level: 1
+    examples: ["Config schema", "Config integrity"]
+
+# =============================================================================
+# CATEGORY 13: ANALYSIS & TRACING (trace_, analyze_, search_)
+# =============================================================================
+
+analysis_operations:
+  architecture_parsing:
+    category: "analysis"
+    description: "Parse architecture documentation"
+    level: 1
+    examples: ["Parse @.architecture", "Extract metadata"]
+  
+  job_indexing:
+    category: "analysis"
+    description: "Index job types"
+    level: 2
+    examples: ["Build job index", "Create lookup"]
+  
+  pipeline_tracing:
+    category: "analysis"
+    description: "Trace data flow pipelines"
+    level: 1
+    examples: ["Follow data flow", "Pipeline visualization"]
+  
+  search:
+    category: "analysis"
+    description: "Search operations"
+    level: 1
+    examples: ["Search files", "Find job types"]
+
+# =============================================================================
+# USAGE RULES
+# =============================================================================
+
+usage_rules:
+  naming_convention:
+    description: "All job types use snake_case"
+    examples: ["health_checking", "data_validation", "message_routing"]
+  
+  file_requirements:
+    description: "Files MUST use ONLY job types from this registry"
+    enforcement: "Job tracer validates against registry"
+  
+  level_guidelines:
+    level_1: "Core operations - high-level, user-facing"
+    level_2: "Supporting operations - implementation details"
+    level_3: "Low-level operations - specific implementations"
+  
+  adding_new_jobs:
+    process:
+      - "Add to appropriate category"
+      - "Assign level (1-3)"
+      - "Provide clear description"
+      - "Include examples"
+      - "Update job tracer tests"
+  
+  deprecation_policy:
+    description: "Mark deprecated jobs with 'deprecated: true'"
+    example: "Use new_job_name instead"
+
+# =============================================================================
+# END OF REGISTRY
+# =============================================================================
+

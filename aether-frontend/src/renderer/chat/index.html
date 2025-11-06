@@ -1,0 +1,38 @@
+<!--
+  @.architecture
+  
+  Incoming: Electron BrowserWindow creation (main/windows/WindowManager.js) --- {window_types.chat, BrowserWindow}
+  Processing: Define HTML structure, load stylesheets, render chat container, load bundled renderer script --- {3 jobs: JOB_CREATE_DOM_ELEMENT, JOB_INITIALIZE, JOB_RENDER_MARKDOWN}
+  Outgoing: DOM tree rendered to chat window, script execution → build/renderer/chat.js --- {html_types.document, Document}
+  
+  @module renderer/chat/index.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Aether - Chat</title>
+  
+  <!-- Import shared styles first -->
+  <link rel="stylesheet" href="../shared/styles/index.css" />
+  <!-- Then window-specific styles -->
+  <link rel="stylesheet" href="styles/chat.css" />
+</head>
+<body>
+  <div id="root">
+    <div class="container">
+      <div class="title">CHAT</div>
+      <div class="subtitle">Chat Window (Phase 2 Bootstrap)</div>
+      <div class="status">✓ Window Loaded</div>
+    </div>
+  </div>
+  
+  <!-- Load bundled chat renderer script (includes all dependencies) -->
+  <script src="../../../build/renderer/chat.js"></script>
+</body>
+</html>
+

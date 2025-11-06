@@ -1,0 +1,43 @@
+# FILE ANALYSIS DIRECTIVE (BACKEND)
+# =============================================================================
+# Authoritative instructions for engineers to document every backend file.
+# Must be followed verbatim. References backend architecture YAML standards.
+# =============================================================================
+
+version: "1.0.0"
+purpose: "Standardise file-level documentation across backend codebase"
+
+references:
+  - "./data_flow_standard.yaml"
+  - "./module_structure_standard.yaml"
+  - "./security_compliance_standard.yaml"
+
+template:
+  description: "Three-line documentation template, no additions"
+  lines:
+    - "Incoming: <source refs> --- {<data_type>, <format>}"
+    - "Processing: <operations summary> --- {<N> jobs: <job_types>}"
+    - "Outgoing: <dest refs> --- {<data_type>, <format>}"
+
+rules:
+  scope: ["backend"]
+  analysis:
+    - "Engineers MUST read full file via read_file tool (no partial reads) and THEN ONLY use edit tool to make changes."
+    - "Summaries MUST NOT include code; only behaviour."
+    - "Incoming/Outgoing sources are file paths, call sites, or modules."
+    - "Data types MUST be explicit (Dict, AsyncGenerator, etc.)."
+    - "Job types MUST map to categories in data_flow_standard.yaml (validation, transformation, routing, etc.)."
+    - "If section not applicable, use 'none'."
+    - "No markdown, bullets or explanatory prose beyond template lines."
+    - "Order job types alphabetically."
+  format:
+    - "Exactly three lines per file block."
+    - "No leading/trailing whitespace."
+    - "Sections separated by single space after colon."
+  compliance:
+    validation: "Must satisfy example_format in data_flow_standard.yaml"
+    rejection_policy: "Non-conforming submissions are rejected without review."
+
+tool_usage:
+  - "Use read_file for complete contents."
+  - "Token / time cost is authorised."

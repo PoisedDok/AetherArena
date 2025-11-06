@@ -1,0 +1,38 @@
+<!--
+  @.architecture
+  
+  Incoming: Electron BrowserWindow creation (main/windows/WindowManager.js) --- {window_types.artifacts, BrowserWindow}
+  Processing: Define HTML structure, load stylesheets, render artifacts container, load bundled renderer script --- {3 jobs: JOB_CREATE_DOM_ELEMENT, JOB_INITIALIZE, JOB_RENDER_MARKDOWN}
+  Outgoing: DOM tree rendered to artifacts window, script execution → build/renderer/artifacts.js --- {html_types.document, Document}
+  
+  @module renderer/artifacts/index.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Aether - Artifacts</title>
+  
+  <!-- Import shared styles first -->
+  <link rel="stylesheet" href="../shared/styles/index.css" />
+  <!-- Then window-specific styles -->
+  <link rel="stylesheet" href="styles/artifacts.css" />
+</head>
+<body>
+  <div id="root">
+    <div class="container">
+      <div class="title">ARTIFACTS</div>
+      <div class="subtitle">Artifacts Window (Phase 2 Bootstrap)</div>
+      <div class="status">✓ Window Loaded</div>
+    </div>
+  </div>
+  
+  <!-- Load bundled artifacts renderer script (includes all dependencies) -->
+  <script src="../../../build/renderer/artifacts.js"></script>
+</body>
+</html>
+

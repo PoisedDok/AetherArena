@@ -1,0 +1,170 @@
+# Test Environment Configuration
+# Optimized for testing with mocks and fast execution
+
+environment: test
+
+# Application settings
+app:
+  name: "Aether Backend (Test)"
+  version: "2.0.0"
+  debug: false
+  reload: false
+
+# Server configuration
+server:
+  host: "127.0.0.1"
+  port: 5002
+  workers: 1
+
+# Security settings (minimal for testing)
+security:
+  cors_enabled: true
+  cors_origins: ["*"]
+  cors_credentials: true
+  cors_methods: ["*"]
+  cors_headers: ["*"]
+  rate_limit_enabled: false
+  auth_required: false
+
+# Database configuration (in-memory or test database)
+database:
+  url: "sqlite+aiosqlite:///:memory:"  # In-memory SQLite for tests
+  pool_size: 1
+  max_overflow: 0
+  pool_timeout: 5
+  echo_sql: false
+  log_queries: false
+
+# Logging configuration (minimal for testing)
+logging:
+  level: "WARNING"  # Reduce noise in test output
+  format: "text"
+  file_enabled: false
+  console_enabled: false
+  json_logs: false
+
+# Monitoring configuration (disabled for testing)
+monitoring:
+  metrics_enabled: false
+  tracing_enabled: false
+  health_check_interval: 300
+  profiling_enabled: false
+
+# Integration services (mocked for testing)
+integrations:
+  perplexica:
+    url: "http://localhost:3000"
+    enabled: false
+    timeout: 10
+    mock: true
+  
+  searxng:
+    url: "http://127.0.0.1:4000"
+    enabled: false
+    timeout: 10
+    mock: true
+  
+  docling:
+    url: "http://127.0.0.1:8000"
+    enabled: false
+    timeout: 10
+    mock: true
+  
+  xlwings:
+    url: "http://127.0.0.1:8001"
+    enabled: false
+    timeout: 10
+    mock: true
+  
+  lm_studio:
+    url: "http://localhost:1234/v1"
+    enabled: false
+    timeout: 10
+    mock: true
+  
+  mcp:
+    enabled: false
+    auto_start: false
+    health_check_interval: 300
+
+# LLM configuration (mocked for testing)
+llm:
+  provider: "mock"
+  api_base: "http://localhost:1234/v1"
+  model: "test-model"
+  context_window: 4096
+  max_tokens: 1024
+  temperature: 0.0  # Deterministic for testing
+  stream: false
+
+# Open Interpreter configuration (minimal for testing)
+interpreter:
+  auto_run: false
+  safe_mode: "off"
+  loop: false
+  profile: "default.yaml"
+  offline: true
+  disable_telemetry: true
+  debug: false
+
+# Storage configuration (temporary for testing)
+storage:
+  base_path: "./tests/tmp/storage"
+  max_upload_size_mb: 10
+  allowed_extensions:
+    - ".pdf"
+    - ".txt"
+    - ".json"
+    - ".png"
+    - ".jpg"
+
+# Memory/retrieval configuration (in-memory for testing)
+memory:
+  enabled: false
+  type: "memory"
+  embedder: "mock"
+  top_k: 5
+
+# Cache configuration (disabled for testing)
+cache:
+  enabled: false
+  type: "memory"
+  ttl_seconds: 60
+
+# Test-specific features
+testing:
+  # Use mock responses
+  mock_external_services: true
+  
+  # Fast timeouts for quick test execution
+  fast_timeouts: true
+  
+  # Disable rate limiting
+  disable_rate_limits: true
+  
+  # Use in-memory databases
+  use_memory_db: true
+  
+  # Disable authentication
+  disable_auth: true
+  
+  # Allow all file types for testing
+  allow_all_file_types: true
+  
+  # Disable slow operations
+  disable_heavy_operations: true
+
+# Performance (test optimized for speed)
+performance:
+  worker_count: 1
+  thread_pool_size: 2
+  max_concurrent_requests: 2
+  request_queue_size: 10
+
+# Fast timeout values for testing
+timeouts:
+  http_connect: 1.0
+  http_read: 5.0
+  http_write: 5.0
+  request_timeout: 10.0
+

@@ -1,0 +1,20 @@
+# Docling API & Gradio Requirements
+# ==================================
+
+# FastAPI and server components
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Gradio for web interface  
+gradio>=4.0.0
+
+# HTTP client for API communication
+requests>=2.31.0
+
+# Already included with Docling installation:
+# - docling (with all features)
+# - transformers (for VLM)
+# - mlx-vlm (for Apple Silicon acceleration)
+# - All OCR engines (easyocr, ocrmac, tesseract, rapidocr)
+# - ASR support (whisper)

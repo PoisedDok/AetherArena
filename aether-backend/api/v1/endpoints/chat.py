@@ -1,0 +1,266 @@
+"""
+Chat Management Endpoints
+
+Endpoints for chat and conversation management.
+
+@.architecture
+Incoming: api/v1/router.py, Frontend (HTTP POST/GET) --- {HTTP requests to /v1/chat, /v1/chat/stream, /v1/chat/history, Dict[str, Any] payload with message/session_id/image_b64}
+Processing: send_chat_message(), stream_chat_message(), get_chat_history() --- {9 jobs: data_validation, dependency_injection, error_handling, history_retrieval, http_communication, message_handling, sanitization, streaming, streaming_coordination}
+Outgoing: core/runtime/engine.py (runtime.stream_chat), Frontend (HTTP) --- {runtime streaming requests, JSONResponse or StreamingResponse (SSE)}
+"""
+
+from typing import List, Dict, Any, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import StreamingResponse, JSONResponse
+from uuid import UUID
+import uuid
+import json
+import asyncio
+
+from api.dependencies import setup_request_context, get_runtime_engine
+from api.v1.schemas.chat import (
+    ChatCreate,
+    ChatUpdate,
+    ChatResponse,
+    MessageCreate,
+    MessageResponse
+)
+from core.runtime.engine import RuntimeEngine
+from monitoring import get_logger
+from security.sanitization import sanitize_text, SizeExceededError, ValidationError
+from pydantic import BaseModel, Field, validator
+import base64
+
+logger = get_logger(__name__)
+router = APIRouter(tags=["chat"])
+
+# Security constants
+MAX_MESSAGE_LENGTH = 50000  # 50K characters
+MAX_IMAGE_B64_SIZE = 10 * 1024 * 1024  # 10MB base64 (≈7.5MB actual image)
+
+
+class ChatRequest(BaseModel):
+    """Chat request payload."""
+    message: str = Field(..., description="User message text", min_length=1, max_length=MAX_MESSAGE_LENGTH)
+    session_id: str = Field("default", description="Session identifier", min_length=1, max_length=255)
+    history: List[Dict[str, Any]] = Field(default_factory=list, description="Optional conversation history")
+    image_b64: Optional[str] = Field(None, description="Optional base64 encoded image")
+    
+    @validator('message')
+    def validate_message(cls, v):
+        """Sanitize message text."""
+        if not v or not v.strip():
+            raise ValueError("Message cannot be empty")
+        return sanitize_text(v, max_length=MAX_MESSAGE_LENGTH, allow_html=False)
+    
+    @validator('session_id')
+    def validate_session_id(cls, v):
+        """Validate session ID format."""
+        if not v or not v.strip():
+            raise ValueError("Session ID cannot be empty")
+        # Sanitize session_id to prevent injection
+        v = v.strip()
+        if len(v) > 255:
+            raise ValueError("Session ID too long")
+        # Allow alphanumeric, hyphens, underscores only
+        if not all(c.isalnum() or c in '-_' for c in v):
+            raise ValueError("Session ID contains invalid characters")
+        return v
+    
+    @validator('image_b64')
+    def validate_image_b64(cls, v):
+        """Validate base64 image."""
+        if v is None:
+            return v
+        # Check size
+        if len(v) > MAX_IMAGE_B64_SIZE:
+            raise ValueError(f"Image too large. Maximum: {MAX_IMAGE_B64_SIZE / (1024*1024):.1f}MB")
+        # Verify it's valid base64
+        try:
+            base64.b64decode(v)
+        except Exception:
+            raise ValueError("Invalid base64 image data")
+        return v
+
+
+# =============================================================================
+# Chat Message Endpoint (main chat route)
+# =============================================================================
+
+@router.post(
+    "/chat",
+    summary="Send chat message",
+    description="Send a message and get response from AI assistant"
+)
+async def send_chat_message(
+    request: ChatRequest,
+    runtime: RuntimeEngine = Depends(get_runtime_engine),
+    _context: dict = Depends(setup_request_context)
+) -> JSONResponse:
+    """
+    Send chat message and get response.
+    
+    Payload validated via Pydantic ChatRequest model.
+    """
+    try:
+        message = request.message
+        session_id = request.session_id
+        history = request.history
+        image_b64 = request.image_b64
+        
+        # Generate request ID
+        request_id = str(uuid.uuid4())
+        
+        # Stream chat response and collect
+        response_text = ""
+        chunks = []
+        
+        async for chunk in runtime.stream_chat(
+            client_id=session_id,
+            text=message,
+            image_b64=image_b64,
+            request_id=request_id
+        ):
+            chunks.append(chunk)
+            if chunk.get("type") == "text":
+                response_text += chunk.get("content", "")
+        
+        return JSONResponse({
+            "status": "ok",
+            "response": response_text,
+            "request_id": request_id,
+            "session_id": session_id,
+            "chunks_count": len(chunks)
+        })
+        
+    except Exception as e:
+        logger.error(f"Chat message error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process chat message: {str(e)}"
+        )
+
+
+# =============================================================================
+# Chat Streaming Endpoint
+# =============================================================================
+
+@router.post(
+    "/chat/stream",
+    summary="Stream chat response",
+    description="Send message and stream the response in real-time"
+)
+async def stream_chat_message(
+    request: ChatRequest,
+    runtime: RuntimeEngine = Depends(get_runtime_engine),
+    _context: dict = Depends(setup_request_context)
+) -> StreamingResponse:
+    """
+    Stream chat response in real-time.
+    
+    Returns Server-Sent Events (SSE) stream.
+    Payload validated via Pydantic ChatRequest model.
+    """
+    try:
+        message = request.message
+        session_id = request.session_id
+        image_b64 = request.image_b64
+        
+        request_id = str(uuid.uuid4())
+        
+        async def event_stream():
+            """Generate SSE stream."""
+            try:
+                async for chunk in runtime.stream_chat(
+                    client_id=session_id,
+                    text=message,
+                    image_b64=image_b64,
+                    request_id=request_id
+                ):
+                    # Send as JSON lines
+                    yield f"data: {json.dumps(chunk)}\n\n"
+                
+                # Send done event
+                yield f"data: {json.dumps({'type': 'done', 'request_id': request_id})}\n\n"
+                
+            except Exception as e:
+                logger.error(f"Streaming error: {e}", exc_info=True)
+                yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+        
+        return StreamingResponse(
+            event_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Chat stream error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to stream chat: {str(e)}"
+        )
+
+
+# =============================================================================
+# Chat History Endpoint
+# =============================================================================
+
+@router.get(
+    "/chat/history/{session_id}",
+    summary="Get chat history",
+    description="Retrieve chat history for a session"
+)
+async def get_chat_history(
+    session_id: str,
+    runtime: RuntimeEngine = Depends(get_runtime_engine),
+    _context: dict = Depends(setup_request_context)
+) -> JSONResponse:
+    """
+    Get chat history for a session.
+    
+    Note: In-memory history only. For persistent storage, use storage endpoints.
+    """
+    try:
+        # Validate session_id
+        if not session_id or not session_id.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Session ID cannot be empty"
+            )
+        
+        # Sanitize session_id
+        session_id = session_id.strip()
+        if len(session_id) > 255:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Session ID too long"
+            )
+        
+        if not all(c.isalnum() or c in '-_' for c in session_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Session ID contains invalid characters"
+            )
+        
+        # Retrieve history from runtime
+        messages = await runtime.get_history(session_id)
+        
+        return JSONResponse({
+            "session_id": session_id,
+            "messages": messages,
+            "message_count": len(messages)
+        })
+        
+    except Exception as e:
+        logger.error(f"History retrieval error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve history: {str(e)}"
+        )
+

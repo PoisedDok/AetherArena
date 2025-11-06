@@ -1,0 +1,35 @@
+[GENERAL]
+SIMILARITY_MEASURE = "cosine" # "cosine" or "dot"
+KEEP_ALIVE = "5m" # How long to keep Ollama models loaded into memory. (Instead of using -1 use "-1m")
+
+[MODELS.OPENAI]
+API_KEY = ""
+
+[MODELS.GROQ]
+API_KEY = ""
+
+[MODELS.ANTHROPIC]
+API_KEY = ""
+
+[MODELS.GEMINI]
+API_KEY = ""
+
+[MODELS.CUSTOM_OPENAI]
+API_KEY = "not-needed"
+API_URL = "http://localhost:1234/v1"
+MODEL_NAME = "qwen/qwen3-4b-2507"
+
+[MODELS.OLLAMA]
+API_URL = "http://127.0.0.1:11434" # Ollama API URL - local instance
+
+[MODELS.DEEPSEEK]
+API_KEY = ""
+
+[MODELS.AIMLAPI]
+API_KEY = "" # Required to use AI/ML API chat and embedding models
+
+[MODELS.LM_STUDIO]
+API_URL = "http://localhost:1234/v1" # LM Studio API URL - http://host.docker.internal:1234
+
+[API_ENDPOINTS]
+SEARXNG = "http://127.0.0.1:4000" # Local SearxNG instance
