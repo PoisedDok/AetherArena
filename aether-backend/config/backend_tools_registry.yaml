@@ -1,6 +1,6 @@
 metadata:
   version: 1.0.0
-  generated: '2025-11-06T19:09:49.980684'
+  generated: '2025-11-06T21:09:46.165121'
   source: Aether Backend API
   backend_version: 2.0.0
   backend_url: http://127.0.0.1:8765
@@ -45,6 +45,36 @@ categories:
       - backend_api
       - aether
       integration: health
+    - name: services_status
+      path: computer.services_status
+      api_endpoint: /v1/services/status
+      http_method: GET
+      complexity: moderate
+      description: Get status of all backend services including health and port information
+      signature: 'services_status(x-request-id: string = None, x-user-id: string =
+        None, x-session-id: string = None)'
+      parameters:
+      - name: x-request-id
+        type: string
+        required: false
+        description: ''
+      - name: x-user-id
+        type: string
+        required: false
+        description: ''
+      - name: x-session-id
+        type: string
+        required: false
+        description: ''
+      use_cases:
+      - 'Use services backend API: Get services status'
+      examples:
+      - computer.services_status(...)
+      tags:
+      - services
+      - backend_api
+      - aether
+      integration: services
     - name: launch_terminal
       path: computer.launch_terminal
       api_endpoint: /v1/launch_terminal

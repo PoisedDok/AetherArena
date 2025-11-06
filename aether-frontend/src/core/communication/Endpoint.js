@@ -85,6 +85,14 @@ class Endpoint {
   }
 
   /**
+   * Get services status
+   * @returns {Promise<Object>}
+   */
+  async getServicesStatus() {
+    return this.api.get('/v1/services/status');
+  }
+
+  /**
    * Get TOML settings (preferred)
    * @returns {Promise<Object>}
    */

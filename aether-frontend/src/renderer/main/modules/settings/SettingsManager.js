@@ -3,13 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: main-renderer.js, Endpoint.getSettings()/setSettings()/getProfiles()/getModels() --- {Settings objects, Profile arrays, Model arrays}
- * Processing: Load/validate/populate/save settings, manage form state, handle errors, security validation --- {8 jobs: data_validation, error_handling, form_population, form_collection, security_validation, state_management, dropdown_management, backend_communication}
- * Outgoing: DOM updates (form elements), Endpoint API calls, Console logs --- {HTMLElements, HTTP requests, console output}
- * 
- * Settings Manager - Robust Settings Architecture
- * ============================================================================
- * Handles all settings operations with security, validation, and error handling
+ * Incoming: main-renderer.js, Endpoint.getSettings()/setSettings()/getProfiles()/getModels()/getServicesStatus() --- {Settings objects, Profile arrays, Model arrays, Service status}
+ * Processing: Load/validate/populate/save settings, manage form state, handle errors, security validation, service status display --- {9 jobs: data_validation, error_handling, form_population, form_collection, security_validation, state_management, dropdown_management, backend_communication, service_monitoring}
+ * Outgoing: DOM updates (form elements), Endpoint API calls, settings-updated events --- {HTMLElements, HTTP requests, CustomEvent}
  */
 
 class SettingsManager {
@@ -22,96 +18,60 @@ class SettingsManager {
     this.currentSettings = null;
     this.isLoading = false;
     this.formElements = {};
-    
-    // Security: Input validation patterns
     this.validators = {
       url: /^https?:\/\/.+/,
-      port: /^\d{1,5}$/,
       temperature: /^0(\.\d+)?$|^1(\.0+)?$/,
       maxTokens: /^\d+$/
     };
     
-    // Cache elements
     this._cacheElements();
   }
   
-  /**
-   * Cache DOM elements for performance
-   * @private
-   */
   _cacheElements() {
     this.formElements = {
-      // Status
       status: document.getElementById('settings-status'),
-      
-      // Profile
       profile: document.getElementById('oi-profile'),
       profileHelp: document.getElementById('oi-profile-help'),
-      
-      // LLM Configuration
       provider: document.getElementById('llm-provider'),
       apiBase: document.getElementById('llm-api-base'),
       model: document.getElementById('llm-model'),
       modelHelp: document.getElementById('llm-model-help'),
-      
-      // Advanced LLM Settings
       temperature: document.getElementById('llm-temperature'),
       maxTokens: document.getElementById('llm-max-tokens'),
       contextWindow: document.getElementById('llm-context-window'),
-      
-      // Interpreter Settings
       autoRun: document.getElementById('interpreter-auto-run'),
       loop: document.getElementById('interpreter-loop'),
       safeMode: document.getElementById('interpreter-safe-mode'),
       offline: document.getElementById('interpreter-offline'),
-      
-      // Security Settings
       authEnabled: document.getElementById('security-auth-enabled'),
       rateLimitEnabled: document.getElementById('security-rate-limit'),
       corsEnabled: document.getElementById('security-cors-enabled')
     };
   }
   
-  /**
-   * Load settings from backend
-   * @returns {Promise<Object>} Settings object
-   */
   async loadSettings() {
-    if (this.isLoading) {
-      console.warn('[SettingsManager] Already loading settings');
-      return null;
-    }
+    if (this.isLoading) return null;
     
     this.isLoading = true;
     this._setStatus('Loading...', 'info');
     
     try {
-      console.log('[SettingsManager] 📥 Loading settings from backend...');
-      
-      // Get settings from backend
       const settings = await this.endpoint.getSettings();
+      if (!settings) throw new Error('No settings returned from backend');
       
-      if (!settings) {
-        throw new Error('No settings returned from backend');
-      }
-      
-      console.log('[SettingsManager] ✅ Settings loaded:', settings);
+      console.log('[SettingsManager] Settings loaded');
       this.currentSettings = settings;
-      
-      // Populate form
       await this.populateForm(settings);
       
       this._setStatus('Loaded successfully', 'success');
       setTimeout(() => this._clearStatus(), 2000);
-      
       return settings;
       
     } catch (error) {
-      console.error('[SettingsManager] ❌ Failed to load settings:', error);
+      console.error('[SettingsManager] Failed to load settings:', error);
       this._setStatus('Failed to load', 'error');
       setTimeout(() => this._clearStatus(), 3000);
       throw error;
-      
     } finally {
       this.isLoading = false;
     }
@@ -386,8 +346,93 @@ class SettingsManager {
    * @private
    */
   _populateIntegrationSettings(integrations) {
-    // Add integration fields if needed
     console.log('[SettingsManager] Integration settings:', integrations);
+
+    const perplexicaEl = document.getElementById('integration-perplexica');
+    const searxngEl = document.getElementById('integration-searxng');
+    const doclingEl = document.getElementById('integration-docling');
+    const mcpEl = document.getElementById('integration-mcp');
+
+    if (perplexicaEl) perplexicaEl.checked = integrations.perplexica_enabled || false;
+    if (searxngEl) searxngEl.checked = integrations.searxng_enabled || false;
+    if (doclingEl) doclingEl.checked = integrations.docling_enabled || false;
+    if (mcpEl) mcpEl.checked = integrations.mcp_enabled || false;
+  }
+
+  /**
+   * Load and populate services status
+   * @returns {Promise<void>}
+   */
+  async loadServicesStatus() {
+    const gridEl = document.getElementById('service-status-grid');
+    if (!gridEl) return;
+
+    try {
+      gridEl.innerHTML = '<div style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">Loading services...</div>';
+
+      const response = await this.endpoint.getServicesStatus();
+      
+      if (!response || !response.services) {
+        gridEl.innerHTML = '<div style="color: rgba(255,100,100,0.7); text-align: center; padding: 20px;">Failed to load services</div>';
+        return;
+      }
+
+      gridEl.innerHTML = '';
+
+      response.services.forEach(service => {
+        const card = document.createElement('div');
+        card.className = 'service-card';
+
+        const statusClass = {
+          'online': 'ok',
+          'offline': 'err',
+          'timeout': 'warn',
+          'degraded': 'warn',
+          'library': 'ok',
+          'unknown': 'warn'
+        }[service.status] || 'warn';
+
+        const statusText = service.status.toUpperCase();
+
+        let portInfo = '';
+        if (service.port) {
+          portInfo = `<div class="service-meta">Port: ${service.port}</div>`;
+        }
+
+        let responseTime = '';
+        if (service.response_time_ms) {
+          responseTime = `<div class="service-meta">Response: ${Math.round(service.response_time_ms)}ms</div>`;
+        }
+
+        let errorInfo = '';
+        if (service.error) {
+          errorInfo = `<div class="service-meta" style="color: rgba(255,100,100,0.7);">${service.error}</div>`;
+        }
+
+        let statusCodeInfo = '';
+        if (service.status_code) {
+          statusCodeInfo = `<div class="service-meta">Status Code: ${service.status_code}</div>`;
+        }
+
+        card.innerHTML = `
+          <div class="service-name">${service.name}</div>
+          <div class="service-pill ${statusClass}">${statusText}</div>
+          <div class="service-meta">${service.description || ''}</div>
+          ${portInfo}
+          ${responseTime}
+          ${statusCodeInfo}
+          ${errorInfo}
+        `;
+
+        gridEl.appendChild(card);
+      });
+
+      console.log('[SettingsManager] Loaded services:', response.services.length);
+
+    } catch (error) {
+      console.error('[SettingsManager] Failed to load services:', error);
+      gridEl.innerHTML = '<div style="color: rgba(255,100,100,0.7); text-align: center; padding: 20px;">Error loading services</div>';
+    }
   }
   
   /**
@@ -399,7 +444,8 @@ class SettingsManager {
       const settings = {
         llm: this._collectLLMSettings(),
         interpreter: this._collectInterpreterSettings(),
-        security: this._collectSecuritySettings()
+        security: this._collectSecuritySettings(),
+        integrations: this._collectIntegrationSettings()
       };
       
       // Validate settings
@@ -498,6 +544,26 @@ class SettingsManager {
     
     return security;
   }
+
+  /**
+   * Collect integration settings from form
+   * @private
+   */
+  _collectIntegrationSettings() {
+    const integrations = {};
+
+    const perplexicaEl = document.getElementById('integration-perplexica');
+    const searxngEl = document.getElementById('integration-searxng');
+    const doclingEl = document.getElementById('integration-docling');
+    const mcpEl = document.getElementById('integration-mcp');
+
+    if (perplexicaEl) integrations.perplexica_enabled = perplexicaEl.checked;
+    if (searxngEl) integrations.searxng_enabled = searxngEl.checked;
+    if (doclingEl) integrations.docling_enabled = doclingEl.checked;
+    if (mcpEl) integrations.mcp_enabled = mcpEl.checked;
+
+    return integrations;
+  }
   
   /**
    * Validate settings before saving
@@ -573,7 +639,12 @@ class SettingsManager {
       console.log('[SettingsManager] ✅ Settings saved:', savedSettings);
       
       this.currentSettings = savedSettings;
-      this._setStatus('Saved successfully', 'success');
+      this._setStatus('Saved successfully - Applying changes...', 'success');
+      
+      // Apply settings immediately
+      await this._applySettings(savedSettings);
+      
+      this._setStatus('Settings applied successfully', 'success');
       setTimeout(() => this._clearStatus(), 2000);
       
       return savedSettings;
@@ -583,6 +654,36 @@ class SettingsManager {
       this._setStatus(error.message || 'Failed to save', 'error');
       setTimeout(() => this._clearStatus(), 3000);
       throw error;
+    }
+  }
+
+  /**
+   * Apply settings changes immediately
+   * @private
+   */
+  async _applySettings(settings) {
+    try {
+      // Notify the application of settings changes
+      if (window.guru) {
+        console.log('[SettingsManager] Notifying application of settings changes');
+        // Update connection if LLM settings changed
+        if (settings.llm) {
+          console.log('[SettingsManager] LLM settings updated');
+        }
+      }
+
+      // Reload model indicator
+      if (window.__mainApp && window.__mainApp.updateModelIndicator) {
+        await window.__mainApp.updateModelIndicator();
+      }
+
+      // Dispatch custom event for other components
+      window.dispatchEvent(new CustomEvent('settings-updated', { 
+        detail: settings 
+      }));
+
+    } catch (error) {
+      console.error('[SettingsManager] Failed to apply settings:', error);
     }
   }
   

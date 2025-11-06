@@ -230,6 +230,15 @@ const aetherAPI = freeze({
    */
   chat: freeze({
     /**
+     * Listen for STT stream from main window
+     * @param {Function} callback - Callback(data)
+     * @returns {Function} Cleanup function
+     */
+    onSttStream: (callback) => {
+      return ipcBridge.on('chat:stt-stream', callback);
+    },
+    
+    /**
      * Send message
      * @param {string} message - Message content
      * @param {Object} metadata - Optional metadata

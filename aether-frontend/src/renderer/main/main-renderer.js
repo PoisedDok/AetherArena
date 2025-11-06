@@ -4,15 +4,15 @@
  * @.architecture
  * 
  * Incoming: window.aether (from main-preload.js), IPC 'widget-mode-changed' | 'chat:assistant-stream' | 'chat:request-complete' --- {ipc_types.* | method_calls, json | javascript_api}
- * Processing: Bootstrap main window, initialize THREE.js Visualizer, AudioManager, GuruConnection (WebSocket to backend), handle widget/normal mode, update telemetry (CPU/mem/FPS/mic/status/latency/nodes), handle settings modal, handle double-click/drag/zoom, route IPC events --- {10 jobs: JOB_INITIALIZE, JOB_DELEGATE_TO_MODULE, JOB_UPDATE_STATE, JOB_RENDER_MARKDOWN, JOB_ROUTE_BY_TYPE, JOB_UPDATE_STATE, JOB_ROUTE_BY_TYPE, JOB_ROUTE_BY_TYPE, JOB_EMIT_EVENT, JOB_ROUTE_BY_TYPE}
- * Outgoing: Visualizer.render() (THREE.js canvas), AudioManager.capture/play, IPC send, DOM updates (telemetry/settings/UI state) --- {dom_types.* | ipc_types.*, HTMLElement | json}
+ * Processing: Bootstrap main window, initialize THREE.js Visualizer, HandsFreeMicManager, GuruConnection (WebSocket to backend), handle widget/normal mode, update telemetry (CPU/mem/FPS/mic/status/latency/nodes), handle settings modal, handle double-click/drag/zoom, route IPC events --- {10 jobs: JOB_INITIALIZE, JOB_DELEGATE_TO_MODULE, JOB_UPDATE_STATE, JOB_RENDER_MARKDOWN, JOB_ROUTE_BY_TYPE, JOB_UPDATE_STATE, JOB_ROUTE_BY_TYPE, JOB_ROUTE_BY_TYPE, JOB_EMIT_EVENT, JOB_ROUTE_BY_TYPE}
+ * Outgoing: Visualizer.render() (THREE.js canvas), HandsFreeMicManager (continuous STT), IPC send, DOM updates (telemetry/settings/UI state) --- {dom_types.* | ipc_types.*, HTMLElement | json}
  * 
  * 
  * @module renderer/main/main-renderer
  * 
  * Main Window Renderer - Production Edition
  * ============================================================================
- * Complete renderer with full Three.js visualizer, audio management, 
+ * Complete renderer with full Three.js visualizer, hands-free voice control, 
  * telemetry updates, and all interactive controls.
  * Browser-only, CSP-compliant, secure architecture.
  */
@@ -40,7 +40,7 @@ const THREE = require('three');
 window.THREE = THREE;
 
 const NeuralNetworkVisualizer = require('./modules/visualizer/Visualizer');
-const AudioManager = require('./modules/audio/AudioManager');
+const HandsFreeMicManager = require('./modules/audio/HandsFreeMicManager');
 const GuruConnection = require('../../core/communication/GuruConnection');
 const Endpoint = require('../../core/communication/Endpoint');
 const SettingsManager = require('./modules/settings/SettingsManager');
@@ -58,7 +58,7 @@ class MainApp {
     this.cleanupFunctions = [];
     
     this.visualizer = null;
-    this.audioManager = null;
+    this.handsFreeMicManager = null;
     this.guru = null;
     this.endpoint = null;
     this.settingsManager = null;
@@ -74,7 +74,7 @@ class MainApp {
       this.cacheElements();
       this.initializeDependencies();
       this.initializeVisualizer();
-      this.initializeAudioManager();
+      this.initializeHandsFreeMic();
       this.setupControls();
       this.setupEventListeners();
       this.setupIPCListeners();
@@ -96,8 +96,7 @@ class MainApp {
       canvas: document.getElementById('scene-canvas'),
       menuTrigger: document.getElementById('menu-trigger'),
       controlPanel: document.getElementById('control-panel'),
-      micButton: document.getElementById('mic-button'),
-      micStatusIndicator: document.getElementById('mic-status-indicator'),
+      micToggle: document.getElementById('mic-toggle'),
       chatToggle: document.getElementById('chat-toggle'),
       settingsButton: document.getElementById('settings-button'),
       artifactsToggle: document.getElementById('code-panel-toggle'),
@@ -165,17 +164,18 @@ class MainApp {
     }
   }
   
-  initializeAudioManager() {
+  initializeHandsFreeMic() {
     if (!this.endpoint || !this.guru) {
-      console.warn('⚠️  Dependencies not ready, skipping audio manager');
+      console.warn('⚠️  Dependencies not ready, skipping hands-free mic');
       return;
     }
     
     try {
-      this.audioManager = new AudioManager(this.endpoint, this.guru);
-      console.log('✅ Audio manager initialized');
+      this.handsFreeMicManager = new HandsFreeMicManager(this.endpoint, this.guru);
+      this.handsFreeMicManager.init();
+      console.log('✅ Hands-free mic manager initialized');
     } catch (error) {
-      console.error('❌ Failed to initialize audio manager:', error);
+      console.error('❌ Failed to initialize hands-free mic:', error);
     }
   }
   
@@ -234,26 +234,6 @@ class MainApp {
       this.elements.artifactsToggle.addEventListener('click', () => {
         window.aether.artifacts.open();
         this.closeControlPanel();
-      });
-    }
-    
-    if (this.elements.micButton) {
-      this.elements.micButton.addEventListener('mousedown', () => {
-        if (this.audioManager && typeof this.audioManager.startCapture === 'function') {
-          this.audioManager.startCapture();
-          if (this.elements.micStatusIndicator) {
-            this.elements.micStatusIndicator.classList.add('active');
-          }
-        }
-      });
-      
-      document.addEventListener('mouseup', () => {
-        if (this.audioManager && typeof this.audioManager.stopCapture === 'function') {
-          this.audioManager.stopCapture();
-          if (this.elements.micStatusIndicator) {
-            this.elements.micStatusIndicator.classList.remove('active');
-          }
-        }
       });
     }
     
@@ -420,7 +400,7 @@ class MainApp {
       const status = (this.guru.state.assistant || 'idle').toUpperCase();
       this.elements.systemStatus.textContent = status;
       
-      this.elements.systemStatus.className = 'status-indicator';
+      this.elements.systemStatus.className = 'stat-value status-badge';
       this.elements.systemStatus.classList.add(`status-${this.guru.state.assistant || 'idle'}`);
     }
     
@@ -541,6 +521,27 @@ class MainApp {
     
     if (selectedTab) selectedTab.classList.add('active');
     if (selectedSection) selectedSection.classList.add('active');
+
+    // Load services status when switching to connections tab
+    if (tabName === 'connections' && this.settingsManager) {
+      this.settingsManager.loadServicesStatus().catch(err => {
+        console.error('[MainApp] Failed to load services status:', err);
+      });
+    }
+
+    // Refresh integrations display when switching to integrations tab
+    if (tabName === 'integrations' && this.currentSettings && this.currentSettings.integrations) {
+      const integrations = this.currentSettings.integrations;
+      const perplexicaEl = document.getElementById('integration-perplexica');
+      const searxngEl = document.getElementById('integration-searxng');
+      const doclingEl = document.getElementById('integration-docling');
+      const mcpEl = document.getElementById('integration-mcp');
+
+      if (perplexicaEl) perplexicaEl.checked = integrations.perplexica_enabled || false;
+      if (searxngEl) searxngEl.checked = integrations.searxng_enabled || false;
+      if (doclingEl) doclingEl.checked = integrations.docling_enabled || false;
+      if (mcpEl) mcpEl.checked = integrations.mcp_enabled || false;
+    }
   }
   
   /**
@@ -654,10 +655,10 @@ class MainApp {
       this.visualizer = null;
     }
     
-    // Cleanup audio manager
-    if (this.audioManager && typeof this.audioManager.dispose === 'function') {
-      this.audioManager.dispose();
-      this.audioManager = null;
+    // Cleanup hands-free mic manager
+    if (this.handsFreeMicManager && typeof this.handsFreeMicManager.dispose === 'function') {
+      this.handsFreeMicManager.dispose();
+      this.handsFreeMicManager = null;
     }
     
     // Call all cleanup functions

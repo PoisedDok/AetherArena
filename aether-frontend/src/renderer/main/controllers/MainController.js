@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: main-renderer.js (bootstrap call), EventBus (backend online/offline events), IPC (widget mode change) --- {boot_request | event_types.CONNECTION.*, method_call | event}
- * Processing: 7-phase initialization (core, services, modules, events, IPC, state, capabilities), coordinate Visualizer/AudioManager/UIManager/EventHandler modules, query backend health/model capabilities, set assistant status, handle backend connectivity changes --- {9 jobs: JOB_INITIALIZE, JOB_INITIALIZE, JOB_DELEGATE_TO_MODULE, JOB_HTTP_REQUEST, JOB_EMIT_EVENT, JOB_UPDATE_STATE, JOB_GET_STATE, JOB_VALIDATE_SCHEMA, JOB_DISPOSE}
+ * Processing: 7-phase initialization (core, services, modules, events, IPC, state, capabilities), coordinate Visualizer/HandsFreeMic/UIManager/EventHandler modules, query backend health/model capabilities, set assistant status, handle backend connectivity changes --- {9 jobs: JOB_INITIALIZE, JOB_INITIALIZE, JOB_DELEGATE_TO_MODULE, JOB_HTTP_REQUEST, JOB_EMIT_EVENT, JOB_UPDATE_STATE, JOB_GET_STATE, JOB_VALIDATE_SCHEMA, JOB_DISPOSE}
  * Outgoing: Initialize Endpoint → GuruConnection → Backend, EventBus (SYSTEM.READY/ERROR, CONNECTION.*, UI.WIDGET_MODE_CHANGED) --- {event_types.*, event}
  * 
  * 
@@ -16,7 +16,7 @@
  * 
  * Responsibilities:
  * - Initialize core dependencies (Endpoint, EventBus)
- * - Coordinate modules (Visualizer, AudioManager, UIManager, EventHandler)
+ * - Coordinate modules (Visualizer, HandsFreeMic, UIManager, EventHandler)
  * - Manage application lifecycle
  * - Handle backend connectivity
  * - Coordinate cross-window communication
@@ -247,21 +247,13 @@ class MainController {
     console.log('📦 MainController: Initializing modules...');
 
     // Module initialization will be implemented in subsequent steps
-    // For now, we'll create placeholders
+    // Module initialization handled in main-renderer.js:
+    // 1. Visualizer (THREE.js neural network)
+    // 2. HandsFreeMicManager (continuous voice recording with STT streaming)
+    // 3. SettingsManager (UI settings management)
+    // All modules directly initialized in main-renderer for simplicity
 
-    // 1. Visualizer (no dependencies)
-    // this.modules.visualizer = new NeuralNetworkVisualizer();
-
-    // 2. AudioManager (depends on endpoint, guru)
-    // this.modules.audioManager = new AudioManager(this.modules.endpoint, window.guru);
-
-    // 3. UIManager (depends on endpoint, guru)
-    // this.modules.uiManager = new UIManager(this.modules.endpoint, window.guru);
-
-    // 4. EventHandler (depends on endpoint, guru, config)
-    // this.modules.eventHandler = new EventHandler(this.modules.endpoint, window.guru, this.config);
-
-    console.log('✅ MainController: Modules initialized (stub)');
+    console.log('✅ MainController: Modules initialized (delegated to main-renderer)');
   }
 
   /**

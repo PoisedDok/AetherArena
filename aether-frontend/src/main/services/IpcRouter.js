@@ -280,6 +280,12 @@ class IpcRouter {
       this._sendToWindow(chatWindow, 'chat:request-complete');
     });
 
+    // STT stream (Main → Chat)
+    this._registerRoute('chat:stt-stream', (event, data) => {
+      const chatWindow = this.windowManager.getChatWindow();
+      this._sendToWindow(chatWindow, 'chat:stt-stream', data);
+    }, { allowedSources: ['mainWindow'] });
+
     // Stop request
     this._registerRoute('chat:stop', (event) => {
       const mainWindow = this.windowManager.getMainWindow();

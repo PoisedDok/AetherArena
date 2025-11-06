@@ -14,6 +14,7 @@ from fastapi import APIRouter
 from .endpoints import (
     health_router,
     settings_router,
+    services_router,
     models_router,
     mcp_router,
     chat_router,
@@ -41,6 +42,9 @@ api_v1_router.include_router(health_router)
 
 # Settings
 api_v1_router.include_router(settings_router)
+
+# Services Status
+api_v1_router.include_router(services_router)
 
 # Models
 api_v1_router.include_router(models_router)

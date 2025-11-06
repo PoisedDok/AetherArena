@@ -43,23 +43,6 @@
                 </div>
                 
                 <div class="control-panel-content">
-                    <!-- Voice Control -->
-                    <div class="control-item" id="mic-button">
-                        <div class="control-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                                <line x1="12" y1="19" x2="12" y2="23"></line>
-                                <line x1="8" y1="23" x2="16" y2="23"></line>
-                            </svg>
-                        </div>
-                        <div class="control-info">
-                            <span class="control-label">Voice Input</span>
-                            <span class="control-hint">Press and hold</span>
-                        </div>
-                        <div class="control-status" id="mic-status-indicator"></div>
-                    </div>
-
                     <!-- Chat Window -->
                     <div class="control-item" id="chat-toggle">
                         <div class="control-icon">
@@ -158,6 +141,19 @@
                         <span class="stat-label">TIME</span>
                         <span class="stat-value" id="system-time">00:00:00</span>
                     </div>
+                    
+                    <div class="stats-divider"></div>
+                    
+                    <!-- Hands-Free Mic Toggle in Stats Panel -->
+                    <button class="stat-mic-toggle" id="mic-toggle" title="Toggle Hands-Free Voice">
+                        <svg class="mic-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                        <div class="mic-pulse-ring"></div>
+                    </button>
                 </div>
             </div>
 
@@ -191,11 +187,11 @@
                                 </div>
                                 <div class="settings-tab" data-tab="connections">
                                     <i class="fas fa-network-wired"></i>
-                                    <span>Connections</span>
+                                    <span>Services</span>
                                 </div>
-                                <div class="settings-tab" data-tab="documents">
-                                    <i class="fas fa-file-alt"></i>
-                                    <span>Other Models</span>
+                                <div class="settings-tab" data-tab="integrations">
+                                    <i class="fas fa-puzzle-piece"></i>
+                                    <span>Integrations</span>
                                 </div>
                             </div>
                         </div>
@@ -280,68 +276,63 @@
 
                             <div class="settings-section" id="tab-connections">
                                 <div class="section-header">
-                                    <h3>Service Connections</h3>
-                                    <p>Monitor and manage your service connections</p>
+                                    <h3>Service Status</h3>
+                                    <p>Monitor all backend services, ports, and health status</p>
                                 </div>
 
                                 <div class="settings-card">
                                     <div class="card-header">
-                                        <h4><i class="fas fa-server"></i> Service Status</h4>
+                                        <h4><i class="fas fa-server"></i> Active Services</h4>
                                     </div>
                                     <div class="card-content">
-                                        <div class="service-grid" id="service-status-grid"></div>
+                                        <div class="service-grid" id="service-status-grid">
+                                            <div style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">Loading services...</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="settings-section" id="tab-documents">
+                            <div class="settings-section" id="tab-integrations">
                                 <div class="section-header">
-                                    <h3>Document Processing</h3>
-                                    <p>Configure document parsing models and pipelines</p>
+                                    <h3>Integration Settings</h3>
+                                    <p>Configure external integrations and services</p>
                                 </div>
 
                                 <div class="settings-card">
                                     <div class="card-header">
-                                        <h4><i class="fas fa-cogs"></i> Docling Pipeline</h4>
+                                        <h4><i class="fas fa-puzzle-piece"></i> Available Integrations</h4>
                                     </div>
                                     <div class="card-content">
                                         <div class="form-field">
-                                            <label for="docling-pipeline">Processing Pipeline</label>
-                                            <div class="input-wrapper">
-                                                <select id="docling-pipeline">
-                                                    <option value="standard">Standard (OCR)</option>
-                                                    <option value="vlm">Vision-Language Model</option>
-                                                    <option value="asr">Audio Transcription</option>
-                                                </select>
-                                                <div class="field-icon">
-                                                    <i class="fas fa-chevron-down"></i>
-                                                </div>
-                                            </div>
-                                            <div class="form-help">Choose how documents are processed. VLM provides best accuracy for complex layouts.</div>
+                                            <label style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="checkbox" id="integration-perplexica" />
+                                                <span>Perplexica (Web Search & Research)</span>
+                                            </label>
+                                            <div class="form-help">Advanced web search with multiple focus modes</div>
                                         </div>
 
-                                        <div class="form-field" id="vision-model-field" style="display: none;">
-                                            <label for="docling-vision-model">Vision Model</label>
-                                            <div class="input-wrapper">
-                                                <select id="docling-vision-model">
-                                                    <option value="">Loading models...</option>
-                                                </select>
-                                                <div class="field-icon">
-                                                    <i class="fas fa-chevron-down"></i>
-                                                </div>
-                                            </div>
-                                            <div class="form-help" id="vision-model-help">Select a vision model from LM Studio for document understanding</div>
+                                        <div class="form-field">
+                                            <label style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="checkbox" id="integration-searxng" />
+                                                <span>SearXNG (Metasearch Engine)</span>
+                                            </label>
+                                            <div class="form-help">Privacy-focused metasearch backend</div>
                                         </div>
 
-                                        <div class="form-field" id="lm-studio-model-field" style="display: none;">
-                                            <label for="docling-lm-studio-model">LM Studio Model Name</label>
-                                            <div class="input-wrapper">
-                                                <input id="docling-lm-studio-model" type="text" placeholder="e.g., smoldocling-256m-preview-mlx" />
-                                                <div class="field-icon">
-                                                    <i class="fas fa-tag"></i>
-                                                </div>
-                                            </div>
-                                            <div class="form-help">Exact model name as configured in LM Studio</div>
+                                        <div class="form-field">
+                                            <label style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="checkbox" id="integration-docling" />
+                                                <span>Docling (Document Processing)</span>
+                                            </label>
+                                            <div class="form-help">Advanced document parsing and conversion</div>
+                                        </div>
+
+                                        <div class="form-field">
+                                            <label style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="checkbox" id="integration-mcp" />
+                                                <span>MCP Servers (Model Context Protocol)</span>
+                                            </label>
+                                            <div class="form-help">Dynamic tool registration via MCP servers</div>
                                         </div>
                                     </div>
                                 </div>

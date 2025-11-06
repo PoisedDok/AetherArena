@@ -516,6 +516,12 @@ class ChatController {
     });
     this._ipcListeners.push(cleanupArtifactStream);
 
+    // Listen for STT stream (hands-free voice input)
+    const cleanupSttStream = window.aether.chat.onSttStream((data) => {
+      this._handleSttStream(data);
+    });
+    this._ipcListeners.push(cleanupSttStream);
+
     console.log('✅ ChatController: IPC listeners setup');
   }
 
@@ -731,6 +737,48 @@ class ChatController {
 
     } catch (error) {
       console.error('[ChatController] ❌ Artifact stream error:', error);
+    }
+  }
+
+  /**
+   * Handle STT stream (hands-free voice input)
+   * @private
+   */
+  _handleSttStream(data) {
+    try {
+      const { text, isFinal, source } = data;
+      
+      if (!text) return;
+      
+      const chatWindow = this.modules.chatWindow;
+      if (!chatWindow) {
+        console.warn('[ChatController] Chat window module not available');
+        return;
+      }
+      
+      const inputEl = document.getElementById('chat-input');
+      if (!inputEl) {
+        console.warn('[ChatController] Chat input element not found');
+        return;
+      }
+      
+      if (isFinal) {
+        const currentText = inputEl.value.trim();
+        inputEl.value = currentText ? `${currentText} ${text}` : text;
+        
+        console.log('[ChatController] STT Final:', text);
+      } else {
+        const baseText = inputEl.getAttribute('data-stt-base') || '';
+        inputEl.value = baseText + text;
+        inputEl.setAttribute('data-stt-base', baseText);
+        
+        console.log('[ChatController] STT Partial:', text);
+      }
+      
+      inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+      
+    } catch (error) {
+      console.error('[ChatController] ❌ STT stream error:', error);
     }
   }
 

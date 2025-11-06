@@ -6,6 +6,7 @@ FastAPI routers for all API endpoints.
 
 from .health import router as health_router
 from .settings import router as settings_router
+from .services import router as services_router
 from .models import router as models_router
 from .mcp import router as mcp_router
 from .chat import router as chat_router
@@ -24,6 +25,7 @@ from .backends import router as backends_router
 __all__ = [
     "health_router",
     "settings_router",
+    "services_router",
     "models_router",
     "mcp_router",
     "chat_router",

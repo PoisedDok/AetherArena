@@ -136,6 +136,22 @@ const aetherAPI = freeze({
     },
 
     /**
+     * Stream user input (STT) to chat
+     * @param {Object} data - { text, isFinal, source }
+     */
+    streamUserInput: (data) => {
+      ipcBridge.send('chat:stt-stream', data);
+    },
+
+    /**
+     * Send message directly to chat (from STT)
+     * @param {Object} data - { text, source }
+     */
+    sendMessage: (data) => {
+      ipcBridge.send('chat:send', { message: data.text, metadata: { source: data.source } });
+    },
+
+    /**
      * Listen for assistant responses
      * @param {Function} callback - Callback(chunk, metadata)
      * @returns {Function} Cleanup function
