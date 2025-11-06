@@ -42,11 +42,11 @@ body.normal-mode #scene-canvas {
   right: 24px;
   width: 48px;
   height: 48px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 10, 15, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-full);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(60px) saturate(180%);
+  -webkit-backdrop-filter: blur(60px) saturate(180%);
   cursor: pointer;
   z-index: var(--z-controls);
   pointer-events: auto;
@@ -55,13 +55,18 @@ body.normal-mode #scene-canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
 }
 
 .menu-trigger:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(10, 10, 15, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
   transform: scale(1.05);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
 }
 
 .menu-icon {
@@ -98,12 +103,15 @@ body.normal-mode #scene-canvas {
   top: 88px;
   right: 24px;
   width: 280px;
-  background: rgba(17, 17, 27, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 10, 15, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(60px) saturate(180%);
+  -webkit-backdrop-filter: blur(60px) saturate(180%);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 2px 8px rgba(255, 255, 255, 0.02) inset;
   z-index: calc(var(--z-controls) - 1);
   pointer-events: auto;
   -webkit-app-region: no-drag;
@@ -208,17 +216,22 @@ body.normal-mode #scene-canvas {
   left: 50%;
   transform: translateX(-50%);
   max-width: calc(100% - 48px);
-  background: rgba(17, 17, 27, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
-  padding: 14px 28px;
+  width: auto;
+  background: rgba(10, 10, 15, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  backdrop-filter: blur(60px) saturate(180%);
+  -webkit-backdrop-filter: blur(60px) saturate(180%);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+    0 2px 8px rgba(255, 255, 255, 0.02) inset;
+  padding: 10px 20px;
   z-index: var(--z-controls);
   pointer-events: none;
   -webkit-app-region: no-drag;
   animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
 @keyframes slideUp {
@@ -235,88 +248,89 @@ body.normal-mode #scene-canvas {
 .stats-row {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 18px;
+  white-space: nowrap;
 }
 
 .stats-divider {
   width: 1px;
-  height: 28px;
-  background: rgba(255, 255, 255, 0.08);
+  height: 20px;
+  background: rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
 }
 
 .stat-item {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 6px;
   position: relative;
   flex-shrink: 0;
 }
 
 .stat-item.model-stat {
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .stat-label {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.35);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   font-family: var(--font-family-base);
 }
 
 .stat-value {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.9);
   font-family: var(--font-family-mono);
-  letter-spacing: 0.2px;
+  letter-spacing: 0.1px;
 }
 
 .status-badge {
-  padding: 3px 10px;
-  border-radius: 8px;
-  font-size: 11px;
-  background: rgba(0, 255, 127, 0.15);
-  color: rgba(0, 255, 127, 0.95);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  background: rgba(0, 255, 127, 0.12);
+  color: rgba(0, 255, 127, 0.9);
   font-family: var(--font-family-mono);
   font-weight: 600;
-  border: 1px solid rgba(0, 255, 127, 0.2);
+  border: 1px solid rgba(0, 255, 127, 0.18);
 }
 
 /* Model Status Indicator */
 .model-status-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: var(--radius-full);
   background: rgba(239, 68, 68, 0.9);
   transition: all var(--transition-base);
   flex-shrink: 0;
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 0 1.5px rgba(239, 68, 68, 0.2);
 }
 
 .model-status-dot.online {
   background: rgba(0, 255, 127, 0.9);
-  box-shadow: 0 0 0 2px rgba(0, 255, 127, 0.2);
+  box-shadow: 0 0 0 1.5px rgba(0, 255, 127, 0.2);
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
 .model-status-dot.offline {
   background: rgba(239, 68, 68, 0.9);
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 0 1.5px rgba(239, 68, 68, 0.2);
   animation: none;
 }
 
 @keyframes pulse-dot {
   0%, 100% {
     opacity: 1;
-    box-shadow: 0 0 0 2px rgba(0, 255, 127, 0.2);
+    box-shadow: 0 0 0 1.5px rgba(0, 255, 127, 0.2);
   }
   50% {
     opacity: 0.8;
-    box-shadow: 0 0 0 4px rgba(0, 255, 127, 0.15), 0 0 12px rgba(0, 255, 127, 0.3);
+    box-shadow: 0 0 0 3px rgba(0, 255, 127, 0.12), 0 0 10px rgba(0, 255, 127, 0.25);
   }
 }
 
@@ -753,29 +767,33 @@ body.widget-mode #root {
 /* Responsive */
 @media (max-width: 1200px) {
   .stats-row {
-    gap: 20px;
+    gap: 16px;
   }
   
   .stats-panel {
-    padding: 12px 24px;
+    padding: 10px 18px;
   }
 }
 
 @media (max-width: 1024px) {
   .stats-row {
-    gap: 16px;
+    gap: 14px;
   }
   
   .stat-item {
-    gap: 6px;
+    gap: 5px;
   }
   
   .stat-label {
-    font-size: 8px;
+    font-size: 7px;
   }
   
   .stat-value {
-    font-size: 13px;
+    font-size: 12px;
+  }
+  
+  .stats-panel {
+    padding: 9px 16px;
   }
 }
 
@@ -787,15 +805,28 @@ body.widget-mode #root {
   .stats-panel {
     bottom: 16px;
     max-width: calc(100% - 32px);
-    padding: 10px 16px;
+    padding: 8px 14px;
   }
   
   .stats-row {
     gap: 12px;
   }
   
+  .stat-label {
+    font-size: 7px;
+    letter-spacing: 0.5px;
+  }
+  
+  .stat-value {
+    font-size: 11px;
+  }
+  
   .menu-trigger {
     width: 44px;
     height: 44px;
+  }
+  
+  .stats-divider {
+    height: 16px;
   }
 }
