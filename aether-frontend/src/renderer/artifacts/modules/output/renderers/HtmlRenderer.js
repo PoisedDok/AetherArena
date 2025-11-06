@@ -61,7 +61,7 @@ class HtmlRenderer extends BaseRenderer {
   async render(data, container) {
     try {
       // Extract HTML string
-      const html = typeof data === 'string' ? data : (data.html || data.content || '');
+      let html = typeof data === 'string' ? data : (data.html || data.content || '');
 
       if (!html || html.trim() === '') {
         const emptyEl = this.createEmptyMessage('No HTML content to display');
@@ -69,6 +69,9 @@ class HtmlRenderer extends BaseRenderer {
         container.appendChild(emptyEl);
         return;
       }
+
+      // Fix malformed HTML tags (backend sometimes sends incomplete tags)
+      html = this._fixMalformedHtml(html);
 
       // Inject styles
       this._injectStyles();
@@ -173,6 +176,31 @@ class HtmlRenderer extends BaseRenderer {
     container.appendChild(wrapper);
   }
 
+  /**
+   * Fix malformed HTML tags that backend sometimes sends
+   * @param {string} html - HTML to fix
+   * @returns {string}
+   * @private
+   */
+  _fixMalformedHtml(html) {
+    // Fix malformed DOCTYPE
+    html = html.replace(/<!DOCTYPE\s*>/gi, '<!DOCTYPE html>');
+    
+    // Fix empty opening tags like <>
+    html = html.replace(/\n<>\n/g, '\n<html>\n');
+    
+    // Fix empty closing tags like </>
+    html = html.replace(/\n<\/>\n/g, '\n</html>\n');
+    
+    // If DOCTYPE exists but no <html> tag, wrap content
+    if (html.includes('<!DOCTYPE') && !html.includes('<html')) {
+      const doctypeEnd = html.indexOf('>') + 1;
+      html = html.substring(0, doctypeEnd) + '\n<html>\n' + html.substring(doctypeEnd) + '\n</html>';
+    }
+    
+    return html;
+  }
+  
   /**
    * Basic HTML sanitization (fallback when DOMPurify not available)
    * @param {string} html - HTML to sanitize

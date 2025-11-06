@@ -92,6 +92,8 @@ class InterpreterManager:
 
     async def _import_oi_components(self) -> None:
         """Import and validate Open Interpreter components."""
+        import os
+        
         # Add local open-interpreter package to path
         oi_candidates = self._get_oi_path_candidates()
         logger.debug(
@@ -102,7 +104,9 @@ class InterpreterManager:
         
         if oi_path:
             sys.path.insert(0, str(oi_path))
-            logger.debug(f"Added {oi_path} to sys.path")
+            # CRITICAL: Set OPEN_INTERPRETER_PATH for computer API import
+            os.environ["OPEN_INTERPRETER_PATH"] = str(oi_path)
+            logger.debug(f"Added {oi_path} to sys.path and OPEN_INTERPRETER_PATH")
         
         # Import AsyncInterpreter
         logger.debug("Attempting to import AsyncInterpreter...")
@@ -185,25 +189,63 @@ class InterpreterManager:
         interp.disable_telemetry = True
 
     def _apply_profile_settings(self, settings: Any, init: bool) -> None:
-        """Apply OI profile settings with fallback handling."""
+        """Apply GURU profile from our templates directory."""
         interp = self._interpreter
         
-        # Apply OI profile
-        desired_profile = settings.interpreter.profile or "GURU.py"
+        # Use our custom GURU profile from templates
+        desired_profile = settings.interpreter.profile or "GURU"
+        
+        # Try loading our custom GURU.yaml from templates first
+        try:
+            from pathlib import Path
+            import yaml
+            
+            # Get path to our custom GURU template
+            backend_root = Path(__file__).parent.parent.parent  # core/runtime -> core -> aether-backend
+            guru_template = backend_root / "core" / "profiles" / "templates" / "GURU.yaml"
+            
+            if guru_template.exists():
+                logger.info(f"Loading custom GURU profile from: {guru_template}")
+                with open(guru_template, 'r') as f:
+                    profile_data = yaml.safe_load(f)
+                
+                # Apply system message (most critical for personality)
+                if 'system_message' in profile_data:
+                    interp.system_message = profile_data['system_message']
+                    logger.info(f"✅ Applied GURU system message ({len(profile_data['system_message'])} chars)")
+                
+                # Apply interpreter settings from YAML
+                if 'interpreter' in profile_data:
+                    for key, value in profile_data['interpreter'].items():
+                        if hasattr(interp, key):
+                            setattr(interp, key, value)
+                            logger.debug(f"Set interpreter.{key} = {value}")
+                
+                # Apply computer settings from YAML  
+                if 'computer' in profile_data:
+                    for key, value in profile_data['computer'].items():
+                        if hasattr(interp.computer, key):
+                            setattr(interp.computer, key, value)
+                            logger.debug(f"Set computer.{key} = {value}")
+                
+                logger.info("✅ Applied custom GURU profile from templates")
+                return
+                
+        except Exception as e:
+            logger.warning(f"Failed to load custom GURU template: {e}")
+        
+        # Fallback to OI's built-in profile loader
         if self._apply_profile is not None:
             try:
-                self._apply_profile(interp, desired_profile)
-                logger.info(f"✅ Applied OI profile: {desired_profile}")
-            except (ImportError, ValueError) as e:
-                # Relative import errors or missing profile files are expected
-                logger.debug(f"Profile file loading failed (using fallback): {e}")
-                self._apply_basic_profile_settings(interp, desired_profile)
+                self._apply_profile(interp, desired_profile + ".py")
+                logger.info(f"✅ Applied OI profile: {desired_profile}.py")
+                return
             except Exception as e:
-                logger.warning(f"⚠️  Profile application error: {e}")
-                self._apply_basic_profile_settings(interp, desired_profile)
-        else:
-            logger.debug("Profile loader not available, using basic settings")
-            self._apply_basic_profile_settings(interp, desired_profile)
+                logger.debug(f"OI profile loading failed: {e}")
+        
+        # Final fallback to basic settings
+        logger.warning("Using minimal fallback profile settings")
+        self._apply_basic_profile_settings(interp, desired_profile)
 
     def _apply_basic_profile_settings(self, interp: Any, profile_name: str) -> None:
         """Apply basic profile settings directly without profile file."""
@@ -211,9 +253,16 @@ class InterpreterManager:
             # For GURU profile, set basic settings
             if "GURU" in profile_name.upper():
                 interp.computer.import_computer_api = True
+                interp.computer.import_skills = True
                 interp.auto_run = False  # Require confirmation
                 interp.conversation_history = True
                 interp.conversation_history_path = None
+                
+                # CRITICAL: Reset import flags to ensure re-import
+                # This is necessary because OI checks these flags before importing
+                interp.computer._has_imported_computer_api = False
+                interp.computer._has_imported_skills = False
+                
                 logger.info(f"✅ Applied basic profile settings for: {profile_name}")
             else:
                 logger.debug(f"No fallback settings for profile: {profile_name}")
@@ -273,6 +322,7 @@ class InterpreterManager:
             logger.debug("⚠️  System message overridden from settings")
         
         # Computer API settings - CRITICAL for computer object availability in Python execution
+        # ALWAYS enable for GURU profile if not explicitly configured
         if hasattr(interpreter_settings, "computer"):
             interp.computer.import_computer_api = interpreter_settings.computer.import_computer_api
             interp.computer.import_skills = interpreter_settings.computer.import_skills
@@ -293,6 +343,14 @@ class InterpreterManager:
                 skills_path.mkdir(parents=True, exist_ok=True)
                 interp.computer.skills.path = str(skills_path)
                 logger.debug(f"Skills path set to: {skills_path}")
+        else:
+            # Fallback: ALWAYS enable computer API for GURU profile
+            logger.warning("No computer settings found - applying GURU defaults")
+            interp.computer.import_computer_api = True
+            interp.computer.import_skills = True
+            interp.computer._has_imported_computer_api = False
+            interp.computer._has_imported_skills = False
+            logger.info("✅ Forced computer API import for GURU profile")
         
         # Force OS control mode for browser and GUI actions
         try:

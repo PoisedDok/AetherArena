@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: StreamHandler.updateMessage(), MessageManager.renderMessage() (method calls with message objects) --- {message_types.user_message | message_types.assistant_message, javascript_object}
- * Processing: Render markdown for assistant (via MarkdownRenderer), escape HTML for user (via SecuritySanitizer), create DOM elements with chat-entry class, append to container, prune old messages (max 500), auto-scroll --- {5 jobs: JOB_RENDER_MARKDOWN, JOB_ESCAPE_HTML, JOB_CREATE_DOM_ELEMENT, JOB_UPDATE_STATE, JOB_SCROLL_TO_BOTTOM}
+ * Processing: Render markdown for assistant (via MarkdownRenderer), escape HTML for user (via SecuritySanitizer), create DOM elements with chat-entry class, append to container, update existing DOM elements, prune old messages (max 500), auto-scroll --- {7 jobs: JOB_APPEND_TO_CONTAINER, JOB_CREATE_DOM_ELEMENT, JOB_ESCAPE_HTML, JOB_RENDER_MARKDOWN, JOB_SCROLL_TO_BOTTOM, JOB_UPDATE_DOM_ELEMENT, JOB_UPDATE_STATE}
  * Outgoing: DOM container (.aether-chat-content) --- {dom_types.chat_entry_element, HTMLElement}
  * 
  * 
@@ -31,6 +31,14 @@ class MessageView {
     // State
     this.messageElements = new Map(); // messageId -> DOM element
     this._scrollRaf = null;
+    
+    // Throttled logging for streaming updates
+    this._updateLogThrottle = {
+      lastLog: 0,
+      interval: 1000, // Log at most once per second
+      updateCount: 0,
+      currentMessageId: null
+    };
 
     console.log('[MessageView] Constructed');
   }
@@ -209,7 +217,26 @@ class MessageView {
     if (textElement) {
       const contentHTML = this._renderContent(content, role);
       textElement.innerHTML = contentHTML;
-      console.log(`[MessageView] Updated message: ${messageId}`);
+      
+      // Throttled logging for streaming updates
+      const now = Date.now();
+      const throttle = this._updateLogThrottle;
+      
+      // Track update count
+      if (throttle.currentMessageId !== messageId) {
+        throttle.currentMessageId = messageId;
+        throttle.updateCount = 0;
+      }
+      throttle.updateCount++;
+      
+      // Log only if enough time has passed
+      if (now - throttle.lastLog >= throttle.interval) {
+        const contentLen = content ? content.length : 0;
+        console.log(`[MessageView] 📝 Streaming update: ${messageId.slice(0,8)} | ${throttle.updateCount} updates | ${contentLen} chars`);
+        throttle.lastLog = now;
+        throttle.updateCount = 0;
+      }
+      
       return true;
     }
 

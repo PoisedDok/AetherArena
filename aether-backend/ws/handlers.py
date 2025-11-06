@@ -33,6 +33,7 @@ from ws.protocols import (
     StopMessage,
     HeartbeatMessage,
     AudioControlMessage,
+    ContextResetMessage,
     WS_SEND_TIMEOUT,
 )
 
@@ -82,6 +83,7 @@ class StreamRelay:
             image_b64: Optional base64-encoded image
         """
         sent_end = False
+        sent_start = False  # Track start marker to prevent duplicates
         
         try:
             self._logger.debug(f"Starting stream relay for request {request_id} (frontend_id={frontend_id})")
@@ -106,12 +108,16 @@ class StreamRelay:
                 if event.get("end"):
                     sent_end = True
                 
-                # Forward start marker
-                if event.get("start"):
+                # Forward start marker (only once to prevent duplicates)
+                if event.get("start") and not sent_start:
                     try:
                         # Echo frontend_id back
-                        start_event = dict(event)
-                        start_event["id"] = request_id
+                        start_event = {
+                            "role": event.get("role", "assistant"),
+                            "type": event.get("type", "message"),
+                            "start": True,
+                            "id": request_id,
+                        }
                         if frontend_id:
                             start_event["frontend_id"] = frontend_id
                         
@@ -121,9 +127,14 @@ class StreamRelay:
                             ws.send_text(json.dumps(start_event)),
                             timeout=WS_SEND_TIMEOUT
                         )
+                        sent_start = True  # Mark as sent to prevent duplicates
                     except Exception as e:
                         self._logger.debug(f"Failed to send start marker: {e}")
                         break
+                    continue
+                elif event.get("start") and sent_start:
+                    # Already sent start marker, skip this duplicate
+                    self._logger.debug(f"Skipping duplicate start marker for {request_id}")
                     continue
                 
                 # Forward content deltas (assistant messages only)
@@ -311,6 +322,11 @@ class MessageHandler:
             await self._handle_stop(ws, client_id, message)
             return
         
+        # Handle context reset (chat switching)
+        if isinstance(message, ContextResetMessage):
+            await self._handle_context_reset(ws, client_id, message)
+            return
+        
         # Handle user message
         if isinstance(message, ClientMessage):
             await self._handle_user_message(ws, client_id, message)
@@ -445,6 +461,49 @@ class MessageHandler:
             await ws.send_text(json.dumps(stop_message))
         except Exception:
             pass
+    
+    async def _handle_context_reset(
+        self,
+        ws: WebSocket,
+        client_id: str,
+        message: ContextResetMessage,
+    ) -> None:
+        """
+        Handle context reset when user switches/creates chats.
+        Clears the LM Studio conversation context for clean slate.
+        """
+        chat_id = message.chat_id
+        self._logger.info(f"🔄 Context reset requested for client {client_id}, chat {chat_id[:8]}")
+        
+        try:
+            # Reset runtime context for this client
+            if hasattr(self.runtime, 'reset_context'):
+                await self.runtime.reset_context(client_id)
+                self._logger.info(f"✅ Context reset complete for client {client_id}")
+            else:
+                self._logger.warning("Runtime does not support context reset")
+            
+            # Send acknowledgment
+            ack_message = {
+                "role": MessageRole.SERVER,
+                "type": MessageType.CONTEXT_RESET_ACK,
+                "chat_id": chat_id,
+                "timestamp": message.timestamp,
+            }
+            await ws.send_text(json.dumps(ack_message))
+            
+        except Exception as e:
+            self._logger.error(f"Error resetting context for client {client_id}: {e}")
+            # Send error response
+            try:
+                error_message = {
+                    "role": MessageRole.SERVER,
+                    "type": MessageType.ERROR,
+                    "message": f"Context reset failed: {str(e)}",
+                }
+                await ws.send_text(json.dumps(error_message))
+            except Exception:
+                pass
     
     async def _handle_user_message(
         self,

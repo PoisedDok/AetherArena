@@ -49,6 +49,9 @@ class ArtifactsController {
     // IPC listeners for cleanup
     this._ipcListeners = [];
     this._eventListeners = [];
+    
+    // Log throttling - prevent per-chunk console spam
+    this._logThrottle = new Map(); // artifactId -> { lastLog, chunkCount }
 
     // Bind methods
     this._handleStream = this._handleStream.bind(this);
@@ -182,18 +185,37 @@ class ArtifactsController {
     this.currentArtifact = artifact;
     this.hasContent = true;
 
-    // Determine which view to use
-    if (artifact.type === 'code') {
+    console.log('[ArtifactsController] Loading artifact:', {
+      id: artifact.id,
+      type: artifact.type,
+      format: artifact.format,
+      contentLen: artifact.content ? artifact.content.length : 0
+    });
+
+    // Determine which view to use based on artifact type/format
+    // Code artifacts: Python, JavaScript, etc. from assistant
+    // Output artifacts: HTML, console output, execution results
+    const isCodeArtifact = artifact.type === 'code' && artifact.format !== 'html';
+    
+    if (isCodeArtifact) {
+      console.log('[ArtifactsController] Routing to CODE viewer');
       this.switchTab('code');
       // Load into code viewer
       if (this.modules.codeViewer) {
-        this.modules.codeViewer.loadCode(artifact.content, artifact.language, artifact.filename);
+        this.modules.codeViewer.loadCode(
+          artifact.content, 
+          artifact.language || artifact.format || 'text', 
+          artifact.filename || 'untitled'
+        );
       }
     } else {
+      console.log('[ArtifactsController] Routing to OUTPUT viewer');
       this.switchTab('output');
       // Load into output viewer
       if (this.modules.outputViewer) {
-        this.modules.outputViewer.loadOutput(artifact.content, artifact.format);
+        const format = artifact.format || 'text';
+        console.log('[ArtifactsController] Calling outputViewer.loadOutput:', format);
+        this.modules.outputViewer.loadOutput(artifact.content, format);
       }
     }
 
@@ -201,7 +223,7 @@ class ArtifactsController {
     this._reportWindowState();
 
     this.eventBus.emit(EventTypes.ARTIFACTS.LOADED, { artifact });
-    console.log(`[ArtifactsController] Loaded artifact: ${artifact.id}`);
+    console.log(`[ArtifactsController] ✅ Artifact loaded: ${artifact.id}`);
   }
 
   /**
@@ -515,45 +537,71 @@ class ArtifactsController {
   }
 
   /**
-   * Handle artifact stream
+   * Handle artifact stream with throttled logging
    * @private
    */
   _handleStream(data) {
     try {
-      // LOG ENTRY POINT: Artifact arriving in artifacts window
-      console.log('[ArtifactsController] 📥 ENTRY POINT: Artifact received:', {
-        frontend_id: data.id,
-        backend_id: data.backendId || data._backend_id,
-        kind: data.kind,
-        format: data.format,
-        parentId: data.parentId,
-        messageId: data.messageId,
-        chatId: data.chatId
-      });
+      const artifactId = data.id || `artifact_${Date.now()}`;
+      const throttle = this._logThrottle.get(artifactId) || { lastLog: 0, chunkCount: 0 };
+      
+      // ALWAYS log START marker
+      if (data.start) {
+        console.log(`[ArtifactsController] 🚀 Stream started: ${data.type}/${data.format} (ID: ${artifactId.slice(0,8)}...)`);
+        throttle.chunkCount = 0;
+        throttle.lastLog = Date.now();
+        this._logThrottle.set(artifactId, throttle);
+      }
       
       this.eventBus.emit(EventTypes.ARTIFACTS.STREAM_RECEIVED, { data });
 
-      // Create or update artifact
-      const artifactId = data.id || `artifact_${Date.now()}`;
-      const artifact = {
-        id: artifactId,
-        backend_id: data.backendId || data._backend_id,  // Track backend ID
-        type: data.type || data.kind || 'output',
-        content: data.content || '',
-        language: data.language || data.format || 'text',
-        chatId: data.chatId || this.currentChatId,
-        messageId: data.messageId,
-        parentId: data.parentId,  // Track parent linkage
-        timestamp: Date.now()
-      };
-
-      // Store artifact in registry
-      this.artifacts.set(artifactId, artifact);
-
-      this.loadArtifact(artifact);
+      // Check if artifact already exists (streaming update)
+      let artifact = this.artifacts.get(artifactId);
+      
+      if (!artifact) {
+        // New artifact
+        artifact = {
+          id: artifactId,
+          backend_id: data.backendId || data._backend_id,
+          type: data.type || data.kind || 'output',
+          content: '',
+          language: data.language || data.format || 'text',
+          format: data.format || 'text',
+          chatId: data.chatId || this.currentChatId,
+          messageId: data.messageId,
+          parentId: data.parentId,
+          timestamp: Date.now(),
+          chunkCount: 0
+        };
+        this.artifacts.set(artifactId, artifact);
+      }
+      
+      // Update content (streaming accumulation)
+      if (data.content) {
+        artifact.content += data.content;
+        artifact.chunkCount++;
+        throttle.chunkCount++;
+        
+        // Throttled progress logging - once per second max
+        const now = Date.now();
+        if (now - throttle.lastLog > 1000) {
+          console.log(`[ArtifactsController] 📝 Streaming: ${artifact.chunkCount} chunks, ${artifact.content.length} chars`);
+          throttle.lastLog = now;
+        }
+      }
+      
+      // Load artifact on end marker or if it's a complete artifact
+      if (data.end || (!data.start && !data.end)) {
+        // ALWAYS log END marker
+        if (data.end) {
+          console.log(`[ArtifactsController] ✅ Stream complete: ${artifact.chunkCount} chunks, ${artifact.content.length} chars`);
+          this._logThrottle.delete(artifactId);
+        }
+        this.loadArtifact(artifact);
+      }
 
     } catch (error) {
-      console.error('[ArtifactsController] Handle stream failed:', error);
+      console.error('[ArtifactsController] ❌ Stream error:', error);
     }
   }
 

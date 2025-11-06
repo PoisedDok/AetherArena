@@ -697,18 +697,20 @@ class ChatController {
   /**
    * Handle artifact stream (Stage 1)
    * Enriches with chatId and forwards to artifacts window (Stage 2)
+   * Uses throttled logging to prevent console spam
    * @private
    */
   _handleArtifactStream(data) {
     try {
-      console.log('[ChatController] Received artifact stream:', data);
+      // Only log START/END markers, not every chunk
+      if (data.start) {
+        console.log(`[ChatController] 🚀 Artifact stream started: ${data.type}/${data.format}`);
+      }
       
       // CRITICAL FIX: MessageState is a sub-module of MessageManager
       const chatId = this.modules.messageManager?.messageState?.currentChatId;
       if (!chatId) {
-        console.warn('[ChatController] No current chat ID - cannot route artifact');
-        console.warn('[ChatController] Debug: messageManager exists:', !!this.modules.messageManager);
-        console.warn('[ChatController] Debug: messageState exists:', !!this.modules.messageManager?.messageState);
+        console.warn('[ChatController] ⚠️  No current chat ID - cannot route artifact');
         return;
       }
 
@@ -718,14 +720,17 @@ class ChatController {
         chatId: chatId,
         timestamp: Date.now()
       };
-
-      console.log(`[ChatController] Forwarding artifact to artifacts window: chat=${chatId.slice(0,8)}`);
       
-      // Forward to artifacts window (Stage 2)
+      // Forward to artifacts window (Stage 2) - NO per-chunk logging
       window.aether.artifacts.streamReady(enrichedData);
+      
+      // Only log END markers
+      if (data.end) {
+        console.log(`[ChatController] ✅ Artifact stream complete, forwarded to artifacts window`);
+      }
 
     } catch (error) {
-      console.error('[ChatController] Handle artifact stream failed:', error);
+      console.error('[ChatController] ❌ Artifact stream error:', error);
     }
   }
 

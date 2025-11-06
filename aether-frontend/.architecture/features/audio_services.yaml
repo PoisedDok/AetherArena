@@ -1,0 +1,121 @@
+feature: "audio_services"
+version: "1.0.0"
+description: "Speech-to-text (STT) and text-to-speech (TTS) audio processing"
+
+flow:
+  direction: "bidirectional"
+  protocol: "WebSocket streaming + Audio API"
+  
+  stt_flow:
+    - stage: "audio_capture"
+      location: "domain/audio/services"
+      files:
+        - "AudioStreamService.js"
+      jobs: [JOB_INITIALIZE, JOB_START]
+      
+    - stage: "stream_transmission"
+      location: "domain/audio/services"
+      files:
+        - "STTService.js"
+      jobs: [JOB_WS_SEND, JOB_EMIT_EVENT]
+      
+    - stage: "backend_processing"
+      location: "backend"
+      backend_files:
+        - "aether-backend/services/realtime-tts/*"
+      jobs: ["audio_transcription"]
+      
+    - stage: "result_receive"
+      location: "domain/audio/services"
+      files:
+        - "STTService.js"
+      jobs: [JOB_WS_RECEIVE, JOB_PARSE_JSON, JOB_EMIT_EVENT]
+      
+    - stage: "text_injection"
+      location: "renderer/chat/modules/input"
+      files:
+        - "InputHandler.js"
+      jobs: [JOB_UPDATE_DOM_ELEMENT]
+
+  tts_flow:
+    - stage: "text_request"
+      location: "domain/audio/services"
+      files:
+        - "TTSService.js"
+      jobs: [JOB_VALIDATE, JOB_WS_SEND]
+      
+    - stage: "backend_synthesis"
+      location: "backend"
+      backend_files:
+        - "aether-backend/services/realtime-tts/*"
+      jobs: ["audio_synthesis"]
+      
+    - stage: "audio_stream_receive"
+      location: "domain/audio/services"
+      files:
+        - "TTSService.js"
+      jobs: [JOB_WS_RECEIVE, JOB_ACCUMULATE]
+      
+    - stage: "audio_playback"
+      location: "domain/audio/services"
+      files:
+        - "AudioManager.js"
+      jobs: [JOB_START, JOB_STOP]
+
+  audio_management:
+    - stage: "device_initialization"
+      location: "domain/audio/services"
+      files:
+        - "AudioManager.js"
+      jobs: [JOB_INITIALIZE, JOB_START]
+      
+    - stage: "stream_control"
+      location: "domain/audio/services"
+      files:
+        - "AudioStreamService.js"
+      jobs: [JOB_START, JOB_STOP, JOB_DISPOSE]
+
+backend_interface:
+  websocket:
+    stt_endpoint: "ws://localhost:8765/stt"
+    tts_endpoint: "ws://localhost:8765/tts"
+    backend_files:
+      - "aether-backend/services/realtime-tts/"
+    message_types: ["audio_chunk", "transcription_result", "tts_audio"]
+
+data_types:
+  - "domain.AudioStream"
+  - "domain.STTResult"
+  - "domain.TTSAudio"
+  - "domain.AudioConfig"
+  - "binary (audio chunks)"
+
+job_categories:
+  network: [JOB_WS_SEND, JOB_WS_RECEIVE]
+  transform: [JOB_PARSE_JSON, JOB_ACCUMULATE]
+  validation: [JOB_VALIDATE]
+  routing: [JOB_EMIT_EVENT]
+  rendering: [JOB_UPDATE_DOM_ELEMENT]
+  lifecycle: [JOB_INITIALIZE, JOB_START, JOB_STOP, JOB_DISPOSE]
+  state: [JOB_UPDATE_STATE, JOB_GET_STATE]
+
+audio_config:
+  stt:
+    sample_rate: 16000
+    channels: 1
+    encoding: "linear16"
+  
+  tts:
+    format: "mp3"
+    sample_rate: 24000
+    voice: "configurable"
+
+critical_files:
+  - "domain/audio/services/AudioManager.js"
+  - "domain/audio/services/AudioStreamService.js"
+  - "domain/audio/services/STTService.js"
+  - "domain/audio/services/TTSService.js"
+  - "domain/audio/models/AudioStream.js"
+  - "domain/audio/models/STTResult.js"
+  - "domain/audio/models/TTSAudio.js"
+

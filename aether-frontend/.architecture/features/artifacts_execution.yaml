@@ -1,0 +1,146 @@
+feature: "artifacts_execution"
+version: "1.0.0"
+description: "Code artifact execution, output streaming, and result rendering"
+
+flow:
+  direction: "bidirectional"
+  protocol: "IPC + WebSocket"
+  
+  artifact_creation:
+    - stage: "detection"
+      location: "renderer/chat/modules/messaging"
+      files:
+        - "StreamHandler.js"
+        - "MessageManager.js"
+      jobs: [JOB_PARSE_JSON, JOB_VALIDATE, JOB_GENERATE_ARTIFACT_ID]
+      
+    - stage: "persistence"
+      location: "domain/artifacts/repositories"
+      files:
+        - "ArtifactRepository.js"
+      jobs: [JOB_SAVE_TO_DB, JOB_UPDATE_STATE]
+      
+    - stage: "ipc_relay"
+      location: "renderer/chat"
+      files:
+        - "ChatController.js"
+      jobs: [JOB_SEND_IPC, JOB_EMIT_EVENT]
+      
+    - stage: "window_creation"
+      location: "main/windows"
+      files:
+        - "WindowManager.js"
+        - "ArtifactsWindow.js"
+      jobs: [JOB_INITIALIZE, JOB_SEND_IPC]
+
+  artifact_rendering:
+    - stage: "receive_data"
+      location: "renderer/artifacts"
+      files:
+        - "ArtifactsController.js"
+        - "renderer.js"
+      jobs: [JOB_VALIDATE, JOB_UPDATE_STATE, JOB_ROUTE_BY_TYPE]
+      
+    - stage: "type_based_rendering"
+      location: "renderer/artifacts/modules/output/renderers"
+      files:
+        - "CodeRenderer.js"
+        - "HtmlRenderer.js"
+        - "OutputRenderer.js"
+      jobs: [JOB_RENDER_MARKDOWN, JOB_SANITIZE_MARKDOWN, JOB_SANDBOX_IFRAME, JOB_CREATE_DOM_ELEMENT]
+
+  execution_flow:
+    - stage: "execution_request"
+      location: "renderer/artifacts"
+      files:
+        - "ArtifactsController.js"
+        - "modules/execution/ExecutionPanel.js"
+      jobs: [JOB_VALIDATE, JOB_SEND_IPC]
+      
+    - stage: "backend_execution"
+      location: "backend (via WebSocket)"
+      backend_files:
+        - "aether-backend/core/runtime/engine.py"
+        - "aether-backend/core/runtime/interpreter.py"
+      jobs: ["backend_execution"]
+      
+    - stage: "stream_receive"
+      location: "application/main"
+      files:
+        - "ArtifactsStreamHandler.js"
+      jobs: [JOB_WS_RECEIVE, JOB_PARSE_JSON, JOB_ROUTE_BY_TYPE, JOB_SEND_IPC]
+      
+    - stage: "output_update"
+      location: "renderer/artifacts/modules/output"
+      files:
+        - "OutputPanel.js"
+        - "StreamProcessor.js"
+      jobs: [JOB_ACCUMULATE, JOB_UPDATE_DOM_ELEMENT, JOB_SCROLL_TO_BOTTOM]
+
+  traceability:
+    - stage: "link_tracking"
+      location: "domain/artifacts/services"
+      files:
+        - "TraceabilityService.js"
+      jobs: [JOB_TRACK_ENTITY, JOB_UPDATE_STATE, JOB_SAVE_TO_DB]
+      
+    - stage: "state_sync"
+      location: "domain/artifacts/services"
+      files:
+        - "ArtifactStreamHandler.js"
+      jobs: [JOB_UPDATE_DB, JOB_EMIT_EVENT]
+
+backend_interface:
+  websocket:
+    execution_endpoint: "ws://localhost:8765"
+    backend_files:
+      - "aether-backend/core/runtime/engine.py"
+      - "aether-backend/core/runtime/interpreter.py"
+      - "aether-backend/api/v1/endpoints/artifacts.py"
+    message_types: ["artifact_execute", "artifact_output", "artifact_complete"]
+
+ipc_channels:
+  creation:
+    - "artifacts:create"
+    - "artifacts:open-window"
+  execution:
+    - "artifacts:execute"
+    - "artifacts:cancel"
+    - "artifacts:output"
+  synchronization:
+    - "artifacts:sync"
+    - "artifacts:update-state"
+
+data_types:
+  - "domain.Artifact"
+  - "domain.ExecutionResult"
+  - "ipc_types.artifact_data"
+  - "websocket.artifact_message"
+
+job_categories:
+  network: [JOB_WS_RECEIVE, JOB_WS_SEND]
+  transform: [JOB_PARSE_JSON, JOB_ACCUMULATE]
+  validation: [JOB_VALIDATE, JOB_VALIDATE_SCHEMA]
+  sanitization: [JOB_SANITIZE_MARKDOWN, JOB_SANDBOX_IFRAME]
+  id_generation: [JOB_GENERATE_ARTIFACT_ID]
+  routing: [JOB_ROUTE_BY_TYPE, JOB_EMIT_EVENT, JOB_SEND_IPC]
+  rendering: [JOB_RENDER_MARKDOWN, JOB_CREATE_DOM_ELEMENT, JOB_UPDATE_DOM_ELEMENT, JOB_SCROLL_TO_BOTTOM]
+  persistence: [JOB_SAVE_TO_DB, JOB_UPDATE_DB, JOB_LOAD_FROM_DB]
+  state: [JOB_UPDATE_STATE, JOB_GET_STATE, JOB_TRACK_ENTITY]
+  lifecycle: [JOB_INITIALIZE, JOB_DISPOSE]
+
+security_boundaries:
+  - "Artifact code sandboxed in iframe (no script execution)"
+  - "HTML output sanitized before rendering"
+  - "CSP prevents inline scripts and eval"
+  - "IPC validation on execution requests"
+
+critical_files:
+  - "renderer/artifacts/ArtifactsController.js"
+  - "renderer/artifacts/modules/output/renderers/HtmlRenderer.js"
+  - "renderer/artifacts/modules/execution/ExecutionPanel.js"
+  - "application/main/ArtifactsStreamHandler.js"
+  - "domain/artifacts/services/TraceabilityService.js"
+  - "domain/artifacts/repositories/ArtifactRepository.js"
+  - "main/windows/ArtifactsWindow.js"
+

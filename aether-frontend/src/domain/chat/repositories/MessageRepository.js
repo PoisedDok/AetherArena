@@ -2,8 +2,8 @@
  * @.architecture
  * 
  * Incoming: ChatService.saveMessage(), MessageManager.saveMessage() (method calls with Message models) --- {object, javascript_api}
- * Processing: Initialize storageAPI (window.storageAPI or require), transform Message models to PostgreSQL rows, call storageAPI methods (loadMessages/saveMessage/updateMessage/deleteMessage), transform PostgreSQL rows back to Message model instances via Message.fromPostgresRow(), update message properties with PostgreSQL-generated IDs --- {6 jobs: JOB_DELEGATE_TO_MODULE, JOB_GET_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_SEND_IPC}
- * Outgoing: storageAPI.loadMessages/saveMessage/updateMessage() (IPC to main process → PostgreSQL), return Message model instances --- {database_types.message_record, json}
+ * Processing: Initialize storageAPI (window.storageAPI or require), transform Message models to PostgreSQL rows, call storageAPI methods (loadMessages/saveMessage), transform PostgreSQL rows back to Message model instances via Message.fromPostgresRow(), clone message with PostgreSQL-generated IDs maintaining immutability --- {5 jobs: JOB_DELEGATE_TO_MODULE, JOB_GET_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB}
+ * Outgoing: storageAPI.loadMessages/saveMessage() (IPC to main process → PostgreSQL), return Message model instances --- {database_types.message_record, json}
  * 
  * 
  * @module domain/chat/repositories/MessageRepository

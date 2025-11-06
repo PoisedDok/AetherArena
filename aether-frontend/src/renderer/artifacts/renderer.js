@@ -49,6 +49,7 @@ class ArtifactsApp {
     this.currentLanguage = 'javascript';
     this.currentFilename = 'untitled.js';
     this.currentOutput = '';
+    this.currentOutputFormat = 'text'; // Track output format for proper rendering
     this.artifacts = [];
     this.currentArtifactIndex = 0;
     this.elements = {};
@@ -58,6 +59,13 @@ class ArtifactsApp {
     this.activeStreams = new Map(); // artifactId -> {type, content, language, role, etc}
     this.currentChatId = null;
     this.currentMessageId = null;
+    
+    // Log throttling to prevent per-token console spam
+    this._logThrottle = {
+      lastLog: 0,
+      interval: 1000, // Log progress at most once per second
+      chunkCount: 0
+    };
   }
   
   /**
@@ -114,13 +122,52 @@ class ArtifactsApp {
     if (window.aether.artifacts && window.aether.artifacts.onStream) {
       console.log('[ArtifactsApp] Setting up IPC stream listener');
       const streamCleanup = window.aether.artifacts.onStream((data) => {
-        console.log('[ArtifactsApp] 📦 Received artifacts stream:', data);
+        // NO per-chunk logging - handleArtifactStream does throttled logging
         this.handleArtifactStream(data);
       });
       this.cleanupFunctions.push(streamCleanup);
       console.log('[ArtifactsApp] IPC stream listener registered');
     } else {
       console.error('[ArtifactsApp] ❌ window.aether.artifacts.onStream not available!');
+    }
+    
+    // Listen for tab switch requests (from trail node clicks)
+    if (window.aether.artifacts && window.aether.artifacts.onSwitchTab) {
+      console.log('[ArtifactsApp] Setting up tab switch listener');
+      const tabCleanup = window.aether.artifacts.onSwitchTab((tab) => {
+        console.log(`[ArtifactsApp] 📥 Received tab switch request: ${tab}`);
+        this.switchTab(tab);
+      });
+      this.cleanupFunctions.push(tabCleanup);
+      console.log('[ArtifactsApp] Tab switch listener registered');
+    }
+    
+    // Listen for focus artifact requests (from trail node clicks)
+    if (window.aether.artifacts && window.aether.artifacts.onFocus) {
+      console.log('[ArtifactsApp] Setting up focus listener');
+      const focusCleanup = window.aether.artifacts.onFocus((data) => {
+        console.log(`[ArtifactsApp] 📥 Received focus request: artifact=${data.artifactId?.slice(0,8)}, tab=${data.tab}`);
+        const artifactId = data.artifactId || data;
+        const tab = data.tab;
+        
+        // Find and display the artifact
+        const artifact = this.artifacts.find(a => a.id === artifactId);
+        if (artifact) {
+          console.log(`[ArtifactsApp] ✅ Found artifact, displaying...`);
+          this.displayArtifact(artifact);
+          if (tab) {
+            this.switchTab(tab);
+          }
+        } else {
+          console.warn(`[ArtifactsApp] ⚠️  Artifact not found: ${artifactId?.slice(0,8)}`);
+          // Try to display from current state
+          if (tab) {
+            this.switchTab(tab);
+          }
+        }
+      });
+      this.cleanupFunctions.push(focusCleanup);
+      console.log('[ArtifactsApp] Focus listener registered');
     }
   }
   
@@ -150,7 +197,7 @@ class ArtifactsApp {
         
         <div class="artifacts-pane artifacts-output-pane" id="outputPane">
           <div class="artifacts-output-block">
-            <pre id="outputDisplay" class="output-display"></pre>
+            <div id="outputDisplay" class="output-display"></div>
           </div>
         </div>
         
@@ -424,18 +471,15 @@ class ArtifactsApp {
   /**
    * Handle artifact stream
    * Properly accumulates streaming content using start/content/end protocol
+   * Uses throttled logging to prevent console spam
    */
   handleArtifactStream(data) {
-    console.log('[ArtifactsApp] 📦 Handling artifact stream:', data);
-    
     // Extract metadata
     const artifactId = data.id || data._backend_id || `artifact_${Date.now()}`;
     const kind = data.kind || data.type;
     const format = data.format || data.language || 'text';
     const role = data.role || 'assistant';
     const content = data.content || '';
-    
-    console.log(`[ArtifactsApp] Kind: ${kind}, Format: ${format}, Content length: ${content.length}`);
     
     // Track chat/message context
     if (data.chatId) {
@@ -447,8 +491,8 @@ class ArtifactsApp {
     
     // Handle stream lifecycle
     if (data.start === true) {
-      // Start new stream
-      console.log(`[ArtifactsApp] 🚀 Starting stream: ${artifactId}`);
+      // ALWAYS log stream start
+      console.log(`[ArtifactsApp] 🚀 Stream started: ${kind}/${format} (ID: ${artifactId.slice(0,8)}...)`);
       this.activeStreams.set(artifactId, {
         id: artifactId,
         type: kind,
@@ -457,8 +501,10 @@ class ArtifactsApp {
         content: '',
         chatId: this.currentChatId,
         messageId: this.currentMessageId,
-        startTime: Date.now()
+        startTime: Date.now(),
+        chunkCount: 0
       });
+      this._logThrottle.chunkCount = 0;
       return;
     }
     
@@ -466,7 +512,7 @@ class ArtifactsApp {
     let stream = this.activeStreams.get(artifactId);
     if (!stream) {
       // Create implicit stream if we receive content without start
-      console.warn(`[ArtifactsApp] ⚠️ Received content without start, creating implicit stream: ${artifactId}`);
+      console.warn(`[ArtifactsApp] ⚠️  Received content without start marker: ${kind}/${format}`);
       stream = {
         id: artifactId,
         type: kind,
@@ -475,7 +521,8 @@ class ArtifactsApp {
         content: '',
         chatId: this.currentChatId,
         messageId: this.currentMessageId,
-        startTime: Date.now()
+        startTime: Date.now(),
+        chunkCount: 0
       };
       this.activeStreams.set(artifactId, stream);
     }
@@ -483,7 +530,15 @@ class ArtifactsApp {
     // Accumulate content
     if (content) {
       stream.content += content;
-      console.log(`[ArtifactsApp] 📝 Accumulated ${content.length} chars, total: ${stream.content.length}`);
+      stream.chunkCount++;
+      this._logThrottle.chunkCount++;
+      
+      // Throttled progress logging - only log once per second
+      const now = Date.now();
+      if (now - this._logThrottle.lastLog > this._logThrottle.interval) {
+        console.log(`[ArtifactsApp] 📝 Streaming: ${stream.chunkCount} chunks, ${stream.content.length} chars total`);
+        this._logThrottle.lastLog = now;
+      }
       
       // Update display in real-time for better UX
       this._updateStreamDisplay(stream);
@@ -491,7 +546,9 @@ class ArtifactsApp {
     
     // Handle stream end
     if (data.end === true) {
-      console.log(`[ArtifactsApp] ✅ Ending stream: ${artifactId}, total content: ${stream.content.length} chars`);
+      // ALWAYS log stream end
+      const duration = Date.now() - stream.startTime;
+      console.log(`[ArtifactsApp] ✅ Stream complete: ${stream.chunkCount} chunks, ${stream.content.length} chars (${duration}ms)`);
       
       // Finalize artifact
       this._finalizeArtifact(stream);
@@ -503,11 +560,41 @@ class ArtifactsApp {
   
   /**
    * Update display with streaming content (real-time)
+   * CRITICAL: Routes artifacts based on role, type, and format
+   * - Assistant code → CODE tab (syntax highlighted)
+   * - Computer console → OUTPUT tab (execution logs)
+   * - Computer HTML → OUTPUT tab (rendered HTML)
    * @private
    */
   _updateStreamDisplay(stream) {
-    if (stream.type === 'code' || stream.format === 'html' || stream.format === 'javascript' || stream.format === 'python') {
-      // Update code display
+    console.log(`[ArtifactsApp] 📊 Updating display: role=${stream.role}, type=${stream.type}, format=${stream.format}, contentLength=${stream.content.length}`);
+    
+    // Determine target: CODE or OUTPUT
+    const shouldShowInOutput = (
+      // Console/output artifacts always go to output
+      stream.type === 'console' ||
+      stream.type === 'output' ||
+      // Computer-generated HTML goes to output for rendering
+      (stream.role === 'computer' && stream.format === 'html') ||
+      // Computer-generated code also goes to output (execution results)
+      (stream.role === 'computer' && stream.type === 'code')
+    );
+    
+    if (shouldShowInOutput) {
+      // Update output display
+      console.log(`[ArtifactsApp] 📤 Updating OUTPUT display with ${stream.content.length} chars (format: ${stream.format})`);
+      this.currentOutput = stream.content;
+      this.currentOutputFormat = stream.format; // Track format for rendering
+      this.updateOutputDisplay();
+      
+      // Switch to output tab if not already there
+      if (this.currentTab !== 'output') {
+        console.log(`[ArtifactsApp] 🔄 Switching to OUTPUT tab`);
+        this.switchTab('output');
+      }
+    } else if (stream.type === 'code' || ['html', 'javascript', 'python', 'java', 'cpp', 'c', 'rust', 'go'].includes(stream.format)) {
+      // Update code display (assistant-written code)
+      console.log(`[ArtifactsApp] 📝 Updating CODE display (${stream.format})`);
       this.currentCode = stream.content;
       this.currentLanguage = stream.format;
       this.currentFilename = `stream.${stream.format}`;
@@ -515,30 +602,38 @@ class ArtifactsApp {
       
       // Switch to code tab if not already there
       if (this.currentTab !== 'code') {
+        console.log(`[ArtifactsApp] 🔄 Switching to CODE tab`);
         this.switchTab('code');
       }
-    } else if (stream.type === 'console' || stream.type === 'output') {
-      // Update output display
-      this.currentOutput = stream.content;
-      this.updateOutputDisplay();
-      
-      // Switch to output tab if not already there
-      if (this.currentTab !== 'output') {
-        this.switchTab('output');
-      }
+    } else {
+      console.warn(`[ArtifactsApp] ⚠️  Unknown artifact type: ${stream.type}/${stream.format} (role=${stream.role}) - defaulting to code display`);
+      // Default to code display
+      this.currentCode = stream.content;
+      this.currentLanguage = stream.format || 'text';
+      this.updateCodeDisplay();
     }
   }
   
   /**
    * Finalize artifact and add to artifacts registry
+   * CRITICAL: Properly classifies artifacts based on role/type/format
    * @private
    */
   _finalizeArtifact(stream) {
+    // Determine artifact type based on role, type, and format
+    const isOutputArtifact = (
+      stream.type === 'console' ||
+      stream.type === 'output' ||
+      (stream.role === 'computer' && stream.format === 'html') ||
+      (stream.role === 'computer' && stream.type === 'code')
+    );
+    
     const artifact = {
       id: stream.id,
-      type: stream.type === 'code' ? 'code' : 'output',
+      type: isOutputArtifact ? 'output' : 'code',
       content: stream.content,
       language: stream.format,
+      format: stream.format, // Preserve format for rendering
       filename: `artifact_${this.artifacts.length + 1}.${stream.format}`,
       chatId: stream.chatId,
       messageId: stream.messageId,
@@ -550,6 +645,8 @@ class ArtifactsApp {
     console.log('[ArtifactsApp] 💾 Finalized artifact:', {
       id: artifact.id,
       type: artifact.type,
+      format: artifact.format,
+      role: artifact.role,
       contentLength: artifact.content.length,
       duration: artifact.duration
     });
@@ -564,16 +661,18 @@ class ArtifactsApp {
   
   /**
    * Display artifact
+   * Preserves format information for proper rendering
    */
   displayArtifact(artifact) {
     if (artifact.type === 'code') {
       this.currentCode = artifact.content || artifact.code || '';
-      this.currentLanguage = artifact.language || 'text';
+      this.currentLanguage = artifact.language || artifact.format || 'text';
       this.currentFilename = artifact.filename || 'untitled';
       this.updateCodeDisplay();
       this.switchTab('code');
     } else if (artifact.type === 'output') {
       this.currentOutput = artifact.content || artifact.output || '';
+      this.currentOutputFormat = artifact.format || artifact.language || 'text';
       this.updateOutputDisplay();
       this.switchTab('output');
     }
@@ -605,10 +704,107 @@ class ArtifactsApp {
   
   /**
    * Update output display
+   * Handles HTML, JSON, and plain text outputs
    */
   updateOutputDisplay() {
-    if (this.elements.outputDisplay) {
-      this.elements.outputDisplay.textContent = this.currentOutput;
+    if (!this.elements.outputDisplay) {
+      console.warn('[ArtifactsApp] Output display element not found');
+      return;
+    }
+
+    console.log(`[ArtifactsApp] 📊 Updating output display with ${this.currentOutput.length} chars`);
+    
+    // Clear existing content
+    this.elements.outputDisplay.innerHTML = '';
+    
+    if (!this.currentOutput || this.currentOutput.trim() === '') {
+      this.elements.outputDisplay.innerHTML = '<div style="padding: 20px; color: rgba(255,255,255,0.5);">No output to display</div>';
+      return;
+    }
+    
+    // Detect content type and render appropriately
+    const trimmed = this.currentOutput.trim();
+    
+    // Check if it's HTML (starts with < and contains tags) or format is 'html'
+    if ((trimmed.startsWith('<') && (trimmed.includes('</') || trimmed.includes('/>'))) || 
+        this.currentOutputFormat === 'html') {
+      console.log('[ArtifactsApp] Rendering as HTML in sandboxed iframe');
+      try {
+        // Create sandboxed iframe for safe HTML rendering
+        const iframe = document.createElement('iframe');
+        iframe.className = 'html-output-iframe';
+        iframe.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-popups');
+        iframe.style.cssText = 'width: 100%; height: 100%; min-height: 400px; border: none; background: white; border-radius: 8px;';
+        
+        // Wrap HTML in complete document if not already
+        let htmlDoc = this.currentOutput;
+        if (!htmlDoc.includes('<!DOCTYPE') && !htmlDoc.includes('<html')) {
+          htmlDoc = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+    }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+${htmlDoc}
+</body>
+</html>`;
+        }
+        
+        // Append iframe and write content
+        this.elements.outputDisplay.appendChild(iframe);
+        
+        iframe.onload = () => {
+          try {
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(htmlDoc);
+            doc.close();
+            console.log('[ArtifactsApp] ✅ HTML rendered successfully in iframe');
+          } catch (error) {
+            console.error('[ArtifactsApp] Failed to write to iframe:', error);
+          }
+        };
+      } catch (error) {
+        console.error('[ArtifactsApp] HTML rendering failed:', error);
+        this.elements.outputDisplay.textContent = this.currentOutput;
+      }
+    }
+    // Check if it's JSON
+    else if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || 
+             (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+      console.log('[ArtifactsApp] Rendering as JSON');
+      try {
+        const parsed = JSON.parse(this.currentOutput);
+        const formatted = JSON.stringify(parsed, null, 2);
+        const pre = document.createElement('pre');
+        pre.style.cssText = 'margin: 0; padding: 20px; font-family: monospace; font-size: 13px; line-height: 1.6; color: #e0e0e0; background: rgba(0,0,0,0.3); border-radius: 8px; overflow: auto;';
+        pre.textContent = formatted;
+        this.elements.outputDisplay.appendChild(pre);
+        console.log('[ArtifactsApp] ✅ JSON rendered successfully');
+      } catch (error) {
+        console.warn('[ArtifactsApp] JSON parsing failed, rendering as text');
+        this.elements.outputDisplay.textContent = this.currentOutput;
+      }
+    }
+    // Plain text
+    else {
+      console.log('[ArtifactsApp] Rendering as plain text');
+      const pre = document.createElement('pre');
+      pre.style.cssText = 'margin: 0; padding: 20px; font-family: monospace; font-size: 13px; line-height: 1.6; color: #e0e0e0; white-space: pre-wrap; word-wrap: break-word;';
+      pre.textContent = this.currentOutput;
+      this.elements.outputDisplay.appendChild(pre);
     }
   }
   

@@ -1,0 +1,120 @@
+feature: "chat_communication"
+version: "1.0.0"
+description: "Real-time bidirectional chat messaging via WebSocket and IPC"
+
+flow:
+  direction: "bidirectional"
+  protocol: "WebSocket + IPC"
+  
+  user_message_outbound:
+    - stage: "input_capture"
+      location: "renderer/chat"
+      files:
+        - "ChatController.js"
+        - "modules/input/InputHandler.js"
+      jobs: [JOB_VALIDATE, JOB_ESCAPE_HTML, JOB_GENERATE_USER_MSG_ID]
+      
+    - stage: "id_generation"
+      location: "core/session"
+      files:
+        - "SessionManager.js"
+      jobs: [JOB_GENERATE_SESSION_ID, JOB_UPDATE_STATE]
+      
+    - stage: "dom_rendering"
+      location: "renderer/chat/modules/messaging"
+      files:
+        - "MessageManager.js"
+        - "MessageView.js"
+      jobs: [JOB_CREATE_DOM_ELEMENT, JOB_APPEND_TO_CONTAINER, JOB_SCROLL_TO_BOTTOM]
+      
+    - stage: "persistence_local"
+      location: "domain/chat/repositories"
+      files:
+        - "MessageRepository.js"
+      jobs: [JOB_SAVE_TO_DB, JOB_UPDATE_STATE]
+      
+    - stage: "backend_transmission"
+      location: "core/communication"
+      files:
+        - "GuruConnection.js"
+        - "Endpoint.js"
+      jobs: [JOB_STRINGIFY_JSON, JOB_WS_SEND]
+
+  assistant_response_inbound:
+    - stage: "websocket_receive"
+      location: "core/communication"
+      files:
+        - "GuruConnection.js"
+      jobs: [JOB_WS_RECEIVE, JOB_PARSE_JSON, JOB_RESTORE_ID, JOB_ROUTE_BY_TYPE, JOB_EMIT_EVENT]
+      
+    - stage: "main_process_relay"
+      location: "application/main"
+      files:
+        - "UIManager.js"
+      jobs: [JOB_TRANSFORM_TO_CHUNK, JOB_SEND_IPC]
+      
+    - stage: "renderer_receive"
+      location: "renderer/chat/modules/messaging"
+      files:
+        - "MessageManager.js"
+        - "StreamHandler.js"
+      jobs: [JOB_DEDUPLICATE_CHUNK, JOB_ACCUMULATE_TEXT, JOB_PARSE_THINK_TAGS, JOB_UPDATE_DOM_ELEMENT]
+      
+    - stage: "stream_finalization"
+      location: "renderer/chat/modules/messaging"
+      files:
+        - "StreamHandler.js"
+        - "MessageManager.js"
+      jobs: [JOB_FINALIZE_STREAM, JOB_SAVE_TO_DB, JOB_RENDER_MARKDOWN, JOB_SANITIZE_MARKDOWN]
+
+backend_interface:
+  websocket:
+    url: "ws://localhost:8765"
+    backend_files:
+      - "aether-backend/ws/handlers.py (StreamRelay)"
+      - "aether-backend/ws/protocols.py (validation)"
+      - "aether-backend/core/runtime/engine.py (processing)"
+    message_format: "json"
+    fields: ["type", "id", "frontend_id", "content", "metadata"]
+
+ipc_channels:
+  outbound:
+    - "chat:send-message"
+    - "chat:cancel-request"
+  inbound:
+    - "chat:assistant-stream"
+    - "chat:message-complete"
+    - "chat:error"
+
+data_types:
+  - "domain.Message"
+  - "domain.Chat"
+  - "ipc_types.chunk"
+  - "websocket.json_message"
+
+job_categories:
+  network: [JOB_WS_CONNECT, JOB_WS_SEND, JOB_WS_RECEIVE]
+  transform: [JOB_PARSE_JSON, JOB_STRINGIFY_JSON, JOB_RESTORE_ID, JOB_TRANSFORM_TO_CHUNK, JOB_ACCUMULATE_TEXT, JOB_PARSE_THINK_TAGS]
+  validation: [JOB_VALIDATE, JOB_DEDUPLICATE_CHUNK]
+  sanitization: [JOB_ESCAPE_HTML, JOB_SANITIZE_MARKDOWN]
+  id_generation: [JOB_GENERATE_USER_MSG_ID, JOB_GENERATE_ASSISTANT_MSG_ID]
+  routing: [JOB_ROUTE_BY_TYPE, JOB_EMIT_EVENT, JOB_SEND_IPC]
+  rendering: [JOB_RENDER_MARKDOWN, JOB_CREATE_DOM_ELEMENT, JOB_UPDATE_DOM_ELEMENT, JOB_APPEND_TO_CONTAINER, JOB_SCROLL_TO_BOTTOM]
+  persistence: [JOB_SAVE_TO_DB, JOB_UPDATE_DB]
+  state: [JOB_UPDATE_STATE, JOB_GET_STATE, JOB_TRACK_ENTITY]
+  stream_control: [JOB_DETECT_NEW_STREAM, JOB_FINALIZE_STREAM, JOB_CANCEL_STREAM]
+
+security_boundaries:
+  - "Input validation before WebSocket send"
+  - "IPC source validation in preload bridge"
+  - "HTML sanitization after markdown render"
+  - "CSP enforcement on rendered content"
+
+critical_files:
+  - "core/communication/GuruConnection.js"
+  - "application/main/UIManager.js"
+  - "renderer/chat/modules/messaging/MessageManager.js"
+  - "renderer/chat/modules/messaging/StreamHandler.js"
+  - "preload/chat-preload.js"
+  - "domain/chat/repositories/MessageRepository.js"
+

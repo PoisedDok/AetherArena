@@ -1,0 +1,183 @@
+feature: "security_validation"
+version: "1.0.0"
+description: "Input validation, sanitization, CSP enforcement, and security boundaries"
+
+flow:
+  direction: "multi-layered"
+  protocol: "Defense in depth"
+  
+  input_validation:
+    - stage: "user_input"
+      location: "renderer/chat/modules/input"
+      files:
+        - "InputHandler.js"
+      jobs: [JOB_VALIDATE, JOB_ESCAPE_HTML]
+      
+    - stage: "ipc_payloads"
+      location: "preload/common"
+      files:
+        - "api-validators.js"
+        - "size-validator.js"
+      jobs: [JOB_VALIDATE, JOB_VALIDATE_SCHEMA]
+      
+    - stage: "domain_validation"
+      location: "domain/*/validators"
+      files:
+        - "chat/validators/MessageValidator.js"
+        - "artifacts/validators/ArtifactValidator.js"
+        - "settings/validators/SettingsValidator.js"
+      jobs: [JOB_VALIDATE, JOB_VALIDATE_SCHEMA]
+
+  sanitization:
+    - stage: "html_escape"
+      location: "core/security"
+      files:
+        - "Sanitizer.js"
+      jobs: [JOB_ESCAPE_HTML]
+      
+    - stage: "markdown_sanitization"
+      location: "renderer/shared/utils"
+      files:
+        - "markdown-renderer.js"
+      jobs: [JOB_RENDER_MARKDOWN, JOB_SANITIZE_MARKDOWN]
+      
+    - stage: "iframe_sandboxing"
+      location: "renderer/artifacts/modules/output/renderers"
+      files:
+        - "HtmlRenderer.js"
+      jobs: [JOB_SANDBOX_IFRAME, JOB_SANITIZE_MARKDOWN]
+
+  csp_enforcement:
+    - stage: "header_configuration"
+      location: "main/security"
+      files:
+        - "SecurityManager.js"
+        - "CspManager.js"
+      jobs: [JOB_INITIALIZE, JOB_UPDATE_STATE]
+      
+    - stage: "meta_tag_injection"
+      location: "renderer/*/index.html"
+      files:
+        - "chat/index.html"
+        - "artifacts/index.html"
+      jobs: ["csp_meta_tag"]
+
+  ipc_security:
+    - stage: "channel_whitelisting"
+      location: "preload/ipc"
+      files:
+        - "channels.js"
+      jobs: [JOB_VALIDATE]
+      
+    - stage: "source_validation"
+      location: "main/services"
+      files:
+        - "IpcRouter.js"
+      jobs: [JOB_VALIDATE_IPC_SOURCE]
+      
+    - stage: "rate_limiting"
+      location: "preload/common"
+      files:
+        - "rate-limiter.js"
+      jobs: [JOB_VALIDATE]
+
+  websocket_security:
+    - stage: "url_validation"
+      location: "core/communication"
+      files:
+        - "GuruConnection.js"
+      jobs: [JOB_VALIDATE]
+      
+    - stage: "message_validation"
+      location: "core/communication"
+      files:
+        - "GuruConnection.js"
+      jobs: [JOB_PARSE_JSON, JOB_VALIDATE]
+
+attack_vectors_blocked:
+  xss:
+    - "HTML entity escaping on user input"
+    - "DOMPurify sanitization on markdown render"
+    - "Sandboxed iframes for artifact HTML"
+    - "CSP blocks inline scripts and eval"
+  
+  prototype_pollution:
+    - "Object.freeze on exposed APIs"
+    - "No Object.prototype mutation"
+    - "JSON parse/stringify for IPC serialization"
+  
+  command_injection:
+    - "No shell execution in renderer"
+    - "Preload exposes minimal API"
+    - "Backend validates all execution requests"
+  
+  path_traversal:
+    - "No file system access in renderer"
+    - "Main process validates all file paths"
+  
+  ipc_abuse:
+    - "Channel whitelisting"
+    - "Payload size limits"
+    - "Rate limiting per channel"
+    - "Source validation (event.sender)"
+  
+  websocket_abuse:
+    - "localhost-only connection"
+    - "JSON schema validation"
+    - "Request rate limiting"
+    - "Reconnection backoff"
+
+security_boundaries:
+  renderer_sandbox:
+    - "nodeIntegration: false"
+    - "contextIsolation: true"
+    - "No direct Node.js access"
+    - "Preload exposes minimal API"
+  
+  ipc_boundary:
+    - "Preload validates all messages"
+    - "Main process validates sources"
+    - "Typed channel registry"
+    - "Payload schemas enforced"
+  
+  websocket_boundary:
+    - "Backend validates all requests"
+    - "Frontend validates all responses"
+    - "JSON-only protocol"
+    - "localhost connection only"
+
+csp_directives:
+  default-src: "'self'"
+  script-src: "'self'"
+  style-src: "'self' 'unsafe-inline'"
+  img-src: "'self' data: blob:"
+  font-src: "'self'"
+  connect-src: "'self' ws://localhost:*"
+  frame-src: "'self' blob:"
+  object-src: "'none'"
+  base-uri: "'self'"
+  form-action: "'self'"
+
+data_types:
+  - "validation_result {valid: boolean, errors: array}"
+  - "sanitized_html string"
+  - "csp_directive object"
+
+job_categories:
+  validation: [JOB_VALIDATE, JOB_VALIDATE_SCHEMA, JOB_VALIDATE_IPC_SOURCE, JOB_DEDUPLICATE_CHUNK]
+  sanitization: [JOB_ESCAPE_HTML, JOB_SANITIZE_MARKDOWN, JOB_SANDBOX_IFRAME]
+  lifecycle: [JOB_INITIALIZE]
+  state: [JOB_UPDATE_STATE]
+
+critical_files:
+  - "core/security/Sanitizer.js"
+  - "core/security/InputValidator.js"
+  - "core/security/CspManager.js"
+  - "main/security/SecurityManager.js"
+  - "preload/common/api-validators.js"
+  - "preload/common/rate-limiter.js"
+  - "preload/common/size-validator.js"
+  - "preload/ipc/channels.js"
+  - "renderer/artifacts/modules/output/renderers/HtmlRenderer.js"
+  - "domain/chat/validators/MessageValidator.js"
+

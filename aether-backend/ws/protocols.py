@@ -51,6 +51,7 @@ class MessageType(str, Enum):
     STOP = "stop"
     CANCEL = "cancel"
     ABORT = "abort"
+    CONTEXT_RESET = "context_reset"
     
     # System messages
     PING = "ping"
@@ -60,6 +61,7 @@ class MessageType(str, Enum):
     COMPLETION = "completion"
     ERROR = "error"
     INFO = "info"
+    CONTEXT_RESET_ACK = "context_reset_ack"
 
 
 class BaseMessage(BaseModel):
@@ -189,6 +191,20 @@ class AudioControlMessage(BaseModel):
     end: Optional[bool] = None
 
 
+class ContextResetMessage(BaseModel):
+    """
+    Context reset when switching/creating chats.
+    
+    Examples:
+        # Reset context for new chat
+        {"role": "user", "type": "context_reset", "chat_id": "uuid", "timestamp": 1234567890}
+    """
+    role: Literal[MessageRole.USER] = MessageRole.USER
+    type: Literal[MessageType.CONTEXT_RESET] = MessageType.CONTEXT_RESET
+    chat_id: str
+    timestamp: Optional[int] = None
+
+
 # Message validation helper
 def validate_message(payload: Dict[str, Any]) -> Optional[BaseModel]:
     """
@@ -204,6 +220,10 @@ def validate_message(payload: Dict[str, Any]) -> Optional[BaseModel]:
         # Stop/cancel messages
         if payload.get("type") in (MessageType.STOP, MessageType.CANCEL, MessageType.ABORT):
             return StopMessage(**payload)
+        
+        # Context reset messages
+        if payload.get("type") == MessageType.CONTEXT_RESET:
+            return ContextResetMessage(**payload)
         
         # Heartbeat messages
         if payload.get("type") in (MessageType.PING, MessageType.PONG, MessageType.HEARTBEAT):

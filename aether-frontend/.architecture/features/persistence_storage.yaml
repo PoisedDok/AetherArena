@@ -1,0 +1,166 @@
+feature: "persistence_storage"
+version: "1.0.0"
+description: "Data persistence via PostgreSQL through IPC bridge to main process"
+
+flow:
+  direction: "bidirectional"
+  protocol: "IPC → Main Process → Backend PostgreSQL"
+  
+  save_operation:
+    - stage: "repository_call"
+      location: "domain/*/repositories"
+      files:
+        - "chat/repositories/MessageRepository.js"
+        - "chat/repositories/ChatRepository.js"
+        - "artifacts/repositories/ArtifactRepository.js"
+        - "settings/repositories/SettingsRepository.js"
+      jobs: [JOB_SAVE_TO_DB, JOB_UPDATE_STATE]
+      
+    - stage: "ipc_transmission"
+      location: "infrastructure/api"
+      files:
+        - "storage.js"
+      jobs: [JOB_SEND_IPC, JOB_VALIDATE]
+      
+    - stage: "main_process_relay"
+      location: "main (via IPC)"
+      backend_files:
+        - "main.js IPC handlers"
+      jobs: ["ipc_relay"]
+      
+    - stage: "backend_persistence"
+      location: "backend"
+      backend_files:
+        - "aether-backend/data/database/repositories/*.py"
+        - "aether-backend/data/database/models/*.py"
+        - "aether-backend/data/database/connection.py"
+      jobs: ["database_insert"]
+
+  load_operation:
+    - stage: "repository_query"
+      location: "domain/*/repositories"
+      files:
+        - "chat/repositories/MessageRepository.js"
+        - "chat/repositories/ChatRepository.js"
+        - "artifacts/repositories/ArtifactRepository.js"
+      jobs: [JOB_LOAD_FROM_DB, JOB_CACHE_LOCALLY]
+      
+    - stage: "ipc_request"
+      location: "infrastructure/api"
+      files:
+        - "storage.js"
+      jobs: [JOB_SEND_IPC]
+      
+    - stage: "backend_query"
+      location: "backend"
+      backend_files:
+        - "aether-backend/data/database/repositories/*.py"
+      jobs: ["database_select"]
+      
+    - stage: "cache_update"
+      location: "domain/*/repositories"
+      files:
+        - "MessageRepository.js"
+        - "ChatRepository.js"
+      jobs: [JOB_CACHE_LOCALLY, JOB_UPDATE_STATE]
+
+  update_operation:
+    - stage: "repository_update"
+      location: "domain/*/repositories"
+      files:
+        - "MessageRepository.js"
+        - "ArtifactRepository.js"
+      jobs: [JOB_UPDATE_DB, JOB_UPDATE_STATE]
+      
+    - stage: "ipc_update"
+      location: "infrastructure/api"
+      files:
+        - "storage.js"
+      jobs: [JOB_SEND_IPC]
+      
+    - stage: "backend_update"
+      location: "backend"
+      backend_files:
+        - "aether-backend/data/database/repositories/*.py"
+      jobs: ["database_update"]
+
+  delete_operation:
+    - stage: "repository_delete"
+      location: "domain/*/repositories"
+      files:
+        - "ChatRepository.js"
+        - "MessageRepository.js"
+      jobs: [JOB_DELETE_FROM_DB, JOB_CLEAR_STATE]
+      
+    - stage: "backend_delete"
+      location: "backend"
+      backend_files:
+        - "aether-backend/data/database/repositories/*.py"
+      jobs: ["database_delete"]
+
+data_entities:
+  chat:
+    - "Chat (id, title, created_at, updated_at)"
+    - "Message (id, chat_id, role, content, created_at)"
+  
+  artifacts:
+    - "Artifact (id, message_id, type, content, metadata)"
+    - "ExecutionResult (id, artifact_id, output, status)"
+  
+  settings:
+    - "Settings (id, key, value, updated_at)"
+    - "ModelSettings (id, provider, model, parameters)"
+
+backend_interface:
+  database: "PostgreSQL"
+  connection_path: "Renderer IPC → Main Process → Backend API/WebSocket → PostgreSQL"
+  backend_files:
+    - "aether-backend/data/database/connection.py"
+    - "aether-backend/data/database/models/*.py"
+    - "aether-backend/data/database/repositories/*.py"
+    - "aether-backend/data/database/migrations/*.sql"
+
+ipc_channels:
+  - "storage:get-chats"
+  - "storage:save-chat"
+  - "storage:update-chat"
+  - "storage:delete-chat"
+  - "storage:save-message"
+  - "storage:get-messages"
+  - "storage:save-artifact"
+  - "storage:update-artifact"
+  - "settings:get"
+  - "settings:update"
+
+data_types:
+  - "domain.Chat"
+  - "domain.Message"
+  - "domain.Artifact"
+  - "domain.Settings"
+  - "uuid (database-generated)"
+
+job_categories:
+  persistence: [JOB_SAVE_TO_DB, JOB_LOAD_FROM_DB, JOB_UPDATE_DB, JOB_DELETE_FROM_DB, JOB_CACHE_LOCALLY]
+  validation: [JOB_VALIDATE, JOB_VALIDATE_SCHEMA]
+  routing: [JOB_SEND_IPC]
+  state: [JOB_UPDATE_STATE, JOB_GET_STATE, JOB_CLEAR_STATE]
+
+immutability_rules:
+  - "Repositories return NEW instances, never mutate input"
+  - "Database-generated IDs (UUID) propagated back to frontend"
+  - "Repository.save() returns cloned object with DB fields"
+  - "No direct property mutation on domain models"
+
+critical_patterns:
+  - "All persistence wrapped in try-catch"
+  - "Database errors logged with context"
+  - "Failed saves do not corrupt in-memory state"
+  - "Optimistic UI updates rolled back on failure"
+
+critical_files:
+  - "infrastructure/api/storage.js"
+  - "domain/chat/repositories/MessageRepository.js"
+  - "domain/chat/repositories/ChatRepository.js"
+  - "domain/artifacts/repositories/ArtifactRepository.js"
+  - "domain/settings/repositories/SettingsRepository.js"
+

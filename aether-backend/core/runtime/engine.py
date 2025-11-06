@@ -368,6 +368,76 @@ class RuntimeEngine:
         
         # Reset HTTP client for fallback cancellation
         await self._config_manager.reset_client()
+    
+    async def reset_context(self, client_id: str) -> None:
+        """
+        Reset conversation context for a client when switching/creating chats.
+        Clears LM Studio conversation history for clean slate.
+        
+        This ensures each chat container has isolated context with no cross-contamination.
+        
+        Args:
+            client_id: Client identifier
+        """
+        logger.info(f"🔄 Context reset for client {client_id}")
+        
+        try:
+            # Reset interpreter conversation context
+            if self._interpreter_manager and self._interpreter_manager.is_available():
+                interpreter = self._interpreter_manager.get_interpreter()
+                if interpreter:
+                    # Clear message history (critical for context isolation)
+                    if hasattr(interpreter, 'messages'):
+                        original_count = len(interpreter.messages)
+                        interpreter.messages.clear()  # Use clear() to ensure proper cleanup
+                        logger.info(f"✅ Cleared {original_count} interpreter messages for client {client_id}")
+                    
+                    # Reset conversation state if available
+                    if hasattr(interpreter, 'reset_conversation'):
+                        if asyncio.iscoroutinefunction(interpreter.reset_conversation):
+                            await interpreter.reset_conversation()
+                        else:
+                            interpreter.reset_conversation()
+                        logger.info(f"✅ Reset interpreter conversation state for client {client_id}")
+                    
+                    # DO NOT clear system_message - this contains the GURU profile
+                    # System message should persist across chats for consistent personality
+                    
+                    # Clear conversation memory/context if it's a list/dict (not boolean)
+                    if hasattr(interpreter, 'conversation_history'):
+                        history = interpreter.conversation_history
+                        if isinstance(history, (list, dict)) and hasattr(history, 'clear'):
+                            history.clear()
+                            logger.debug(f"Cleared conversation history for client {client_id}")
+                        else:
+                            logger.debug(f"conversation_history is flag ({type(history).__name__}), not clearing")
+                    
+                    # Reset LLM state if available
+                    if hasattr(interpreter, 'llm') and hasattr(interpreter.llm, 'reset'):
+                        if asyncio.iscoroutinefunction(interpreter.llm.reset):
+                            await interpreter.llm.reset()
+                        else:
+                            interpreter.llm.reset()
+                        logger.debug(f"Reset LLM state for client {client_id}")
+            
+            # Reset HTTP client state (clears connection pool and any cached state)
+            if self._config_manager:
+                await self._config_manager.reset_client()
+                logger.info(f"✅ Reset HTTP client for client {client_id}")
+            
+            # Clear any active requests for this client
+            if self._request_tracker:
+                # Cancel any pending requests
+                active_requests = self._request_tracker.get_active_requests()
+                for request_id in list(active_requests.keys()):
+                    await self._request_tracker.cancel_request(request_id)
+                logger.debug(f"Cancelled {len(active_requests)} active requests for client {client_id}")
+            
+            logger.info(f"✅ Context reset complete for client {client_id} - clean slate established")
+            
+        except Exception as e:
+            logger.error(f"Error resetting context for client {client_id}: {e}", exc_info=True)
+            # Non-fatal - log and continue
 
     async def _stop_interpreter_generation(self, request_id: str) -> None:
         """Stop interpreter generation using multiple methods."""

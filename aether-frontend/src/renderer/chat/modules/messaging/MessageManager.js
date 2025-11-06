@@ -52,6 +52,13 @@ class MessageManager {
 
     // IPC listeners tracking
     this._ipcListeners = [];
+    
+    // Throttled logging for artifact streaming
+    this._artifactLogThrottle = {
+      lastLog: 0,
+      interval: 1000, // Log at most once per second
+      updateCount: 0
+    };
 
     console.log('[MessageManager] Constructed');
   }
@@ -285,21 +292,21 @@ class MessageManager {
     
     // Handle code artifacts (assistant writes code)
     if (role === 'assistant' && type === 'code') {
-      console.log(`[MessageManager] 📦 Code artifact detected: ${id}, format: ${format || 'unknown'}`);
+      this._logArtifact('code', format || 'unknown', start, end);
       this._routeArtifactToChatController(payload);
       return;
     }
 
     // Handle console output (computer execution results)
     if (role === 'computer' && (type === 'console' || type === 'output')) {
-      console.log(`[MessageManager] 📦 Console output detected: ${id}`);
+      this._logArtifact('console', type, start, end);
       this._routeArtifactToChatController(payload);
       return;
     }
 
     // Handle HTML artifacts (rendered output)
     if (role === 'computer' && type === 'code' && format === 'html') {
-      console.log(`[MessageManager] 📦 HTML artifact detected: ${id}`);
+      this._logArtifact('html', format, start, end);
       this._routeArtifactToChatController(payload);
       return;
     }
@@ -353,6 +360,14 @@ class MessageManager {
       this.setProcessing(false);
       this.setStopMode(false);
       this.streamHandler.forceFinalize();
+      
+      // Finalize trail when ALL artifacts complete
+      if (this.trailContainerManager && this.trailContainerManager.activeTrailContainer) {
+        setTimeout(() => {
+          console.log('[MessageManager] 🏁 Finalizing trail after completion signal');
+          this.trailContainerManager.finalizeCurrentTrail();
+        }, 500); // Small delay to ensure smooth animation
+      }
     }
 
     // Handle stop confirmation
@@ -361,6 +376,14 @@ class MessageManager {
       this.setProcessing(false);
       this.setStopMode(false);
       this.streamHandler.forceFinalize();
+      
+      // Finalize trail on stop as well
+      if (this.trailContainerManager && this.trailContainerManager.activeTrailContainer) {
+        setTimeout(() => {
+          console.log('[MessageManager] 🛑 Finalizing trail after stop signal');
+          this.trailContainerManager.finalizeCurrentTrail();
+        }, 500);
+      }
     }
 
     // Handle errors
@@ -392,6 +415,14 @@ class MessageManager {
   /**
    * Update TRAIL container with artifact execution data
    * Maps artifacts to execution phases: write → process → execute → output
+   * 
+   * TRAIL LIFECYCLE TRACING:
+   * 1. Assistant writes code → 'write' phase (role=assistant, type=code)
+   * 2. System processes → 'process' phase (automatic)
+   * 3. Computer executes → 'execute' phase (role=computer, type=console)
+   * 4. Computer returns output → 'output' phase (role=computer, type=code)
+   * 5. Server sends completion → Trail finalized (role=server, type=completion)
+   * 
    * @private
    * @param {Object} payload - Artifact payload
    */
@@ -409,12 +440,18 @@ class MessageManager {
     if (role === 'assistant' && type === 'code') {
       phase = 'write'; // Assistant writing code
       status = start ? 'active' : (end ? 'complete' : 'active');
+      if (start) console.log(`[MessageManager] 🎬 TRAIL PHASE: write started - ID: ${id}`);
+      if (end) console.log(`[MessageManager] ✅ TRAIL PHASE: write completed - ID: ${id}`);
     } else if (role === 'computer' && type === 'console') {
       phase = 'execute'; // Computer executing code
       status = start ? 'active' : (end ? 'complete' : 'active');
+      if (start) console.log(`[MessageManager] 🎬 TRAIL PHASE: execute started - ID: ${id}`);
+      if (end) console.log(`[MessageManager] ✅ TRAIL PHASE: execute completed - ID: ${id}`);
     } else if (role === 'computer' && type === 'code') {
       phase = 'output'; // Computer returning output/HTML
       status = start ? 'active' : (end ? 'complete' : 'active');
+      if (start) console.log(`[MessageManager] 🎬 TRAIL PHASE: output started - ID: ${id}`);
+      if (end) console.log(`[MessageManager] ✅ TRAIL PHASE: output completed - ID: ${id}`);
     }
     
     if (!phase) {
@@ -460,12 +497,8 @@ class MessageManager {
     
     this.trailContainerManager.addExecutionToTrail(execution);
     
-    // Finalize trail when output phase completes
-    if (phase === 'output' && end) {
-      setTimeout(() => {
-        this.trailContainerManager.finalizeTrail();
-      }, 500); // Small delay to ensure smooth animation
-    }
+    // DON'T finalize here - wait for server completion signal
+    // Trail finalization happens in _handleWebSocketMessage when role='server', type='completion'
   }
 
   /**
@@ -502,15 +535,38 @@ class MessageManager {
 
     try {
       // Add user message to view and state
+      const tempId = this._generateMessageId();
       const userMessage = {
-        id: this._generateMessageId(),
+        id: tempId,
         role: 'user',
         content: content,
         timestamp: new Date().toISOString()
       };
 
+      // Render with temporary ID
       this.messageView.renderMessage(userMessage);
-      await this.messageState.saveMessage(userMessage);
+      
+      // Save to database and get database UUID
+      const savedMessage = await this.messageState.saveMessage(userMessage);
+
+      // CRITICAL: Update DOM element with database UUID
+      // This ensures trail persistence works correctly
+      if (savedMessage && savedMessage.id !== tempId) {
+        console.log(`[MessageManager] User message ID updated: ${tempId} → ${savedMessage.id}`);
+        
+        // Update DOM element's data-message-id attribute
+        const element = this.messageView.getMessageElement(tempId);
+        if (element) {
+          element.dataset.messageId = savedMessage.id;
+          
+          // Update MessageView's messageElements map
+          this.messageView.messageElements.delete(tempId);
+          this.messageView.messageElements.set(savedMessage.id, element);
+        }
+        
+        // Use database UUID going forward
+        userMessage.id = savedMessage.id;
+      }
 
       // Set user message ID in StreamHandler for proper parent-child linking
       if (this.streamHandler) {
@@ -602,12 +658,27 @@ class MessageManager {
 
     try {
       await this.messageState.loadChat(chatId);
+      
+      // CRITICAL ORDER: Save trails BEFORE clearing view
+      // switchChat() saves current chat's trails, then restores new chat's trails
+      if (this.trailContainerManager) {
+        this.trailContainerManager.switchChat(chatId);
+        // Also set as current chat for tracking (ensures persistence works)
+        this.trailContainerManager.setCurrentChat(chatId);
+        console.log('[MessageManager] Trail state switched for new chat');
+      }
+      
+      // Now safe to clear view - trails already saved and will be restored
       this.messageView.clear();
       
       // CRITICAL: Set active chat AFTER loadChat succeeds to ensure we have valid PostgreSQL UUID
       // This activates the session for deterministic ID generation
       sessionManager.setActiveChat(chatId);
       console.log(`[MessageManager] Set active session: ${chatId}`);
+      
+      // CRITICAL: Notify backend to reset context for this chat
+      // This ensures LM Studio/runtime doesn't carry over conversation from previous chat
+      await this._notifyBackendContextSwitch(chatId);
 
       const messages = this.messageState.getMessages();
       
@@ -617,6 +688,12 @@ class MessageManager {
         for (const message of messages) {
           this.messageView.renderMessage(message);
         }
+      }
+      
+      // Restore trails AFTER messages are rendered and view is ready
+      if (this.trailContainerManager) {
+        this.trailContainerManager.restoreTrailState(chatId);
+        console.log('[MessageManager] Trail state restored for chat');
       }
 
       console.log(`[MessageManager] Loaded ${messages.length} messages, session active: ${chatId.slice(0,8)}`);
@@ -635,12 +712,28 @@ class MessageManager {
 
     try {
       const chatId = await this.messageState.createChat(title);
+      
+      // CRITICAL ORDER: Save trails BEFORE clearing messages
+      // switchChat() saves current chat's trails, then switches to new chat context
+      if (this.trailContainerManager) {
+        this.trailContainerManager.switchChat(chatId);
+        // Set as current chat for tracking (ensures future persistence works)
+        this.trailContainerManager.setCurrentChat(chatId);
+        this.trailContainerManager.resetNumbering();
+        console.log('[MessageManager] Trail state switched for new chat');
+      }
+      
+      // Now safe to clear messages - trails already saved
       this.clearMessages();
       
       // CRITICAL: Set active chat AFTER createChat returns PostgreSQL UUID
       // This ensures SessionManager has the correct chat context for ID generation
       sessionManager.setActiveChat(chatId);
       console.log(`[MessageManager] Created and activated session: ${chatId.slice(0,8)}`);
+      
+      // CRITICAL: Notify backend to reset context for new chat
+      // This ensures fresh conversation context in LM Studio/runtime
+      await this._notifyBackendContextSwitch(chatId);
       
       return chatId;
     } catch (error) {
@@ -698,6 +791,77 @@ class MessageManager {
     this.inputElement.style.height = `${Math.min(this.inputElement.scrollHeight, 150)}px`;
   }
 
+  /**
+   * Notify backend to reset context when switching/creating chats
+   * @private
+   * @param {string} chatId - Chat ID
+   */
+  async _notifyBackendContextSwitch(chatId) {
+    if (!this.sendController || !this.sendController.endpoint) {
+      console.warn('[MessageManager] Cannot notify backend - no endpoint available');
+      return;
+    }
+    
+    try {
+      // Send context reset message to backend via GuruConnection
+      const resetMessage = {
+        role: 'user',
+        type: 'context_reset',
+        chat_id: chatId,
+        timestamp: Date.now()
+      };
+      
+      console.log(`[MessageManager] 🔄 Notifying backend of context switch: ${chatId.slice(0,8)}`);
+      
+      // Send via GuruConnection (correct property is 'connection', not 'guruConnection')
+      if (this.sendController.endpoint.connection) {
+        this.sendController.endpoint.connection.send(resetMessage);
+        console.log(`[MessageManager] ✅ Context reset sent to backend for chat ${chatId.slice(0,8)}`);
+      } else {
+        console.warn('[MessageManager] ⚠️  No WebSocket connection available for context reset');
+      }
+    } catch (error) {
+      console.error('[MessageManager] Failed to notify backend of context switch:', error);
+      // Non-fatal - continue anyway
+    }
+  }
+  
+  /**
+   * Log artifact detection with throttling
+   * @private
+   * @param {string} artifactType - Type of artifact
+   * @param {string} format - Format/subtype
+   * @param {boolean} start - Is start marker
+   * @param {boolean} end - Is end marker
+   */
+  _logArtifact(artifactType, format, start, end) {
+    const now = Date.now();
+    const throttle = this._artifactLogThrottle;
+    
+    throttle.updateCount++;
+    
+    // Always log start/end markers
+    if (start) {
+      console.log(`[MessageManager] 📦 ▶ ${artifactType.toUpperCase()} artifact started (${format})`);
+      throttle.lastLog = now;
+      return;
+    }
+    
+    if (end) {
+      console.log(`[MessageManager] 📦 ✓ ${artifactType.toUpperCase()} artifact completed (${format}) | ${throttle.updateCount} chunks`);
+      throttle.updateCount = 0;
+      throttle.lastLog = now;
+      return;
+    }
+    
+    // Throttle intermediate updates
+    if (now - throttle.lastLog >= throttle.interval) {
+      console.log(`[MessageManager] 📦 ${artifactType.toUpperCase()} streaming | ${throttle.updateCount} chunks | ${format}`);
+      throttle.lastLog = now;
+      throttle.updateCount = 0;
+    }
+  }
+  
   /**
    * Generate message ID using SessionManager
    * @private

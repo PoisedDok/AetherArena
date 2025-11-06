@@ -1,0 +1,152 @@
+feature: "settings_configuration"
+version: "1.0.0"
+description: "Application settings, model configuration, and profile management"
+
+flow:
+  direction: "bidirectional"
+  protocol: "IPC + HTTP API"
+  
+  settings_load:
+    - stage: "request_settings"
+      location: "application/main"
+      files:
+        - "SettingsManager.js"
+      jobs: [JOB_SEND_IPC, JOB_HTTP_REQUEST]
+      
+    - stage: "backend_retrieval"
+      location: "backend"
+      backend_files:
+        - "aether-backend/api/v1/endpoints/settings.py"
+        - "aether-backend/data/database/repositories/settings_repository.py"
+      jobs: ["database_query"]
+      
+    - stage: "state_update"
+      location: "domain/settings/repositories"
+      files:
+        - "SettingsRepository.js"
+      jobs: [JOB_LOAD_FROM_DB, JOB_CACHE_LOCALLY, JOB_UPDATE_STATE]
+
+  settings_save:
+    - stage: "validation"
+      location: "domain/settings/validators"
+      files:
+        - "SettingsValidator.js"
+      jobs: [JOB_VALIDATE, JOB_VALIDATE_SCHEMA]
+      
+    - stage: "repository_save"
+      location: "domain/settings/repositories"
+      files:
+        - "SettingsRepository.js"
+      jobs: [JOB_SAVE_TO_DB, JOB_UPDATE_STATE]
+      
+    - stage: "ipc_persist"
+      location: "infrastructure/api"
+      files:
+        - "storage.js"
+      jobs: [JOB_SEND_IPC]
+
+  model_configuration:
+    - stage: "model_discovery"
+      location: "application/main"
+      files:
+        - "ModelManager.js"
+      jobs: [JOB_HTTP_REQUEST, JOB_PARSE_JSON, JOB_UPDATE_STATE]
+      
+    - stage: "model_selection"
+      location: "domain/settings/services"
+      files:
+        - "ModelService.js"
+      jobs: [JOB_VALIDATE, JOB_UPDATE_STATE, JOB_EMIT_EVENT]
+      
+    - stage: "backend_sync"
+      location: "backend"
+      backend_files:
+        - "aether-backend/api/v1/endpoints/models.py"
+        - "aether-backend/config/models.toml"
+      jobs: ["model_registry"]
+
+  profile_management:
+    - stage: "profile_load"
+      location: "application/main"
+      files:
+        - "ProfileManager.js"
+      jobs: [JOB_HTTP_REQUEST, JOB_UPDATE_STATE]
+      
+    - stage: "profile_service"
+      location: "domain/settings/services"
+      files:
+        - "ProfileService.js"
+      jobs: [JOB_VALIDATE, JOB_UPDATE_STATE]
+      
+    - stage: "backend_profiles"
+      location: "backend"
+      backend_files:
+        - "aether-backend/core/profiles/manager.py"
+        - "aether-backend/core/profiles/templates/"
+      jobs: ["profile_enrichment"]
+
+backend_interface:
+  http_api:
+    - "GET /v1/settings"
+    - "PUT /v1/settings"
+    - "GET /v1/models/list"
+    - "GET /v1/profiles"
+  
+  backend_files:
+    - "aether-backend/api/v1/endpoints/settings.py"
+    - "aether-backend/api/v1/endpoints/models.py"
+    - "aether-backend/core/profiles/manager.py"
+
+ipc_channels:
+  - "settings:get"
+  - "settings:update"
+  - "settings:get-models"
+  - "profile:get"
+  - "profile:update"
+
+data_types:
+  - "domain.Settings"
+  - "domain.ModelSettings"
+  - "domain.ProfileSettings"
+  - "domain.ModelCapabilities"
+
+job_categories:
+  network: [JOB_HTTP_REQUEST]
+  transform: [JOB_PARSE_JSON]
+  validation: [JOB_VALIDATE, JOB_VALIDATE_SCHEMA]
+  routing: [JOB_SEND_IPC, JOB_EMIT_EVENT]
+  persistence: [JOB_SAVE_TO_DB, JOB_LOAD_FROM_DB, JOB_CACHE_LOCALLY]
+  state: [JOB_UPDATE_STATE, JOB_GET_STATE]
+
+settings_categories:
+  appearance:
+    - "theme (light/dark)"
+    - "font_size"
+    - "code_theme"
+  
+  behavior:
+    - "auto_scroll"
+    - "sound_enabled"
+    - "animations_enabled"
+  
+  model:
+    - "default_provider"
+    - "default_model"
+    - "temperature"
+    - "max_tokens"
+  
+  profile:
+    - "system_prompt"
+    - "custom_instructions"
+    - "tools_enabled"
+
+critical_files:
+  - "application/main/SettingsManager.js"
+  - "application/main/ModelManager.js"
+  - "application/main/ProfileManager.js"
+  - "domain/settings/services/SettingsService.js"
+  - "domain/settings/services/ModelService.js"
+  - "domain/settings/services/ProfileService.js"
+  - "domain/settings/repositories/SettingsRepository.js"
+  - "domain/settings/validators/SettingsValidator.js"
+

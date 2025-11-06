@@ -156,28 +156,35 @@ class StreamHandler {
 
   /**
    * Check if chunk should be processed (deduplication)
+   * OPTIMIZED: Prevents duplicate processing with minimal false positives
    * @private
    * @param {Object} data - Chunk data
    * @returns {boolean}
    */
   _shouldProcessChunk(data) {
-    // Generate chunk key for deduplication
-    const chunkKey = `${data.id || 'unknown'}_${data.chunk.substring(0, 50)}_${data.chunk.length}`;
+    // Generate chunk key for deduplication using hash-like key
+    // Include first 30 chars, last 20 chars, and length for better uniqueness
+    const content = data.chunk || '';
+    const prefix = content.substring(0, 30);
+    const suffix = content.length > 50 ? content.substring(content.length - 20) : '';
+    const chunkKey = `${data.id || 'unknown'}_${prefix}_${suffix}_${content.length}`;
 
-    // Check timing first (prevent rapid duplicates)
+    // Check timing first (prevent rapid duplicates within 50ms)
     const now = Date.now();
     const timeDiff = now - this._lastChunkTimestamp;
     
-    // If chunk received within 10ms and we've seen it, skip silently (no warning)
-    if (timeDiff < 10 && this._seenChunkKeys.has(chunkKey)) {
+    // If chunk received within 50ms and we've seen the EXACT same key, skip silently
+    // This handles legitimate WebSocket message duplication at network layer
+    if (timeDiff < 50 && this._seenChunkKeys.has(chunkKey)) {
       return false;
     }
 
-    // Check if already processed (outside timing window)
+    // Check if already processed (outside rapid timing window)
     if (this._seenChunkKeys.has(chunkKey)) {
-      // Only log warning if duplicate is outside timing window
-      if (timeDiff >= 100) {
-        console.warn('[StreamHandler] Unexpected duplicate chunk detected');
+      // Only log warning if duplicate is far outside timing window (> 500ms)
+      // This indicates a logic error, not network duplication
+      if (timeDiff >= 500) {
+        console.warn('[StreamHandler] Unexpected duplicate chunk detected (potential logic error)');
       }
       return false;
     }
@@ -186,10 +193,10 @@ class StreamHandler {
     this._seenChunkKeys.add(chunkKey);
     this._lastChunkTimestamp = now;
 
-    // Clean up old seen chunks (keep last 1000)
-    if (this._seenChunkKeys.size > 1000) {
+    // Clean up old seen chunks (keep last 500 for memory efficiency)
+    if (this._seenChunkKeys.size > 500) {
       const keysArray = Array.from(this._seenChunkKeys);
-      this._seenChunkKeys = new Set(keysArray.slice(-500));
+      this._seenChunkKeys = new Set(keysArray.slice(-250));
     }
 
     return true;

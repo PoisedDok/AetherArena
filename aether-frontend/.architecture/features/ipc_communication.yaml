@@ -1,0 +1,148 @@
+feature: "ipc_communication"
+version: "1.0.0"
+description: "Secure inter-process communication between main and renderer processes"
+
+flow:
+  direction: "bidirectional"
+  protocol: "Electron IPC (ipcMain ↔ ipcRenderer)"
+  
+  preload_bridge_setup:
+    - stage: "bridge_creation"
+      location: "preload"
+      files:
+        - "main-preload.js"
+        - "chat-preload.js"
+        - "artifacts-preload.js"
+      jobs: [JOB_CREATE_BRIDGE, JOB_INITIALIZE, JOB_ATTACH_TO_WINDOW]
+      
+    - stage: "security_enforcement"
+      location: "preload/common"
+      files:
+        - "bridge-factory.js"
+        - "api-validators.js"
+        - "rate-limiter.js"
+        - "size-validator.js"
+      jobs: [JOB_VALIDATE, JOB_VALIDATE_SCHEMA]
+
+  renderer_to_main:
+    - stage: "wrapper_call"
+      location: "infrastructure/ipc"
+      files:
+        - "IpcBridge.js"
+      jobs: [JOB_SEND_IPC, JOB_TRACK_ENTITY, JOB_UPDATE_STATE]
+      
+    - stage: "preload_validation"
+      location: "preload/common"
+      files:
+        - "bridge-factory.js"
+      jobs: [JOB_VALIDATE, JOB_VALIDATE_SCHEMA]
+      
+    - stage: "main_routing"
+      location: "main/services"
+      files:
+        - "IpcRouter.js"
+      jobs: [JOB_ROUTE_BY_TYPE, JOB_VALIDATE_IPC_SOURCE, JOB_DELEGATE_TO_MODULE]
+
+  main_to_renderer:
+    - stage: "channel_send"
+      location: "main/services"
+      files:
+        - "IpcRouter.js"
+      jobs: [JOB_SEND_IPC, JOB_ROUTE_BY_TYPE]
+      
+    - stage: "window_targeting"
+      location: "main/windows"
+      files:
+        - "WindowManager.js"
+      jobs: [JOB_ROUTE_BY_TYPE, JOB_UPDATE_STATE]
+      
+    - stage: "renderer_receive"
+      location: "infrastructure/ipc"
+      files:
+        - "IpcBridge.js"
+      jobs: [JOB_EMIT_EVENT, JOB_ROUTE_BY_TYPE]
+
+  channel_registry:
+    - stage: "channel_definition"
+      location: "preload/ipc"
+      files:
+        - "channels.js"
+        - "payload-schemas.js"
+      jobs: [JOB_VALIDATE_SCHEMA]
+
+security_layers:
+  preload:
+    - "contextIsolation enabled"
+    - "nodeIntegration disabled"
+    - "Channel whitelisting"
+    - "Payload validation"
+    - "Rate limiting"
+    - "Size validation"
+  
+  main_process:
+    - "Source validation (event.sender check)"
+    - "Window reference validation"
+    - "No dynamic channel registration"
+    - "Type-safe routing"
+
+ipc_channels:
+  system:
+    - "window:minimize"
+    - "window:maximize"
+    - "window:close"
+    - "app:get-version"
+    
+  chat:
+    - "chat:send-message"
+    - "chat:assistant-stream"
+    - "chat:message-complete"
+    - "chat:load-history"
+    - "chat:cancel-request"
+    
+  artifacts:
+    - "artifacts:create"
+    - "artifacts:open-window"
+    - "artifacts:execute"
+    - "artifacts:cancel"
+    - "artifacts:output"
+    - "artifacts:sync"
+    
+  storage:
+    - "storage:get-chats"
+    - "storage:save-chat"
+    - "storage:save-message"
+    - "storage:get-messages"
+    
+  settings:
+    - "settings:get"
+    - "settings:update"
+    - "settings:get-models"
+
+data_types:
+  - "ipc_types.event"
+  - "ipc_types.message"
+  - "ipc_types.chunk"
+  - "contextbridge.api"
+
+job_categories:
+  validation: [JOB_VALIDATE, JOB_VALIDATE_SCHEMA, JOB_VALIDATE_IPC_SOURCE]
+  routing: [JOB_ROUTE_BY_TYPE, JOB_EMIT_EVENT, JOB_SEND_IPC, JOB_DELEGATE_TO_MODULE]
+  state: [JOB_UPDATE_STATE, JOB_GET_STATE, JOB_TRACK_ENTITY]
+  lifecycle: [JOB_CREATE_BRIDGE, JOB_INITIALIZE, JOB_ATTACH_TO_WINDOW, JOB_DISPOSE]
+
+attack_vectors_blocked:
+  - "Prototype pollution (Object.freeze on APIs)"
+  - "Unvalidated channel access"
+  - "Oversized payloads (size limits enforced)"
+  - "Rate limit bypass (per-channel limits)"
+  - "Cross-window message injection (source validation)"
+
+critical_files:
+  - "infrastructure/ipc/IpcBridge.js"
+  - "preload/common/bridge-factory.js"
+  - "preload/ipc/channels.js"
+  - "main/services/IpcRouter.js"
+  - "preload/main-preload.js"
+  - "preload/chat-preload.js"
+  - "preload/artifacts-preload.js"
+

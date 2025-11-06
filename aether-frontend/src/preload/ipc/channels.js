@@ -90,6 +90,7 @@ const chatWindow = freeze({
     'artifacts:load-output',
     'artifacts:open-file',
     'artifacts:stream:ready',
+    'artifacts:ensure-visible',
   ]),
   
   // Channels this window can RECEIVE from main process

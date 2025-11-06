@@ -38,6 +38,16 @@ class LLMSettings(BaseModel):
         env_prefix = "LLM_"
 
 
+class ComputerAPISettings(BaseModel):
+    """Computer API configuration."""
+    import_computer_api: bool = True  # CRITICAL: Enable computer object in Python execution
+    import_skills: bool = True
+    skills_path: str = "./skills"
+    
+    class Config:
+        env_prefix = "COMPUTER_"
+
+
 class InterpreterSettings(BaseModel):
     """Open Interpreter settings."""
     auto_run: bool = False
@@ -47,6 +57,7 @@ class InterpreterSettings(BaseModel):
     profile: str = "GURU.py"
     offline: bool = True
     disable_telemetry: bool = True
+    computer: ComputerAPISettings = Field(default_factory=ComputerAPISettings)
     
     class Config:
         env_prefix = "INTERPRETER_"

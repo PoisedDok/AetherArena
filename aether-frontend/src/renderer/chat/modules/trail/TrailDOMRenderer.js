@@ -419,7 +419,7 @@ class TrailDOMRenderer {
       return;
     }
     
-    this._log('Node clicked:', phase.kind, '- artifact:', phase.artifactId);
+    console.log(`[TrailDOMRenderer] 🖱️  Node clicked: ${phase.kind} - artifact: ${phase.artifactId.slice(0,8)}`);
     
     // Emit event to open artifact
     if (this.eventBus) {
@@ -431,8 +431,8 @@ class TrailDOMRenderer {
       });
     }
     
-    // Directly open artifacts window and show the artifact
-    if (window.aether && window.aether.artifacts) {
+    // Open artifacts window using proper IPC
+    if (window.aether && window.aether.ipc) {
       // Determine which tab based on phase kind
       const tabMap = {
         'write': 'code',    // Code written by assistant
@@ -442,11 +442,21 @@ class TrailDOMRenderer {
       
       const tab = tabMap[phase.kind] || 'code';
       
-      this._log('Opening artifacts window - tab:', tab, 'artifact:', phase.artifactId);
+      console.log(`[TrailDOMRenderer] 📤 Sending IPC to artifacts window - tab: ${tab}, artifact: ${phase.artifactId.slice(0,8)}`);
       
-      // Switch to artifacts window and tab
-      window.aether.artifacts.switchTab(tab);
-      window.aether.artifacts.showArtifact(phase.artifactId);
+      // Send IPC messages to artifacts window to switch tab and focus artifact
+      window.aether.ipc.send('artifacts:switch-tab', tab);
+      window.aether.ipc.send('artifacts:focus-artifacts', {
+        artifactId: phase.artifactId,
+        tab: tab
+      });
+      
+      // Ensure artifacts window is visible
+      window.aether.ipc.send('artifacts:ensure-visible');
+      
+      console.log(`[TrailDOMRenderer] ✅ IPC messages sent to artifacts window`);
+    } else {
+      console.error('[TrailDOMRenderer] ❌ IPC not available - cannot open artifacts window');
     }
   }
   

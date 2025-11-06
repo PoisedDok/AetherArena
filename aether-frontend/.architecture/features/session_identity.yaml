@@ -1,0 +1,137 @@
+feature: "session_identity"
+version: "1.0.0"
+description: "Deterministic ID generation and session state management"
+
+flow:
+  direction: "unidirectional"
+  protocol: "In-memory state management"
+  
+  session_initialization:
+    - stage: "session_creation"
+      location: "core/session"
+      files:
+        - "SessionManager.js"
+      jobs: [JOB_INITIALIZE, JOB_GENERATE_SESSION_ID, JOB_UPDATE_STATE]
+      
+    - stage: "state_tracking"
+      location: "core/session"
+      files:
+        - "SessionManager.js"
+      jobs: [JOB_UPDATE_STATE, JOB_TRACK_ENTITY]
+
+  user_message_id:
+    - stage: "id_generation"
+      location: "core/session"
+      files:
+        - "SessionManager.js"
+      jobs: [JOB_GENERATE_USER_MSG_ID, JOB_UPDATE_STATE]
+      format: "{chatId}_{sequence}_UM"
+      example: "a0d6fa98_000001_UM"
+      
+    - stage: "id_association"
+      location: "domain/chat/repositories"
+      files:
+        - "MessageRepository.js"
+      jobs: [JOB_UPDATE_STATE, JOB_SAVE_TO_DB]
+
+  assistant_message_id:
+    - stage: "id_generation"
+      location: "core/session"
+      files:
+        - "SessionManager.js"
+      jobs: [JOB_GENERATE_ASSISTANT_MSG_ID, JOB_UPDATE_STATE]
+      format: "{chatId}_{sequence}_AM"
+      example: "a0d6fa98_000002_AM"
+      
+    - stage: "parent_linking"
+      location: "domain/chat/services"
+      files:
+        - "MessageService.js"
+      jobs: [JOB_UPDATE_STATE, JOB_TRACK_ENTITY]
+
+  artifact_id:
+    - stage: "id_generation"
+      location: "core/session"
+      files:
+        - "SessionManager.js"
+      jobs: [JOB_GENERATE_ARTIFACT_ID, JOB_UPDATE_STATE]
+      formats:
+        code: "{chatId}_{sequence}_AC"
+        output: "{chatId}_{sequence}_AO"
+        html: "{chatId}_{sequence}_AH"
+      examples:
+        - "a0d6fa98_000003_AC"
+        - "a0d6fa98_000004_AO"
+        - "a0d6fa98_000005_AH"
+      
+    - stage: "traceability_linking"
+      location: "domain/artifacts/services"
+      files:
+        - "TraceabilityService.js"
+      jobs: [JOB_TRACK_ENTITY, JOB_UPDATE_STATE, JOB_SAVE_TO_DB]
+
+  state_management:
+    - stage: "state_updates"
+      location: "core/session"
+      files:
+        - "SessionManager.js"
+      jobs: [JOB_UPDATE_STATE, JOB_GET_STATE]
+      
+    - stage: "state_persistence"
+      location: "domain/*/repositories"
+      files:
+        - "MessageRepository.js"
+        - "ChatRepository.js"
+      jobs: [JOB_CACHE_LOCALLY, JOB_SAVE_TO_DB]
+
+id_format_rules:
+  chat_id: "8-char hex (from UUID)"
+  sequence: "6-digit zero-padded"
+  type_suffix:
+    user_message: "UM"
+    assistant_message: "AM"
+    artifact_code: "AC"
+    artifact_output: "AO"
+    artifact_html: "AH"
+  
+  determinism: "Same chat session always produces same ID sequence"
+  traceability: "Parent-child relationships preserved through ID structure"
+
+session_state:
+  tracked_data:
+    - "Current chat ID"
+    - "Message sequence counter"
+    - "Active artifacts registry"
+    - "Parent-child message links"
+    - "Request correlation IDs"
+  
+  persistence: "In-memory only (stateless across restarts)"
+  
+  reset_triggers:
+    - "New chat creation"
+    - "Chat switch"
+    - "Application restart"
+
+data_types:
+  - "string (session_id format)"
+  - "Map (id registry)"
+  - "number (sequence counter)"
+
+job_categories:
+  id_generation: [JOB_GENERATE_SESSION_ID, JOB_GENERATE_USER_MSG_ID, JOB_GENERATE_ASSISTANT_MSG_ID, JOB_GENERATE_ARTIFACT_ID]
+  state: [JOB_UPDATE_STATE, JOB_GET_STATE, JOB_TRACK_ENTITY, JOB_CLEAR_STATE]
+  lifecycle: [JOB_INITIALIZE, JOB_DISPOSE]
+
+traceability_chain:
+  user_message: "chatId_NNNNNN_UM"
+  assistant_response: "chatId_NNNNNN_AM (parent: UM)"
+  artifact_code: "chatId_NNNNNN_AC (parent: AM)"
+  artifact_output: "chatId_NNNNNN_AO (parent: AC)"
+  artifact_html: "chatId_NNNNNN_AH (parent: AM)"
+
+critical_files:
+  - "core/session/SessionManager.js"
+  - "domain/artifacts/services/TraceabilityService.js"
+  - "domain/chat/repositories/MessageRepository.js"
+  - "domain/chat/services/MessageService.js"
+

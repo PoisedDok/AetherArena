@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: Backend WebSocket (ws://localhost:8765 via backend/ws/handlers.py StreamRelay, pre-validated by backend/ws/protocols.py Pydantic schemas) --- {websocket_types.websocket_stream_chunk, json | binary}
- * Processing: Establish connection, parse incoming JSON, restore frontend_id→id mapping, route by type, emit typed events, manage lifecycle, queue messages --- {12 jobs: JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GET_STATE, JOB_PARSE_JSON, JOB_RESTORE_ID, JOB_ROUTE_BY_TYPE, JOB_START, JOB_STOP, JOB_UPDATE_STATE, JOB_WS_CONNECT, JOB_WS_RECEIVE, JOB_WS_SEND}
+ * Processing: Establish connection, parse incoming JSON, restore frontend_id→id mapping, route by type, emit typed events, manage lifecycle, queue messages, stringify outgoing messages --- {12 jobs: JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GET_STATE, JOB_PARSE_JSON, JOB_RESTORE_ID, JOB_ROUTE_BY_TYPE, JOB_STOP, JOB_STRINGIFY_JSON, JOB_UPDATE_STATE, JOB_WS_CONNECT, JOB_WS_RECEIVE, JOB_WS_SEND}
  * Outgoing: EventEmitter 'message'/'lmc' → MainOrchestrator/ArtifactsStreamHandler, WebSocket send() → backend/ws/hub.py --- {event_types.custom_event, json | binary}
  * 
  * @module core/communication/GuruConnection
