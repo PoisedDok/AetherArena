@@ -104,57 +104,46 @@ class HtmlRenderer extends BaseRenderer {
    * @private
    */
   _renderInIframe(html, container) {
-    // Create iframe
-    const iframe = document.createElement('iframe');
-    iframe.className = CONFIG.CLASS_NAMES.IFRAME;
-    iframe.setAttribute('sandbox', CONFIG.IFRAME.SANDBOX);
-    iframe.setAttribute('style', CONFIG.IFRAME.STYLE);
-
     // Sanitize HTML if sanitizer available
     const sanitizedHtml = this.sanitizer ? this.sanitizer.sanitize(html) : this._basicSanitize(html);
 
     // Create complete HTML document
-    const iframeDoc = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            body {
-              margin: 0;
-              padding: 16px;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-              font-size: 14px;
-              line-height: 1.6;
-              color: #333;
-              background: white;
-            }
-            * {
-              box-sizing: border-box;
-            }
-          </style>
-        </head>
-        <body>
-          ${sanitizedHtml}
-        </body>
-      </html>
-    `;
+    const iframeDoc = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #333;
+        background: white;
+      }
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    ${sanitizedHtml}
+  </body>
+</html>`;
+
+    // Create iframe with srcdoc (works better with sandbox than doc.write)
+    const iframe = document.createElement('iframe');
+    iframe.className = CONFIG.CLASS_NAMES.IFRAME;
+    iframe.setAttribute('sandbox', CONFIG.IFRAME.SANDBOX);
+    iframe.setAttribute('style', CONFIG.IFRAME.STYLE);
+    iframe.setAttribute('srcdoc', iframeDoc);
 
     // Append iframe
     container.appendChild(iframe);
 
-    // Write content to iframe
-    iframe.onload = () => {
-      try {
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        doc.open();
-        doc.write(iframeDoc);
-        doc.close();
-      } catch (error) {
-        console.error('[HtmlRenderer] Failed to write to iframe:', error);
-      }
-    };
+    console.log('[HtmlRenderer] Rendered HTML content');
   }
 
   /**

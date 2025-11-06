@@ -36,8 +36,9 @@ class TraceabilityService {
     // Initialize storage API
     this._initializeStorageAPI();
     
-    // Load from PostgreSQL
-    this._loadFromStorage();
+    // Note: TraceabilityService is a global service tracking all chats
+    // Loading is done per-chat via loadForChat() when switching chats
+    // Not loading automatically to avoid errors when no chat context exists
   }
   
   /**
@@ -506,40 +507,46 @@ class TraceabilityService {
   }
 
   /**
-   * Load from PostgreSQL
-   * @private
+   * Load traceability data for a specific chat
+   * @param {string} chatId - Chat ID to load
    */
-  async _loadFromStorage() {
-    if (!this.storageAPI) {
-      return; // Storage API not available
+  async loadForChat(chatId) {
+    if (!this.storageAPI || !chatId) {
+      return;
     }
 
     try {
-      // Load via storageAPI (IPC → backend → PostgreSQL)
       if (typeof this.storageAPI.loadTraceabilityData !== 'function') {
-        this.logger.warn('storageAPI.loadTraceabilityData not available');
         return;
       }
 
-      const data = await this.storageAPI.loadTraceabilityData();
+      const data = await this.storageAPI.loadTraceabilityData(chatId);
       
       if (!data) {
-        return; // No saved data
+        return;
       }
 
-      // Restore Maps from PostgreSQL data
-      this.messages = new Map(data.messages || []);
-      this.artifacts = new Map(data.artifacts || []);
-      this.correlationIndex = new Map(data.correlationIndex || []);
-      this.messageArtifactsIndex = new Map((data.messageArtifactsIndex || []).map(([k, v]) => [k, new Set(v)]));
-      this.artifactMessageIndex = new Map(data.artifactMessageIndex || []);
-      this.chatMessagesIndex = new Map((data.chatMessagesIndex || []).map(([k, v]) => [k, new Set(v)]));
-      this.chatArtifactsIndex = new Map((data.chatArtifactsIndex || []).map(([k, v]) => [k, new Set(v)]));
+      // Merge data (allow tracking multiple chats)
+      if (data.messages) {
+        data.messages.forEach(([id, msg]) => this.messages.set(id, msg));
+      }
+      if (data.artifacts) {
+        data.artifacts.forEach(([id, art]) => this.artifacts.set(id, art));
+      }
 
-      this.logger.info(`Loaded traceability data from PostgreSQL: ${this.messages.size} messages, ${this.artifacts.size} artifacts`);
+      this.logger.info(`Loaded traceability for chat ${chatId.slice(0,8)}`);
     } catch (error) {
-      this.logger.error('Failed to load traceability data from PostgreSQL:', error);
+      this.logger.error(`Failed to load traceability for chat ${chatId}:`, error);
     }
+  }
+
+  /**
+   * Load from PostgreSQL (deprecated)
+   * @private
+   */
+  async _loadFromStorage() {
+    // Deprecated - use loadForChat(chatId) instead
+    this.logger.debug('_loadFromStorage called but is deprecated');
   }
 
   /**

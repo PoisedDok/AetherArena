@@ -184,14 +184,6 @@ class ArtifactsController {
     this.currentArtifact = artifact;
     this.hasContent = true;
 
-    console.log('[ArtifactsController] Loading artifact:', {
-      id: artifact.id,
-      type: artifact.type,
-      format: artifact.format,
-      role: artifact.role,
-      contentLen: artifact.content ? artifact.content.length : 0
-    });
-
     // Route artifacts based on role and type:
     // - assistant + code -> CODE viewer (agent writing code, including HTML source)
     // - computer + any type -> OUTPUT viewer (execution results)
@@ -201,7 +193,6 @@ class ArtifactsController {
     const isExecutionOutput = artifact.role === 'computer' || artifact.type === 'output' || artifact.type === 'console';
     
     if (isCodeArtifact && !isExecutionOutput) {
-      console.log('[ArtifactsController] Routing to CODE viewer (assistant-written code)');
       this.switchTab('code');
       if (this.modules.codeViewer) {
         this.modules.codeViewer.loadCode(
@@ -211,11 +202,9 @@ class ArtifactsController {
         );
       }
     } else {
-      console.log('[ArtifactsController] Routing to OUTPUT viewer (execution result, console, or rendered content)');
       this.switchTab('output');
       if (this.modules.outputViewer) {
         const format = artifact.format || 'text';
-        console.log('[ArtifactsController] Calling outputViewer.loadOutput:', format);
         this.modules.outputViewer.loadOutput(artifact.content, format);
       }
     }
@@ -227,7 +216,6 @@ class ArtifactsController {
     this._reportWindowState();
 
     this.eventBus.emit(EventTypes.ARTIFACTS.LOADED, { artifact });
-    console.log(`[ArtifactsController] ✅ Artifact loaded: ${artifact.id}`);
   }
 
   /**
@@ -643,11 +631,17 @@ class ArtifactsController {
    */
   _handleStream(data) {
     try {
-      const artifactId = data.id || `artifact_${Date.now()}`;
+      // Backend reuses message ID for all execution phases (code write, console, output)
+      // Create unique frontend IDs by combining backend ID with role+type to prevent overwriting
+      const backendId = data.id || `artifact_${Date.now()}`;
+      const role = data.role || 'assistant';
+      const type = data.type || 'output';
+      const artifactId = `${backendId}_${role}_${type}`;
+      
       const throttle = this._logThrottle.get(artifactId) || { lastLog: 0, chunkCount: 0 };
       
       if (data.start) {
-        console.log(`[ArtifactsController] 🚀 Stream started: ${data.type}/${data.format}, role=${data.role} (ID: ${artifactId.slice(0,8)}...)`);
+        console.log(`[ArtifactsController] 🚀 Stream started: ${type}/${data.format}, role=${role} (Backend ID: ${backendId.slice(0,8)}..., Frontend ID: ${artifactId.slice(0,20)}...)`);
         throttle.chunkCount = 0;
         throttle.lastLog = Date.now();
         this._logThrottle.set(artifactId, throttle);
@@ -658,36 +652,25 @@ class ArtifactsController {
       let artifact = this.artifacts.get(artifactId);
       
       if (!artifact) {
-        // Create new artifact - preserve role from backend (defaults to assistant if not provided)
+        // Create new artifact with unique frontend ID
         artifact = {
-          id: artifactId,
-          backend_id: data.backendId || data._backend_id,
-          type: data.type || data.kind || 'output',
+          id: artifactId,  // Unique frontend ID
+          backend_id: backendId,  // Original backend ID for linking
+          type: type,
           content: '',
           language: data.language || data.format || 'text',
           format: data.format || 'text',
-          role: data.role || 'assistant', // Preserve role from backend
+          role: role,
           chatId: data.chatId || this.currentChatId,
           messageId: data.messageId,
           parentId: data.parentId,
           correlationId: data.correlationId,
           timestamp: Date.now(),
-          chunkCount: 0
+          chunkCount: 0,
+          executionGroup: backendId  // Link related artifacts by execution
         };
         this.artifacts.set(artifactId, artifact);
-        console.log(`[ArtifactsController] Created artifact: role=${artifact.role}, type=${artifact.type}, format=${artifact.format}`);
-      } else {
-        // Update existing artifact - preserve original role, update other metadata if provided
-        if (data.role && artifact.role !== data.role) {
-          console.warn(`[ArtifactsController] Role change detected: ${artifact.role} → ${data.role} for artifact ${artifactId.slice(0,8)}`);
-          artifact.role = data.role;
-        }
-        if (data.type && artifact.type !== data.type) {
-          artifact.type = data.type;
-        }
-        if (data.format && artifact.format !== data.format) {
-          artifact.format = data.format;
-        }
+        console.log(`[ArtifactsController] Created artifact: id=${artifactId.slice(0,25)}, role=${role}, type=${type}, format=${artifact.format}`);
       }
       
       if (data.content) {
@@ -702,26 +685,79 @@ class ArtifactsController {
         }
       }
       
-      if (data.end || (!data.start && !data.end)) {
-        if (data.end) {
-          console.log(`[ArtifactsController] ✅ Stream complete: ${artifact.chunkCount} chunks, ${artifact.content.length} chars, role=${artifact.role}`);
-          this._logThrottle.delete(artifactId);
-          
-          if (this.modules.sessionManager) {
-            this.modules.sessionManager.addArtifact(artifact);
-          }
-
-          // Emit artifact added for FileManager - use artifact's chatId to ensure proper routing
-          this.eventBus.emit(EventTypes.ARTIFACTS.ARTIFACT_ADDED, {
-            artifact,
-            chatId: artifact.chatId
-          });
+      // Only load artifact when stream completes, not on every chunk
+      if (data.end) {
+        console.log(`[ArtifactsController] ✅ Stream complete: ${artifact.chunkCount} chunks, ${artifact.content.length} chars, role=${role}, type=${type}`);
+        this._logThrottle.delete(artifactId);
+        
+        if (this.modules.sessionManager) {
+          this.modules.sessionManager.addArtifact(artifact);
         }
+
+        // Emit artifact added for FileManager - use artifact's chatId to ensure proper routing
+        this.eventBus.emit(EventTypes.ARTIFACTS.ARTIFACT_ADDED, {
+          artifact,
+          chatId: artifact.chatId
+        });
+        
+        // Persist artifact to PostgreSQL backend
+        this._saveArtifactToBackend(artifact).catch(error => {
+          console.error(`[ArtifactsController] Failed to persist artifact ${artifactId}:`, error);
+        });
+        
+        // Load artifact into viewer only when complete
         this.loadArtifact(artifact);
       }
 
     } catch (error) {
       console.error('[ArtifactsController] ❌ Stream error:', error);
+    }
+  }
+
+  /**
+   * Save artifact to backend PostgreSQL database
+   * @private
+   */
+  async _saveArtifactToBackend(artifact) {
+    if (!artifact || !artifact.chatId) {
+      console.warn('[ArtifactsController] Cannot save artifact without chatId');
+      return;
+    }
+
+    if (!window.storageAPI || typeof window.storageAPI.saveArtifact !== 'function') {
+      console.warn('[ArtifactsController] StorageAPI not available, artifact will not persist');
+      return;
+    }
+
+    try {
+      const payload = {
+        type: artifact.type,
+        filename: artifact.filename || `${artifact.type}_${Date.now()}`,
+        content: artifact.content,
+        language: artifact.language || artifact.format,
+        artifact_id: artifact.id,  // Frontend-generated unique ID
+        message_id: artifact.messageId,
+        metadata: {
+          role: artifact.role,
+          backend_id: artifact.backend_id,
+          execution_group: artifact.executionGroup,
+          format: artifact.format,
+          chunk_count: artifact.chunkCount,
+          timestamp: artifact.timestamp
+        }
+      };
+
+      const savedArtifact = await window.storageAPI.saveArtifact(artifact.chatId, payload);
+      
+      console.log(`[ArtifactsController] 💾 Persisted artifact ${artifact.id.slice(0,20)}... → PostgreSQL ID: ${savedArtifact.id}`);
+      
+      // Update artifact with server-generated ID
+      artifact.serverId = savedArtifact.id;
+      
+      return savedArtifact;
+    } catch (error) {
+      console.error(`[ArtifactsController] Failed to persist artifact:`, error);
+      throw error;
     }
   }
 

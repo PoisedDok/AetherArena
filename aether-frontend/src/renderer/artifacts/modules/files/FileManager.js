@@ -150,42 +150,54 @@ class FileManager {
 
       this._renderLoading();
 
-      // Try to get artifacts from both session manager (in-memory) and storage API (persisted)
-      let artifacts = [];
-      let groups = [];
+      // Load artifacts from multiple sources and merge
+      const artifactMap = new Map(); // Use Map to deduplicate by ID
 
+      // 1. Load from session manager (in-memory current session)
       if (this.sessionManager) {
         try {
           const sessionData = await this.sessionManager.switchSession(chatId);
-          artifacts = sessionData.artifacts || [];
-          groups = sessionData.groups || [];
-          console.log(`[FileManager] Loaded from session manager: ${artifacts.length} artifacts, ${groups.length} groups`);
+          const sessionArtifacts = sessionData.artifacts || [];
+          sessionArtifacts.forEach(art => artifactMap.set(art.id, art));
+          console.log(`[FileManager] Loaded from session manager: ${sessionArtifacts.length} artifacts`);
         } catch (error) {
           console.warn('[FileManager] Session manager load failed:', error);
         }
       }
 
-      // If session manager didn't provide artifacts, try storage API
-      if (artifacts.length === 0 && window.storageAPI && typeof window.storageAPI.loadArtifacts === 'function') {
+      // 2. ALWAYS try to load from storage API (persisted artifacts from previous sessions)
+      if (window.storageAPI && typeof window.storageAPI.loadArtifacts === 'function') {
         try {
-          artifacts = await window.storageAPI.loadArtifacts(chatId);
-          groups = this._groupArtifacts(artifacts);
-          console.log(`[FileManager] Loaded from storage API: ${artifacts.length} artifacts, ${groups.length} groups`);
+          const persistedArtifacts = await window.storageAPI.loadArtifacts(chatId);
+          persistedArtifacts.forEach(art => {
+            // Don't overwrite in-memory artifacts with persisted ones (in-memory is more recent)
+            if (!artifactMap.has(art.id)) {
+              artifactMap.set(art.id, art);
+            }
+          });
+          console.log(`[FileManager] Loaded from storage API: ${persistedArtifacts.length} artifacts`);
         } catch (error) {
           console.warn('[FileManager] Storage API load failed:', error);
         }
       }
 
-      // If still no artifacts, try getting from controller's in-memory artifacts
-      if (artifacts.length === 0 && this.controller && this.controller.artifacts) {
+      // 3. Fallback to controller's in-memory artifacts (very recent, might not be in session yet)
+      if (this.controller && this.controller.artifacts) {
         const controllerArtifacts = Array.from(this.controller.artifacts.values())
           .filter(a => a.chatId === chatId);
+        controllerArtifacts.forEach(art => {
+          if (!artifactMap.has(art.id)) {
+            artifactMap.set(art.id, art);
+          }
+        });
         if (controllerArtifacts.length > 0) {
-          artifacts = controllerArtifacts;
-          groups = this._groupArtifacts(artifacts);
-          console.log(`[FileManager] Loaded from controller: ${artifacts.length} artifacts, ${groups.length} groups`);
+          console.log(`[FileManager] Loaded from controller: ${controllerArtifacts.length} artifacts`);
         }
       }
+
+      // Convert Map to array and group
+      const artifacts = Array.from(artifactMap.values());
+      const groups = this._groupArtifacts(artifacts);
 
       this.artifacts = artifacts;
       this.groups = groups;
@@ -204,11 +216,14 @@ class FileManager {
     const groups = new Map();
 
     for (const artifact of artifacts) {
-      const key = artifact.messageId || artifact.correlationId || 'ungrouped';
+      // Group by executionGroup (backend_id) which links related artifacts (code, console, output)
+      // Falls back to messageId, correlationId, or artifact's own id if no execution group
+      const key = artifact.executionGroup || artifact.backend_id || artifact.messageId || artifact.correlationId || artifact.id;
 
       if (!groups.has(key)) {
         groups.set(key, {
           messageId: key,
+          executionGroup: artifact.executionGroup || artifact.backend_id,
           artifacts: [],
           codeArtifacts: [],
           outputArtifacts: [],
@@ -301,19 +316,15 @@ class FileManager {
     this._eventListeners.push(cleanupChatSwitch);
 
     const cleanupArtifactAdded = this.eventBus.on(EventTypes.ARTIFACTS.ARTIFACT_ADDED, (data) => {
-      console.log('[FileManager] Artifact added event:', data);
-      
       // Auto-detect chat ID from first artifact if we don't have one yet
       const artifactChatId = data.chatId || data.artifact?.chatId;
       if (!this.currentChatId && artifactChatId) {
-        console.log(`[FileManager] Auto-detected chat ID from artifact: ${artifactChatId}`);
         this.loadFiles(artifactChatId);
         return;
       }
       
       // Reload if artifact belongs to current chat
       if (this.currentChatId && (data.chatId === this.currentChatId || data.artifact?.chatId === this.currentChatId)) {
-        console.log('[FileManager] Reloading files for current chat:', this.currentChatId);
         this.loadFiles(this.currentChatId);
       }
     });

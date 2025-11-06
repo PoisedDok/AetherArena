@@ -158,7 +158,7 @@ class TabManager {
       timestamp: Date.now()
     });
 
-    console.log(`[TabManager] Active tab: ${tabId}`);
+    // Silent - no logging on every tab switch
   }
 
   /**

@@ -183,7 +183,7 @@ class OutputViewer {
         timestamp: Date.now()
       });
 
-      console.log(`[OutputViewer] Loaded output: ${format}`);
+      // Silent - no logging on every output load
 
     } catch (error) {
       console.error('[OutputViewer] Load output failed:', error);

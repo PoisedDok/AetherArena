@@ -385,7 +385,7 @@ class CodeViewer {
       timestamp: Date.now()
     });
 
-    console.log(`[CodeViewer] Loaded code: ${language}, ${code.length} chars`);
+    // Silent - no logging on every code load
   }
 
   /**
