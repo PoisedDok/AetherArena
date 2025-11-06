@@ -238,6 +238,19 @@ const aetherAPI = freeze({
   }),
 
   /**
+   * System Monitor
+   */
+  system: freeze({
+    /**
+     * Get system stats (CPU, memory, etc.)
+     * @returns {Promise<Object>} System stats
+     */
+    getStats: () => {
+      return ipcRenderer.invoke('system:get-stats');
+    },
+  }),
+
+  /**
    * Metadata
    */
   versions: freeze({

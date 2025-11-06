@@ -35,9 +35,11 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 1.0);
+  background: rgba(10, 10, 10, 0.4);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
   border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -71,8 +73,10 @@ body {
 .artifacts-header {
   display: flex;
   align-items: stretch;
-  background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border-base);
+  background: rgba(18, 18, 18, 0.5);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
   height: 40px;
   position: relative;
@@ -121,9 +125,11 @@ body {
 }
 
 .artifacts-tab.active {
-  background: var(--color-bg-primary);
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(30px) saturate(150%);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
   color: var(--color-text-primary);
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .artifacts-tab.active::before {
@@ -141,10 +147,12 @@ body {
   left: -10px;
   right: -10px;
   bottom: -1px;
-  background: var(--color-bg-primary);
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(30px) saturate(150%);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
   border-radius: var(--radius-md) var(--radius-md) 0 0;
   z-index: -1;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .tab-label {
@@ -211,8 +219,10 @@ body {
 }
 
 .artifacts-code-block {
-  background: var(--artifacts-code-bg);
-  border: 1px solid var(--color-border-base);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
   width: 100%;
@@ -240,12 +250,14 @@ body {
    ============================================================================ */
 
 .artifacts-output-pane {
-  background: rgba(0, 0, 0, 0.6);
+  background: transparent;
 }
 
 .artifacts-output-block {
-  background: var(--artifacts-output-bg);
-  border: 1px solid var(--color-border-base);
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-md);

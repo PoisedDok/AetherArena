@@ -39,10 +39,11 @@ class IpcRouter {
     }
     
     this.windowManager = windowManager;
+    this.systemMonitor = options.systemMonitor || null;
     this.options = {
-      validateSource: options.validateSource !== false, // Default true
+      validateSource: options.validateSource !== false,
       logMessages: options.logMessages || false,
-      logErrors: options.logErrors !== false, // Default true
+      logErrors: options.logErrors !== false,
       ...options,
     };
     
@@ -406,6 +407,15 @@ class IpcRouter {
           error: err.message,
         });
       }
+    });
+
+    // System stats (using handle for async response)
+    const { ipcMain } = require('electron');
+    ipcMain.handle('system:get-stats', async () => {
+      if (this.systemMonitor) {
+        return this.systemMonitor.getStats();
+      }
+      return null;
     });
   }
 }

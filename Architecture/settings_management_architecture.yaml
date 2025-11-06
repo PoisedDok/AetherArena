@@ -1,0 +1,356 @@
+version: "1.0.0"
+created: "2025-11-06"
+purpose: "Document robust settings management architecture for Aether"
+
+# =============================================================================
+# Settings Management Architecture
+# =============================================================================
+
+overview: |
+  End-to-end settings management system that connects frontend UI to backend
+  configuration with robust error handling, security validation, and clean
+  separation of concerns.
+
+# =============================================================================
+# Component Structure
+# =============================================================================
+
+components:
+  
+  backend:
+    location: "aether-backend/api/v1/endpoints/settings.py"
+    endpoints:
+      - method: GET
+        path: "/v1/settings"
+        returns: "SettingsResponse with llm, interpreter, security, integrations"
+        
+      - method: POST/PUT/PATCH
+        path: "/v1/settings"
+        accepts: "SettingsUpdateRequest"
+        returns: "Updated SettingsResponse"
+        
+      - method: POST
+        path: "/v1/settings/reload"
+        returns: "Reloaded settings from file"
+    
+    schemas:
+      location: "aether-backend/api/v1/schemas/settings.py"
+      models:
+        - SettingsResponse
+        - LLMSettingsResponse
+        - InterpreterSettingsResponse
+        - SecuritySettingsResponse
+        - IntegrationSettingsResponse
+    
+    related_endpoints:
+      profiles:
+        path: "/v1/profiles"
+        returns: "{profiles: [{name, path, type, size_bytes}, ...], count: N}"
+      
+      models:
+        path: "/v1/models"
+        returns: "{models: [str, ...], count: N}"
+  
+  frontend:
+    settings_manager:
+      location: "aether-frontend/src/renderer/main/modules/settings/SettingsManager.js"
+      responsibilities:
+        - "Load settings from backend via Endpoint"
+        - "Populate form fields with loaded data"
+        - "Load dynamic dropdowns (profiles, models)"
+        - "Parse backend response structures correctly"
+        - "Collect form data with validation"
+        - "Sanitize inputs to prevent XSS"
+        - "Save settings back to backend"
+        - "Display loading/error states"
+        - "Handle API base changes (reload models)"
+      
+      security:
+        - "URL validation for API base"
+        - "Temperature range validation (0.0-1.0)"
+        - "Max tokens validation (positive integer)"
+        - "XSS prevention via script tag removal"
+        - "Input sanitization"
+      
+      error_handling:
+        - "Graceful degradation on backend errors"
+        - "User-friendly error messages"
+        - "Loading states during async operations"
+        - "Retry logic not needed (backend handles it)"
+    
+    integration:
+      location: "aether-frontend/src/renderer/main/main-renderer.js"
+      initialization:
+        - "Initialize SettingsManager with Endpoint instance"
+        - "Make globally available as window.settingsManager"
+        - "Set up event listeners for settings UI"
+      
+      event_listeners:
+        - "Settings button click → openSettings()"
+        - "Settings save button → saveSettings()"
+        - "Settings cancel button → closeSettings()"
+        - "API base blur → onApiBaseChange()"
+        - "Settings tabs click → switchSettingsTab()"
+    
+    communication:
+      location: "aether-frontend/src/core/communication/Endpoint.js"
+      methods:
+        - "getSettings() → GET /v1/settings"
+        - "setSettings(settings) → POST /v1/settings"
+        - "getProfiles() → GET /v1/profiles"
+        - "getModels(apiBase?) → GET /v1/models?base={apiBase}"
+
+# =============================================================================
+# Data Flow
+# =============================================================================
+
+data_flow:
+  
+  loading_settings:
+    steps:
+      1:
+        actor: "User"
+        action: "Clicks settings button"
+        handler: "main-renderer.js → openSettings()"
+      
+      2:
+        actor: "MainApp"
+        action: "Calls settingsManager.loadSettings()"
+        handler: "SettingsManager.loadSettings()"
+      
+      3:
+        actor: "SettingsManager"
+        action: "Calls endpoint.getSettings()"
+        handler: "Endpoint.getSettings() → GET /v1/settings"
+      
+      4:
+        actor: "Backend"
+        action: "Returns SettingsResponse"
+        data: "{app_name, app_version, environment, llm: {...}, interpreter: {...}, security: {...}, integrations: {...}}"
+      
+      5:
+        actor: "SettingsManager"
+        action: "Parse response and populate form"
+        handler: "populateForm(settings)"
+      
+      6:
+        actor: "SettingsManager"
+        action: "Load profiles dropdown"
+        handler: "_loadProfiles() → GET /v1/profiles"
+      
+      7:
+        actor: "Backend"
+        action: "Returns profiles array"
+        data: "{profiles: [{name: 'default.py', path: '...', type: 'py', size_bytes: 1024}, ...], count: 3}"
+      
+      8:
+        actor: "SettingsManager"
+        action: "Parse profiles.profiles array, populate dropdown"
+        result: "Dropdown shows profile names, help text shows count"
+      
+      9:
+        actor: "SettingsManager"
+        action: "Load models dropdown"
+        handler: "_loadModels(apiBase, currentModel)"
+      
+      10:
+        actor: "Backend"
+        action: "Returns models array"
+        data: "{models: ['qwen/qwen3-4b-2507', 'gpt-4o', ...], count: 2}"
+      
+      11:
+        actor: "SettingsManager"
+        action: "Parse models array, populate dropdown, select current model"
+        result: "Dropdown shows models, current model selected"
+  
+  saving_settings:
+    steps:
+      1:
+        actor: "User"
+        action: "Clicks save button"
+        handler: "main-renderer.js → saveSettings()"
+      
+      2:
+        actor: "MainApp"
+        action: "Calls settingsManager.saveSettings()"
+        handler: "SettingsManager.saveSettings()"
+      
+      3:
+        actor: "SettingsManager"
+        action: "Collect form data"
+        handler: "collectSettings()"
+      
+      4:
+        actor: "SettingsManager"
+        action: "Validate collected settings"
+        handler: "_validateSettings()"
+        checks:
+          - "URL format for api_base"
+          - "Temperature 0.0-1.0 range"
+          - "Max tokens positive integer"
+          - "XSS sanitization"
+      
+      5:
+        actor: "SettingsManager"
+        action: "Send to backend"
+        handler: "endpoint.setSettings(settings)"
+        request: "POST /v1/settings"
+      
+      6:
+        actor: "Backend"
+        action: "Validate and save settings"
+        handler: "update_application_settings()"
+      
+      7:
+        actor: "Backend"
+        action: "Return updated settings"
+        data: "SettingsResponse"
+      
+      8:
+        actor: "SettingsManager"
+        action: "Display success, close modal after 1s"
+        result: "Settings saved successfully"
+
+# =============================================================================
+# Response Parsing
+# =============================================================================
+
+response_parsing:
+  
+  profiles:
+    backend_returns: "{profiles: [{name: str, path: str, type: str, size_bytes: int}, ...], count: int}"
+    frontend_expects: "Array of profile names"
+    parsing_logic: |
+      if (Array.isArray(response)) {
+        profiles = response;
+      } else if (response.profiles && Array.isArray(response.profiles)) {
+        profiles = response.profiles.map(p => p.name || p);
+      }
+  
+  models:
+    backend_returns: "{models: [str, ...], count: int}"
+    frontend_expects: "Array of model strings"
+    parsing_logic: |
+      const models = Array.isArray(response) ? response : (response.models || []);
+
+# =============================================================================
+# Security
+# =============================================================================
+
+security:
+  
+  input_validation:
+    - "URL regex validation for API base"
+    - "Numeric range validation for temperature"
+    - "Integer validation for max_tokens"
+    - "Pattern matching for all inputs"
+  
+  xss_prevention:
+    - "Script tag removal from all string inputs"
+    - "Sanitize api_base, model, profile values"
+    - "No innerHTML usage with user data"
+    - "createElement + textContent for dropdowns"
+  
+  backend_validation:
+    - "Pydantic models enforce types"
+    - "Settings dependency injection"
+    - "Request context setup"
+    - "Error handling with HTTPException"
+
+# =============================================================================
+# Error Handling
+# =============================================================================
+
+error_handling:
+  
+  frontend:
+    loading_errors:
+      - "Display 'Failed to load' in status"
+      - "Show error color (red)"
+      - "Keep modal open for retry"
+      - "Log error to console"
+    
+    save_errors:
+      - "Display 'Save failed' with error message"
+      - "Show error color"
+      - "Keep modal open for correction"
+      - "Log validation errors"
+    
+    network_errors:
+      - "Display 'Failed to load models/profiles'"
+      - "Show warning color for empty dropdowns"
+      - "Allow user to continue with manual entry"
+  
+  backend:
+    - "Try-catch blocks in all endpoints"
+    - "Detailed error logging"
+    - "HTTPException with appropriate status codes"
+    - "Fallback to default settings on parse errors"
+
+# =============================================================================
+# UI States
+# =============================================================================
+
+ui_states:
+  
+  loading:
+    status_text: "Loading..."
+    status_color: "info (#93c5fd)"
+    dropdown_state: "disabled"
+    dropdown_text: "Loading models..." or "Loading profiles..."
+    help_text: "Loading..."
+  
+  loaded:
+    status_text: "Loaded successfully" (clears after 2s)
+    status_color: "success (#86efac)"
+    dropdown_state: "enabled"
+    dropdown_text: "<option> elements populated"
+    help_text: "N models available" or "N profiles available"
+  
+  error:
+    status_text: "Failed to load" or specific error message
+    status_color: "error (#fca5a5)"
+    dropdown_state: "enabled (may be empty)"
+    dropdown_text: "Failed to load..." or "No items found"
+    help_text: "Failed to load..." (red) or "No items found" (yellow)
+  
+  saving:
+    status_text: "Saving..."
+    status_color: "info"
+  
+  saved:
+    status_text: "Saved successfully"
+    status_color: "success"
+    action: "Close modal after 1s"
+
+# =============================================================================
+# Benefits of This Architecture
+# =============================================================================
+
+benefits:
+  - "Clean separation: UI ↔ SettingsManager ↔ Endpoint ↔ Backend"
+  - "Single responsibility: SettingsManager only handles settings"
+  - "Testable: Each component can be tested independently"
+  - "Maintainable: Changes to backend response don't break UI"
+  - "Secure: Multiple layers of validation and sanitization"
+  - "User-friendly: Clear loading/error states"
+  - "Robust: Graceful degradation on errors"
+  - "Scalable: Easy to add new settings fields"
+  - "Documented: Clear data flow and responsibilities"
+
+# =============================================================================
+# Future Enhancements
+# =============================================================================
+
+future_enhancements:
+  - "Settings caching to reduce backend calls"
+  - "Optimistic UI updates (update UI before backend confirms)"
+  - "Real-time validation as user types"
+  - "Settings diff (only send changed fields)"
+  - "Settings history/undo"
+  - "Import/export settings"
+  - "Settings profiles (different configs for different use cases)"
+  - "Keyboard shortcuts for save/cancel"
+  - "Advanced settings section (collapsible)"
+  - "Settings search/filter"
+

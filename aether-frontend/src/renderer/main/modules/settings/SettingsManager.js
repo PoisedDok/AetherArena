@@ -1,0 +1,640 @@
+'use strict';
+
+/**
+ * @.architecture
+ * 
+ * Incoming: main-renderer.js, Endpoint.getSettings()/setSettings()/getProfiles()/getModels() --- {Settings objects, Profile arrays, Model arrays}
+ * Processing: Load/validate/populate/save settings, manage form state, handle errors, security validation --- {8 jobs: data_validation, error_handling, form_population, form_collection, security_validation, state_management, dropdown_management, backend_communication}
+ * Outgoing: DOM updates (form elements), Endpoint API calls, Console logs --- {HTMLElements, HTTP requests, console output}
+ * 
+ * Settings Manager - Robust Settings Architecture
+ * ============================================================================
+ * Handles all settings operations with security, validation, and error handling
+ */
+
+class SettingsManager {
+  constructor(endpoint) {
+    if (!endpoint) {
+      throw new Error('[SettingsManager] Endpoint required');
+    }
+    
+    this.endpoint = endpoint;
+    this.currentSettings = null;
+    this.isLoading = false;
+    this.formElements = {};
+    
+    // Security: Input validation patterns
+    this.validators = {
+      url: /^https?:\/\/.+/,
+      port: /^\d{1,5}$/,
+      temperature: /^0(\.\d+)?$|^1(\.0+)?$/,
+      maxTokens: /^\d+$/
+    };
+    
+    // Cache elements
+    this._cacheElements();
+  }
+  
+  /**
+   * Cache DOM elements for performance
+   * @private
+   */
+  _cacheElements() {
+    this.formElements = {
+      // Status
+      status: document.getElementById('settings-status'),
+      
+      // Profile
+      profile: document.getElementById('oi-profile'),
+      profileHelp: document.getElementById('oi-profile-help'),
+      
+      // LLM Configuration
+      provider: document.getElementById('llm-provider'),
+      apiBase: document.getElementById('llm-api-base'),
+      model: document.getElementById('llm-model'),
+      modelHelp: document.getElementById('llm-model-help'),
+      
+      // Advanced LLM Settings
+      temperature: document.getElementById('llm-temperature'),
+      maxTokens: document.getElementById('llm-max-tokens'),
+      contextWindow: document.getElementById('llm-context-window'),
+      
+      // Interpreter Settings
+      autoRun: document.getElementById('interpreter-auto-run'),
+      loop: document.getElementById('interpreter-loop'),
+      safeMode: document.getElementById('interpreter-safe-mode'),
+      offline: document.getElementById('interpreter-offline'),
+      
+      // Security Settings
+      authEnabled: document.getElementById('security-auth-enabled'),
+      rateLimitEnabled: document.getElementById('security-rate-limit'),
+      corsEnabled: document.getElementById('security-cors-enabled')
+    };
+  }
+  
+  /**
+   * Load settings from backend
+   * @returns {Promise<Object>} Settings object
+   */
+  async loadSettings() {
+    if (this.isLoading) {
+      console.warn('[SettingsManager] Already loading settings');
+      return null;
+    }
+    
+    this.isLoading = true;
+    this._setStatus('Loading...', 'info');
+    
+    try {
+      console.log('[SettingsManager] 📥 Loading settings from backend...');
+      
+      // Get settings from backend
+      const settings = await this.endpoint.getSettings();
+      
+      if (!settings) {
+        throw new Error('No settings returned from backend');
+      }
+      
+      console.log('[SettingsManager] ✅ Settings loaded:', settings);
+      this.currentSettings = settings;
+      
+      // Populate form
+      await this.populateForm(settings);
+      
+      this._setStatus('Loaded successfully', 'success');
+      setTimeout(() => this._clearStatus(), 2000);
+      
+      return settings;
+      
+    } catch (error) {
+      console.error('[SettingsManager] ❌ Failed to load settings:', error);
+      this._setStatus('Failed to load', 'error');
+      setTimeout(() => this._clearStatus(), 3000);
+      throw error;
+      
+    } finally {
+      this.isLoading = false;
+    }
+  }
+  
+  /**
+   * Populate form with settings
+   * @param {Object} settings - Settings object
+   */
+  async populateForm(settings) {
+    try {
+      console.log('[SettingsManager] 📝 Populating form...');
+      
+      // LLM Settings
+      if (settings.llm) {
+        await this._populateLLMSettings(settings.llm);
+      }
+      
+      // Interpreter Settings
+      if (settings.interpreter) {
+        await this._populateInterpreterSettings(settings.interpreter);
+      }
+      
+      // Security Settings
+      if (settings.security) {
+        this._populateSecuritySettings(settings.security);
+      }
+      
+      // Integration Settings
+      if (settings.integrations) {
+        this._populateIntegrationSettings(settings.integrations);
+      }
+      
+      console.log('[SettingsManager] ✅ Form populated');
+      
+    } catch (error) {
+      console.error('[SettingsManager] Failed to populate form:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Populate LLM settings section
+   * @private
+   */
+  async _populateLLMSettings(llm) {
+    // Provider
+    if (this.formElements.provider && llm.provider) {
+      this.formElements.provider.value = llm.provider;
+    }
+    
+    // API Base
+    if (this.formElements.apiBase && llm.api_base) {
+      this.formElements.apiBase.value = llm.api_base;
+    }
+    
+    // Temperature
+    if (this.formElements.temperature && llm.temperature !== undefined) {
+      this.formElements.temperature.value = llm.temperature;
+    }
+    
+    // Max Tokens
+    if (this.formElements.maxTokens && llm.max_tokens) {
+      this.formElements.maxTokens.value = llm.max_tokens;
+    }
+    
+    // Context Window
+    if (this.formElements.contextWindow && llm.context_window) {
+      this.formElements.contextWindow.value = llm.context_window;
+    }
+    
+    // Load models dropdown
+    await this._loadModels(llm.api_base, llm.model);
+  }
+  
+  /**
+   * Load models from API base
+   * @private
+   */
+  async _loadModels(apiBase, currentModel) {
+    const modelEl = this.formElements.model;
+    const modelHelp = this.formElements.modelHelp;
+    
+    if (!modelEl) return;
+    
+    try {
+      if (!apiBase) {
+        modelEl.innerHTML = '<option value="">Select a model...</option>';
+        if (modelHelp) modelHelp.textContent = 'Configure API base first';
+        return;
+      }
+      
+      // Show loading state
+      modelEl.innerHTML = '<option value="">Loading models...</option>';
+      modelEl.disabled = true;
+      if (modelHelp) modelHelp.textContent = 'Loading...';
+      
+      console.log('[SettingsManager] Loading models from:', apiBase);
+      
+      // Get models from backend
+      const response = await this.endpoint.getModels(apiBase);
+      
+      // Parse response - backend returns {models: [...], count: ...}
+      const models = Array.isArray(response) ? response : (response.models || []);
+      
+      console.log('[SettingsManager] Loaded models:', models.length);
+      
+      // Populate dropdown
+      modelEl.innerHTML = '<option value="">Select a model...</option>';
+      
+      if (models.length > 0) {
+        models.forEach(model => {
+          const option = document.createElement('option');
+          option.value = model;
+          option.textContent = model;
+          modelEl.appendChild(option);
+        });
+        
+        // Select current model if available
+        if (currentModel && models.includes(currentModel)) {
+          modelEl.value = currentModel;
+        }
+        
+        if (modelHelp) {
+          modelHelp.textContent = `${models.length} models available`;
+          modelHelp.style.color = '';
+        }
+      } else {
+        if (modelHelp) {
+          modelHelp.textContent = 'No models found';
+          modelHelp.style.color = '#fbbf24';
+        }
+      }
+      
+      modelEl.disabled = false;
+      
+    } catch (error) {
+      console.error('[SettingsManager] Failed to load models:', error);
+      
+      modelEl.innerHTML = '<option value="">Failed to load models</option>';
+      modelEl.disabled = false;
+      
+      if (modelHelp) {
+        modelHelp.textContent = 'Failed to load models';
+        modelHelp.style.color = '#ef4444';
+      }
+    }
+  }
+  
+  /**
+   * Populate interpreter settings section
+   * @private
+   */
+  async _populateInterpreterSettings(interpreter) {
+    // Boolean settings
+    if (this.formElements.autoRun) {
+      this.formElements.autoRun.checked = interpreter.auto_run || false;
+    }
+    
+    if (this.formElements.loop) {
+      this.formElements.loop.checked = interpreter.loop || false;
+    }
+    
+    if (this.formElements.safeMode) {
+      this.formElements.safeMode.checked = interpreter.safe_mode || false;
+    }
+    
+    if (this.formElements.offline) {
+      this.formElements.offline.checked = interpreter.offline || false;
+    }
+    
+    // Load profiles dropdown
+    await this._loadProfiles(interpreter.profile);
+  }
+  
+  /**
+   * Load profiles from backend
+   * @private
+   */
+  async _loadProfiles(currentProfile) {
+    const profileEl = this.formElements.profile;
+    const profileHelp = this.formElements.profileHelp;
+    
+    if (!profileEl) return;
+    
+    try {
+      // Show loading state
+      profileEl.innerHTML = '<option value="">Loading profiles...</option>';
+      profileEl.disabled = true;
+      if (profileHelp) profileHelp.textContent = 'Loading...';
+      
+      console.log('[SettingsManager] Loading profiles...');
+      
+      // Get profiles from backend
+      const response = await this.endpoint.getProfiles();
+      
+      // Parse response - backend returns {profiles: [{name, path, type, size_bytes}, ...], count: ...}
+      let profiles = [];
+      
+      if (Array.isArray(response)) {
+        // If response is already an array
+        profiles = response;
+      } else if (response.profiles && Array.isArray(response.profiles)) {
+        // Extract profile names from objects
+        profiles = response.profiles.map(p => p.name || p);
+      }
+      
+      console.log('[SettingsManager] Loaded profiles:', profiles.length);
+      
+      // Populate dropdown
+      profileEl.innerHTML = '<option value="">Select a profile...</option>';
+      
+      if (profiles.length > 0) {
+        profiles.forEach(profile => {
+          const option = document.createElement('option');
+          option.value = profile;
+          option.textContent = profile;
+          profileEl.appendChild(option);
+        });
+        
+        // Select current profile if available
+        if (currentProfile) {
+          profileEl.value = currentProfile;
+        }
+        
+        if (profileHelp) {
+          profileHelp.textContent = `${profiles.length} profiles available`;
+          profileHelp.style.color = '';
+        }
+      } else {
+        if (profileHelp) {
+          profileHelp.textContent = 'No profiles found';
+          profileHelp.style.color = '#fbbf24';
+        }
+      }
+      
+      profileEl.disabled = false;
+      
+    } catch (error) {
+      console.error('[SettingsManager] Failed to load profiles:', error);
+      
+      profileEl.innerHTML = '<option value="">Failed to load profiles</option>';
+      profileEl.disabled = false;
+      
+      if (profileHelp) {
+        profileHelp.textContent = 'Failed to load profiles';
+        profileHelp.style.color = '#ef4444';
+      }
+    }
+  }
+  
+  /**
+   * Populate security settings section
+   * @private
+   */
+  _populateSecuritySettings(security) {
+    if (this.formElements.authEnabled) {
+      this.formElements.authEnabled.checked = security.auth_enabled || false;
+    }
+    
+    if (this.formElements.rateLimitEnabled) {
+      this.formElements.rateLimitEnabled.checked = security.rate_limit_enabled || false;
+    }
+    
+    if (this.formElements.corsEnabled) {
+      this.formElements.corsEnabled.checked = security.cors_allow_credentials || false;
+    }
+  }
+  
+  /**
+   * Populate integration settings section
+   * @private
+   */
+  _populateIntegrationSettings(integrations) {
+    // Add integration fields if needed
+    console.log('[SettingsManager] Integration settings:', integrations);
+  }
+  
+  /**
+   * Collect settings from form
+   * @returns {Object} Settings object
+   */
+  collectSettings() {
+    try {
+      const settings = {
+        llm: this._collectLLMSettings(),
+        interpreter: this._collectInterpreterSettings(),
+        security: this._collectSecuritySettings()
+      };
+      
+      // Validate settings
+      this._validateSettings(settings);
+      
+      return settings;
+      
+    } catch (error) {
+      console.error('[SettingsManager] Failed to collect settings:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Collect LLM settings from form
+   * @private
+   */
+  _collectLLMSettings() {
+    const llm = {};
+    
+    if (this.formElements.provider) {
+      llm.provider = this.formElements.provider.value;
+    }
+    
+    if (this.formElements.apiBase) {
+      llm.api_base = this.formElements.apiBase.value;
+    }
+    
+    if (this.formElements.model) {
+      llm.model = this.formElements.model.value;
+    }
+    
+    if (this.formElements.temperature) {
+      llm.temperature = parseFloat(this.formElements.temperature.value) || 0.7;
+    }
+    
+    if (this.formElements.maxTokens) {
+      llm.max_tokens = parseInt(this.formElements.maxTokens.value) || 4096;
+    }
+    
+    if (this.formElements.contextWindow) {
+      llm.context_window = parseInt(this.formElements.contextWindow.value) || 100000;
+    }
+    
+    return llm;
+  }
+  
+  /**
+   * Collect interpreter settings from form
+   * @private
+   */
+  _collectInterpreterSettings() {
+    const interpreter = {};
+    
+    if (this.formElements.profile) {
+      interpreter.profile = this.formElements.profile.value;
+    }
+    
+    if (this.formElements.autoRun) {
+      interpreter.auto_run = this.formElements.autoRun.checked;
+    }
+    
+    if (this.formElements.loop) {
+      interpreter.loop = this.formElements.loop.checked;
+    }
+    
+    if (this.formElements.safeMode) {
+      interpreter.safe_mode = this.formElements.safeMode.checked;
+    }
+    
+    if (this.formElements.offline) {
+      interpreter.offline = this.formElements.offline.checked;
+    }
+    
+    return interpreter;
+  }
+  
+  /**
+   * Collect security settings from form
+   * @private
+   */
+  _collectSecuritySettings() {
+    const security = {};
+    
+    if (this.formElements.authEnabled) {
+      security.auth_enabled = this.formElements.authEnabled.checked;
+    }
+    
+    if (this.formElements.rateLimitEnabled) {
+      security.rate_limit_enabled = this.formElements.rateLimitEnabled.checked;
+    }
+    
+    if (this.formElements.corsEnabled) {
+      security.cors_allow_credentials = this.formElements.corsEnabled.checked;
+    }
+    
+    return security;
+  }
+  
+  /**
+   * Validate settings before saving
+   * @private
+   */
+  _validateSettings(settings) {
+    // Validate API Base URL
+    if (settings.llm && settings.llm.api_base) {
+      if (!this.validators.url.test(settings.llm.api_base)) {
+        throw new Error('Invalid API base URL');
+      }
+    }
+    
+    // Validate temperature (0.0 - 1.0)
+    if (settings.llm && settings.llm.temperature !== undefined) {
+      const temp = parseFloat(settings.llm.temperature);
+      if (isNaN(temp) || temp < 0 || temp > 1) {
+        throw new Error('Temperature must be between 0.0 and 1.0');
+      }
+    }
+    
+    // Validate max_tokens (positive integer)
+    if (settings.llm && settings.llm.max_tokens !== undefined) {
+      const tokens = parseInt(settings.llm.max_tokens);
+      if (isNaN(tokens) || tokens <= 0) {
+        throw new Error('Max tokens must be a positive integer');
+      }
+    }
+    
+    // Security: Sanitize inputs
+    this._sanitizeSettings(settings);
+  }
+  
+  /**
+   * Sanitize settings to prevent XSS
+   * @private
+   */
+  _sanitizeSettings(settings) {
+    // Remove any script tags or dangerous content
+    const sanitize = (str) => {
+      if (typeof str !== 'string') return str;
+      return str.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    };
+    
+    if (settings.llm) {
+      if (settings.llm.api_base) settings.llm.api_base = sanitize(settings.llm.api_base);
+      if (settings.llm.model) settings.llm.model = sanitize(settings.llm.model);
+    }
+    
+    if (settings.interpreter) {
+      if (settings.interpreter.profile) settings.interpreter.profile = sanitize(settings.interpreter.profile);
+    }
+  }
+  
+  /**
+   * Save settings to backend
+   * @returns {Promise<Object>} Saved settings
+   */
+  async saveSettings() {
+    try {
+      this._setStatus('Saving...', 'info');
+      
+      console.log('[SettingsManager] 💾 Saving settings...');
+      
+      // Collect settings from form
+      const settings = this.collectSettings();
+      
+      console.log('[SettingsManager] Collected settings:', settings);
+      
+      // Save to backend
+      const savedSettings = await this.endpoint.setSettings(settings);
+      
+      console.log('[SettingsManager] ✅ Settings saved:', savedSettings);
+      
+      this.currentSettings = savedSettings;
+      this._setStatus('Saved successfully', 'success');
+      setTimeout(() => this._clearStatus(), 2000);
+      
+      return savedSettings;
+      
+    } catch (error) {
+      console.error('[SettingsManager] ❌ Failed to save settings:', error);
+      this._setStatus(error.message || 'Failed to save', 'error');
+      setTimeout(() => this._clearStatus(), 3000);
+      throw error;
+    }
+  }
+  
+  /**
+   * Reload models when API base changes
+   */
+  async onApiBaseChange() {
+    const apiBase = this.formElements.apiBase?.value;
+    if (apiBase) {
+      await this._loadModels(apiBase, null);
+    }
+  }
+  
+  /**
+   * Set status message
+   * @private
+   */
+  _setStatus(message, type = 'info') {
+    if (!this.formElements.status) return;
+    
+    this.formElements.status.textContent = message;
+    this.formElements.status.style.color = {
+      info: '#93c5fd',
+      success: '#86efac',
+      error: '#fca5a5',
+      warning: '#fde047'
+    }[type] || '#93c5fd';
+  }
+  
+  /**
+   * Clear status message
+   * @private
+   */
+  _clearStatus() {
+    if (this.formElements.status) {
+      this.formElements.status.textContent = '';
+      this.formElements.status.style.color = '';
+    }
+  }
+  
+  /**
+   * Dispose manager
+   */
+  dispose() {
+    this.currentSettings = null;
+    this.formElements = {};
+  }
+}
+
+module.exports = SettingsManager;
+
+if (typeof window !== 'undefined') {
+  window.SettingsManager = SettingsManager;
+}
+

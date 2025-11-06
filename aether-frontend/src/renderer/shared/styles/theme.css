@@ -217,27 +217,28 @@
   --backdrop-opacity-medium: 0.9;
   --backdrop-opacity-low: 0.85;
   
-  /* --- Chat Window Specific --- */
-  --chat-window-bg: rgba(10, 10, 10, 0.95);
-  --chat-header-bg: linear-gradient(to bottom, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
-  --chat-sidebar-bg: rgba(10, 10, 10, 0.90);
+  /* --- Chat Window Specific - 40% Opacity Glassmorphism --- */
+  --chat-window-bg: rgba(10, 10, 10, 0.4);
+  --chat-header-bg: rgba(255, 255, 255, 0.05);
+  --chat-sidebar-bg: rgba(10, 10, 10, 0.5);
   --chat-message-border: rgba(255, 255, 255, 0.05);
+  --chat-input-bg: rgba(255, 255, 255, 0.03);
   
-  /* --- Artifacts Window Specific --- */
-  --artifacts-window-bg: rgba(10, 10, 10, 0.95);
-  --artifacts-header-bg: rgba(255, 255, 255, 0.06);
-  --artifacts-code-bg: rgba(0, 0, 0, 0.55);
-  --artifacts-output-bg: rgba(0, 0, 0, 0.3);
+  /* --- Artifacts Window Specific - 40% Opacity Glassmorphism --- */
+  --artifacts-window-bg: rgba(10, 10, 10, 0.4);
+  --artifacts-header-bg: rgba(18, 18, 18, 0.5);
+  --artifacts-code-bg: rgba(0, 0, 0, 0.3);
+  --artifacts-output-bg: rgba(0, 0, 0, 0.25);
   
-  /* --- Thinking/Reasoning Components --- */
-  --thinking-bg: var(--color-primary-alpha);
+  /* --- Thinking/Reasoning Components - Glassmorphism --- */
+  --thinking-bg: rgba(255, 100, 0, 0.12);
   --thinking-border: rgba(255, 100, 0, 0.3);
   --thinking-text: #ff9500;
   --thinking-scrollbar: rgba(255, 149, 0, 0.3);
   
-  /* --- Trail/Execution Components --- */
-  --trail-bg: rgba(15, 15, 15, 0.45);
-  --trail-border: rgba(255, 255, 255, 0.15);
+  /* --- Trail/Execution Components - Glassmorphism --- */
+  --trail-bg: rgba(15, 15, 15, 0.35);
+  --trail-border: rgba(255, 255, 255, 0.12);
   --trail-timeline: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.08) 100%);
   --trail-node-bg: rgba(255, 255, 255, 0.03);
   --trail-node-active: rgba(255, 255, 255, 0.9);

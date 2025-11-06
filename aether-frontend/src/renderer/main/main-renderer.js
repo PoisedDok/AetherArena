@@ -19,10 +19,6 @@
 
 console.log('🚀 Main Renderer: Starting...');
 
-// ============================================================================
-// Validation & Dependency Checks
-// ============================================================================
-
 if (!window.aether) {
   console.error('❌ Main Renderer: Preload API not available');
   document.body.innerHTML = `
@@ -35,42 +31,19 @@ if (!window.aether) {
 }
 
 console.log('✅ Main Renderer: Preload API available');
-console.log('📦 Aether versions:', window.aether.versions);
 
 // ============================================================================
 // Import Module Dependencies
 // ============================================================================
 
-// Import THREE.js and expose globally for Visualizer
 const THREE = require('three');
 window.THREE = THREE;
 
-// These will be bundled by esbuild
 const NeuralNetworkVisualizer = require('./modules/visualizer/Visualizer');
 const AudioManager = require('./modules/audio/AudioManager');
 const GuruConnection = require('../../core/communication/GuruConnection');
-
-// ============================================================================
-// Minimal Endpoint Mock for Browser Context
-// ============================================================================
-
-class Endpoint {
-  constructor(aetherAPI) {
-    this.aether = aetherAPI;
-    this.connection = {
-      send: (data) => {
-        // Use IPC to send to backend
-        if (this.aether && this.aether.ipc) {
-          this.aether.ipc.send('audio-stream', data);
-        }
-      }
-    };
-  }
-}
-
-// ============================================================================
-// Main Application Class
-// ============================================================================
+const Endpoint = require('../../core/communication/Endpoint');
+const SettingsManager = require('./modules/settings/SettingsManager');
 
 class MainApp {
   constructor() {
@@ -84,47 +57,28 @@ class MainApp {
     this.elements = {};
     this.cleanupFunctions = [];
     
-    // Core modules
     this.visualizer = null;
     this.audioManager = null;
     this.guru = null;
     this.endpoint = null;
+    this.settingsManager = null;
     
-    // Telemetry
     this.telemetryInterval = null;
     this.systemTimeInterval = null;
   }
   
-  /**
-   * Initialize application
-   */
   async initialize() {
     console.log('🏗️  Initializing main application...');
     
     try {
-      // Cache DOM elements
       this.cacheElements();
-      
-      // Initialize core dependencies
       this.initializeDependencies();
-      
-      // Initialize modules
       this.initializeVisualizer();
       this.initializeAudioManager();
-      
-      // Setup UI controls
       this.setupControls();
-      
-      // Setup event listeners
       this.setupEventListeners();
-      
-      // Setup IPC listeners
       this.setupIPCListeners();
-      
-      // Start telemetry updates
       this.startTelemetryUpdates();
-      
-      // Initialize UI state
       this.initializeUI();
       
       console.log('✅ Main application initialized');
@@ -134,23 +88,19 @@ class MainApp {
     }
   }
   
-  /**
-   * Cache DOM elements
-   */
   cacheElements() {
     this.elements = {
       root: document.getElementById('root'),
       widgetContainer: document.querySelector('.widget-container'),
       normalContainer: document.querySelector('.normal-container'),
       canvas: document.getElementById('scene-canvas'),
-      
-      // Controls
+      menuTrigger: document.getElementById('menu-trigger'),
+      controlPanel: document.getElementById('control-panel'),
       micButton: document.getElementById('mic-button'),
+      micStatusIndicator: document.getElementById('mic-status-indicator'),
       chatToggle: document.getElementById('chat-toggle'),
       settingsButton: document.getElementById('settings-button'),
       artifactsToggle: document.getElementById('code-panel-toggle'),
-      
-      // Telemetry
       cpuUsage: document.getElementById('cpu-usage'),
       memoryUsage: document.getElementById('memory-usage'),
       fpsCounter: document.getElementById('fps-counter'),
@@ -160,10 +110,8 @@ class MainApp {
       networkLatency: document.getElementById('network-latency'),
       nodeCount: document.getElementById('node-count'),
       systemTime: document.getElementById('system-time'),
-      connectionStatus: document.getElementById('connection-status'),
-      backendInfo: document.getElementById('backend-info'),
-      
-      // Settings modal
+      modelStatusDot: document.getElementById('model-status-dot'),
+      modelName: document.getElementById('model-name'),
       settingsModal: document.getElementById('settings-modal'),
       settingsSave: document.getElementById('settings-save'),
       settingsCancel: document.getElementById('settings-cancel'),
@@ -174,12 +122,7 @@ class MainApp {
     }
   }
   
-  /**
-   * Initialize core dependencies
-   */
   initializeDependencies() {
-    // Create real guru connection to backend
-    // Backend runs on port 8765 by default
     const wsUrl = `ws://localhost:${window.aether.ports?.backend || 8765}/`;
     this.guru = new GuruConnection({
       url: wsUrl,
@@ -188,17 +131,26 @@ class MainApp {
       healthInterval: 5000,
       enableLogging: false
     });
-    window.guru = this.guru; // Expose for visualizer and audio manager
+    window.guru = this.guru;
     
-    // Create endpoint
-    this.endpoint = new Endpoint(window.aether);
+    // Initialize Endpoint with proper config
+    const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    this.endpoint = new Endpoint({
+      NODE_ENV: isDev ? 'development' : 'production',
+      API_BASE_URL: 'http://localhost:8765',
+      WS_URL: wsUrl
+    });
+    
+    // Make endpoint globally available
+    window.endpoint = this.endpoint;
+    
+    // Initialize Settings Manager
+    this.settingsManager = new SettingsManager(this.endpoint);
+    window.settingsManager = this.settingsManager;
     
     console.log('✅ Core dependencies initialized (WebSocket:', wsUrl, ')');
   }
   
-  /**
-   * Initialize Three.js visualizer
-   */
   initializeVisualizer() {
     if (!this.elements.canvas) {
       console.warn('⚠️  Canvas element not found, skipping visualizer');
@@ -213,9 +165,6 @@ class MainApp {
     }
   }
   
-  /**
-   * Initialize audio manager
-   */
   initializeAudioManager() {
     if (!this.endpoint || !this.guru) {
       console.warn('⚠️  Dependencies not ready, skipping audio manager');
@@ -230,25 +179,27 @@ class MainApp {
     }
   }
   
-  /**
-   * Setup UI controls
-   */
   setupControls() {
-    // Chat toggle
+    if (this.elements.menuTrigger) {
+      this.elements.menuTrigger.addEventListener('click', () => {
+        this.toggleControlPanel();
+      });
+    }
+    
     if (this.elements.chatToggle) {
       this.elements.chatToggle.addEventListener('click', () => {
         window.aether.chat.open();
+        this.closeControlPanel();
       });
     }
     
-    // Settings button
     if (this.elements.settingsButton) {
       this.elements.settingsButton.addEventListener('click', () => {
         this.openSettings();
+        this.closeControlPanel();
       });
     }
     
-    // Settings modal
     if (this.elements.settingsCancel) {
       this.elements.settingsCancel.addEventListener('click', () => {
         this.closeSettings();
@@ -261,7 +212,6 @@ class MainApp {
       });
     }
     
-    // Settings tabs
     const settingsTabs = document.querySelectorAll('.settings-tab');
     settingsTabs.forEach(tab => {
       tab.addEventListener('click', () => {
@@ -270,29 +220,76 @@ class MainApp {
       });
     });
     
-    // Artifacts toggle
+    // API Base change listener - reload models when API base changes
+    const apiBaseEl = document.getElementById('llm-api-base');
+    if (apiBaseEl) {
+      apiBaseEl.addEventListener('blur', () => {
+        if (this.settingsManager) {
+          this.settingsManager.onApiBaseChange();
+        }
+      });
+    }
+    
     if (this.elements.artifactsToggle) {
       this.elements.artifactsToggle.addEventListener('click', () => {
         window.aether.artifacts.open();
+        this.closeControlPanel();
       });
     }
+    
+    if (this.elements.micButton) {
+      this.elements.micButton.addEventListener('mousedown', () => {
+        if (this.audioManager && typeof this.audioManager.startCapture === 'function') {
+          this.audioManager.startCapture();
+          if (this.elements.micStatusIndicator) {
+            this.elements.micStatusIndicator.classList.add('active');
+          }
+        }
+      });
+      
+      document.addEventListener('mouseup', () => {
+        if (this.audioManager && typeof this.audioManager.stopCapture === 'function') {
+          this.audioManager.stopCapture();
+          if (this.elements.micStatusIndicator) {
+            this.elements.micStatusIndicator.classList.remove('active');
+          }
+        }
+      });
+    }
+    
+    document.addEventListener('click', (e) => {
+      if (this.elements.controlPanel && 
+          this.elements.controlPanel.classList.contains('active') &&
+          !this.elements.controlPanel.contains(e.target) &&
+          !this.elements.menuTrigger.contains(e.target)) {
+        this.closeControlPanel();
+      }
+    });
     
     console.log('✅ Controls setup complete');
   }
   
-  /**
-   * Setup DOM event listeners
-   */
+  toggleControlPanel() {
+    if (this.elements.controlPanel && this.elements.menuTrigger) {
+      this.elements.controlPanel.classList.toggle('active');
+      this.elements.menuTrigger.classList.toggle('active');
+    }
+  }
+  
+  closeControlPanel() {
+    if (this.elements.controlPanel && this.elements.menuTrigger) {
+      this.elements.controlPanel.classList.remove('active');
+      this.elements.menuTrigger.classList.remove('active');
+    }
+  }
+  
   setupEventListeners() {
-    // Double-click to exit widget mode
     if (this.elements.root) {
       this.elements.root.addEventListener('dblclick', () => {
-        console.log('🖱️  Double-click detected');
         window.aether.window.onDoubleClick();
       });
     }
     
-    // Widget dragging
     if (this.elements.widgetContainer) {
       this.elements.widgetContainer.addEventListener('mousedown', (e) => {
         if (this.isWidgetMode) {
@@ -313,7 +310,6 @@ class MainApp {
       });
     }
     
-    // Mouse wheel zoom (Ctrl+Wheel)
     document.addEventListener('wheel', (e) => {
       if (e.ctrlKey) {
         e.preventDefault();
@@ -321,21 +317,17 @@ class MainApp {
       }
     }, { passive: false });
     
-    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-      // Escape to enter widget mode
       if (e.key === 'Escape') {
         e.preventDefault();
         window.aether.window.toggleWidgetMode();
       }
       
-      // Ctrl+Plus to zoom in
       if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
         e.preventDefault();
         window.aether.window.zoomIn();
       }
       
-      // Ctrl+Minus to zoom out
       if (e.ctrlKey && e.key === '-') {
         e.preventDefault();
         window.aether.window.zoomOut();
@@ -343,17 +335,11 @@ class MainApp {
     });
   }
   
-  /**
-   * Setup IPC event listeners
-   */
   setupIPCListeners() {
-    // Widget mode changes
     const widgetModeCleanup = window.aether.window.onWidgetModeChange((isWidget) => {
-      console.log('🔄 Widget mode changed:', isWidget);
       this.isWidgetMode = isWidget;
       this.updateUI();
       
-      // Notify visualizer of widget mode
       if (this.visualizer && typeof this.visualizer.setWidgetMode === 'function') {
         this.visualizer.setWidgetMode(isWidget);
       }
@@ -361,26 +347,19 @@ class MainApp {
     
     this.cleanupFunctions.push(widgetModeCleanup);
     
-    // Chat assistant stream
     const chatStreamCleanup = window.aether.chat.onAssistantStream((chunk, metadata) => {
-      console.log('💬 Assistant stream:', { chunk: chunk.substring(0, 50), metadata });
       this.handleAssistantStream(chunk, metadata);
     });
     
     this.cleanupFunctions.push(chatStreamCleanup);
     
-    // Request complete
     const requestCompleteCleanup = window.aether.chat.onRequestComplete((metadata) => {
-      console.log('✅ Request complete:', metadata);
       this.handleRequestComplete(metadata);
     });
     
     this.cleanupFunctions.push(requestCompleteCleanup);
   }
   
-  /**
-   * Start telemetry updates
-   */
   startTelemetryUpdates() {
     // Update telemetry every 250ms
     this.telemetryInterval = setInterval(() => {
@@ -392,27 +371,34 @@ class MainApp {
       this.updateSystemTime();
     }, 1000);
     
-    // Initial update
+    // Update model indicator every 5 seconds
+    this.modelIndicatorInterval = setInterval(() => {
+      this.updateModelIndicator();
+    }, 5000);
+    
+    // Initial updates
     this.updateTelemetry();
     this.updateSystemTime();
+    this.updateModelIndicator();
     
     console.log('✅ Telemetry updates started');
   }
   
-  /**
-   * Update telemetry displays
-   */
-  updateTelemetry() {
-    // CPU usage (simulated - would come from backend)
-    if (this.elements.cpuUsage) {
-      const cpu = Math.round(Math.random() * 30 + 10); // Simulated
-      this.elements.cpuUsage.textContent = `${cpu}%`;
-    }
+  async updateTelemetry() {
+    // Get real system stats
+    const stats = await window.aether.system.getStats();
     
-    // Memory usage (simulated - would come from backend)
-    if (this.elements.memoryUsage) {
-      const mem = Math.round(Math.random() * 200 + 100); // Simulated
-      this.elements.memoryUsage.textContent = `${mem} MB`;
+    if (stats) {
+      // CPU usage (real)
+      if (this.elements.cpuUsage) {
+        this.elements.cpuUsage.textContent = `${stats.cpu.percent}%`;
+      }
+      
+      // Memory usage (real, convert to MB)
+      if (this.elements.memoryUsage) {
+        const memMB = Math.round(stats.process.memory / (1024 * 1024));
+        this.elements.memoryUsage.textContent = `${memMB} MB`;
+      }
     }
     
     // FPS from visualizer
@@ -434,15 +420,13 @@ class MainApp {
       const status = (this.guru.state.assistant || 'idle').toUpperCase();
       this.elements.systemStatus.textContent = status;
       
-      // Update status indicator class
       this.elements.systemStatus.className = 'status-indicator';
       this.elements.systemStatus.classList.add(`status-${this.guru.state.assistant || 'idle'}`);
     }
     
-    // Network latency (would come from backend)
-    if (this.elements.networkLatency) {
-      const latency = Math.round(Math.random() * 20 + 15); // Simulated
-      this.elements.networkLatency.textContent = `${latency}ms`;
+    // Network latency from WebSocket ping
+    if (this.elements.networkLatency && this.guru && this.guru.lastPingTime !== undefined) {
+      this.elements.networkLatency.textContent = `${this.guru.lastPingTime}ms`;
     }
     
     // Node count from visualizer
@@ -452,9 +436,6 @@ class MainApp {
     }
   }
   
-  /**
-   * Update system time
-   */
   updateSystemTime() {
     if (this.elements.systemTime) {
       const now = new Date();
@@ -465,16 +446,42 @@ class MainApp {
     }
   }
   
-  /**
-   * Initialize UI state
-   */
   initializeUI() {
     this.updateUI();
+    this.updateModelIndicator();
   }
   
-  /**
-   * Update UI based on mode
-   */
+  async updateModelIndicator() {
+    try {
+      const endpoint = window.endpoint;
+      if (!endpoint) {
+        this.setModelStatus('offline', 'No Connection');
+        return;
+      }
+      
+      const health = await endpoint.getHealth();
+      
+      if (health && health.model) {
+        this.setModelStatus('online', health.model);
+      } else {
+        this.setModelStatus('online', 'Connected');
+      }
+    } catch (error) {
+      this.setModelStatus('offline', 'Offline');
+    }
+  }
+  
+  setModelStatus(status, modelName) {
+    if (this.elements.modelStatusDot) {
+      this.elements.modelStatusDot.className = 'model-status-dot';
+      this.elements.modelStatusDot.classList.add(status);
+    }
+    
+    if (this.elements.modelName && modelName) {
+      this.elements.modelName.textContent = modelName;
+    }
+  }
+  
   updateUI() {
     if (this.elements.widgetContainer) {
       this.elements.widgetContainer.style.display = this.isWidgetMode ? 'flex' : 'none';
@@ -494,161 +501,17 @@ class MainApp {
   async openSettings() {
     if (this.elements.settingsModal) {
       this.elements.settingsModal.classList.remove('hidden');
-      // Default to assistant tab
       this.switchSettingsTab('assistant');
       
-      // Load settings from backend
-      await this.loadSettings();
-    }
-  }
-  
-  /**
-   * Load settings from backend
-   */
-  async loadSettings() {
-    try {
-      console.log('📥 Loading settings from backend...');
-      
-      // Show loading status
-      const statusEl = document.getElementById('settings-status');
-      if (statusEl) {
-        statusEl.textContent = 'Loading...';
-      }
-      
-      // Get endpoint
-      const endpoint = window.endpoint;
-      if (!endpoint) {
-        throw new Error('Endpoint not available');
-      }
-      
-      // Try TOML settings first, fall back to regular settings
-      let settings;
-      let source = 'toml';
-      try {
-        settings = await endpoint.getSettings();
-      } catch (tomlError) {
-        console.warn('⚠️  TOML settings failed, using regular settings:', tomlError.message);
-        settings = await endpoint.getSettings();
-        source = 'json';
-      }
-      
-      console.log('✅ Settings loaded from backend:', settings);
-      
-      // Populate form fields
-      await this.populateSettingsForm(settings);
-      
-      // Update status
-      if (statusEl) {
-        statusEl.textContent = `Loaded from ${source.toUpperCase()}`;
-        setTimeout(() => {
-          statusEl.textContent = '';
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('❌ Failed to load settings:', error);
-      const statusEl = document.getElementById('settings-status');
-      if (statusEl) {
-        statusEl.textContent = 'Load failed';
-        statusEl.style.color = '#ff6b6b';
-        setTimeout(() => {
-          statusEl.textContent = '';
-          statusEl.style.color = '';
-        }, 3000);
-      }
-    }
-  }
-  
-  /**
-   * Populate settings form
-   */
-  async populateSettingsForm(settings) {
-    console.log('📝 Populating settings form...');
-    
-    // LLM Settings
-    if (settings.llm) {
-      const providerEl = document.getElementById('llm-provider');
-      const apiBaseEl = document.getElementById('llm-api-base');
-      const modelEl = document.getElementById('llm-model');
-      
-      if (providerEl && settings.llm.provider) {
-        providerEl.value = settings.llm.provider;
-      }
-      if (apiBaseEl && settings.llm.api_base) {
-        apiBaseEl.value = settings.llm.api_base;
-      }
-      
-      // Load models if API base is available
-      if (settings.llm.api_base && modelEl) {
+      // Load settings using SettingsManager
+      if (this.settingsManager) {
         try {
-          const endpoint = window.endpoint;
-          const models = await endpoint.getModels(settings.llm.api_base);
-          
-          // Clear and populate model dropdown
-          modelEl.innerHTML = '<option value="">Select a model...</option>';
-          if (models && models.length > 0) {
-            models.forEach(model => {
-              const option = document.createElement('option');
-              option.value = model.id || model;
-              option.textContent = model.id || model;
-              modelEl.appendChild(option);
-            });
-            
-            // Select current model
-            if (settings.llm.model) {
-              modelEl.value = settings.llm.model;
-            }
-          }
-          
-          // Update help text
-          const modelHelp = document.getElementById('llm-model-help');
-          if (modelHelp) {
-            modelHelp.textContent = `${models.length} models available`;
-          }
+          await this.settingsManager.loadSettings();
         } catch (error) {
-          console.error('Failed to load models:', error);
-          const modelHelp = document.getElementById('llm-model-help');
-          if (modelHelp) {
-            modelHelp.textContent = 'Failed to load models';
-            modelHelp.style.color = '#ff6b6b';
-          }
+          console.error('[MainApp] Failed to load settings:', error);
         }
       }
     }
-    
-    // Profile Settings
-    if (settings.interpreter && settings.interpreter.profile) {
-      const profileEl = document.getElementById('oi-profile');
-      if (profileEl) {
-        try {
-          const endpoint = window.endpoint;
-          const profiles = await endpoint.getProfiles();
-          
-          // Clear and populate profile dropdown
-          profileEl.innerHTML = '<option value="">Select a profile...</option>';
-          if (profiles && profiles.length > 0) {
-            profiles.forEach(profile => {
-              const option = document.createElement('option');
-              option.value = profile;
-              option.textContent = profile;
-              profileEl.appendChild(option);
-            });
-            
-            // Select current profile
-            profileEl.value = settings.interpreter.profile;
-          }
-          
-          // Update help text
-          const profileHelp = document.getElementById('oi-profile-help');
-          if (profileHelp) {
-            profileHelp.textContent = `${profiles.length} profiles available`;
-          }
-        } catch (error) {
-          console.error('Failed to load profiles:', error);
-        }
-      }
-    }
-    
-    console.log('✅ Settings form populated');
   }
   
   /**
@@ -684,100 +547,14 @@ class MainApp {
    * Save settings
    */
   async saveSettings() {
-    try {
-      console.log('💾 Saving settings...');
-      
-      // Show saving status
-      const statusEl = document.getElementById('settings-status');
-      if (statusEl) {
-        statusEl.textContent = 'Saving...';
-      }
-      
-      // Collect settings from form
-      const settings = this.collectSettingsFromForm();
-      console.log('📦 Collected settings:', settings);
-      
-      // Get endpoint
-      const endpoint = window.endpoint;
-      if (!endpoint) {
-        throw new Error('Endpoint not available');
-      }
-      
-      // Save to backend
+    if (this.settingsManager) {
       try {
-        await endpoint.setSettings(settings);
-        console.log('✅ Settings saved successfully');
-        
-        // Update status
-        if (statusEl) {
-          statusEl.textContent = 'Saved successfully';
-          statusEl.style.color = '#00ff7f';
-          setTimeout(() => {
-            this.closeSettings();
-          }, 1000);
-        }
-      } catch (tomlError) {
-        console.warn('⚠️  TOML save failed, trying regular settings:', tomlError.message);
-        await endpoint.setSettings(settings);
-        console.log('✅ Settings saved to JSON');
-        
-        if (statusEl) {
-          statusEl.textContent = 'Saved successfully';
-          statusEl.style.color = '#00ff7f';
-          setTimeout(() => {
-            this.closeSettings();
-          }, 1000);
-        }
-      }
-    } catch (error) {
-      console.error('❌ Failed to save settings:', error);
-      const statusEl = document.getElementById('settings-status');
-      if (statusEl) {
-        statusEl.textContent = 'Save failed';
-        statusEl.style.color = '#ff6b6b';
-        setTimeout(() => {
-          statusEl.textContent = '';
-          statusEl.style.color = '';
-        }, 3000);
+        await this.settingsManager.saveSettings();
+        setTimeout(() => this.closeSettings(), 1000);
+      } catch (error) {
+        console.error('[MainApp] Failed to save settings:', error);
       }
     }
-  }
-  
-  /**
-   * Collect settings from form
-   */
-  collectSettingsFromForm() {
-    const settings = {};
-    
-    // LLM Settings
-    const providerEl = document.getElementById('llm-provider');
-    const apiBaseEl = document.getElementById('llm-api-base');
-    const modelEl = document.getElementById('llm-model');
-    
-    if (providerEl || apiBaseEl || modelEl) {
-      settings.llm = {};
-      
-      if (providerEl && providerEl.value) {
-        settings.llm.provider = providerEl.value;
-      }
-      if (apiBaseEl && apiBaseEl.value) {
-        settings.llm.api_base = apiBaseEl.value;
-      }
-      if (modelEl && modelEl.value) {
-        settings.llm.model = modelEl.value;
-      }
-    }
-    
-    // Profile Settings
-    const profileEl = document.getElementById('oi-profile');
-    if (profileEl && profileEl.value) {
-      if (!settings.interpreter) {
-        settings.interpreter = {};
-      }
-      settings.interpreter.profile = profileEl.value;
-    }
-    
-    return settings;
   }
   
   /**
@@ -864,6 +641,11 @@ class MainApp {
     if (this.systemTimeInterval) {
       clearInterval(this.systemTimeInterval);
       this.systemTimeInterval = null;
+    }
+    
+    if (this.modelIndicatorInterval) {
+      clearInterval(this.modelIndicatorInterval);
+      this.modelIndicatorInterval = null;
     }
     
     // Cleanup visualizer

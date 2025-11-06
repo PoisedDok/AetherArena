@@ -32,6 +32,7 @@ const { getManager: getShortcutManager } = require('./services/ShortcutManager')
 const { getLauncher: getServiceLauncher } = require('./services/ServiceLauncher');
 const { getManager: getPortManager } = require('./services/PortManager');
 const { getManager: getSecurityManager } = require('./security/SecurityManager');
+const SystemMonitor = require('./services/SystemMonitor');
 
 // ============================================================================
 // Global State
@@ -43,6 +44,7 @@ let shortcutManager = null;
 let serviceLauncher = null;
 let portManager = null;
 let securityManager = null;
+let systemMonitor = null;
 let backendProcess = null;
 let healthMonitoringStop = null;
 
@@ -136,8 +138,18 @@ async function initialize() {
     
     await windowManager.initialize();
     
-    // 7. Initialize IPC router
+    // 7. Initialize system monitor
+    systemMonitor = new SystemMonitor({
+      pollInterval: 250,
+      enableLogging: config.dev.debugMode,
+    });
+    
+    systemMonitor.start();
+    logger.info('System monitor initialized');
+    
+    // 8. Initialize IPC router (needs systemMonitor)
     ipcRouter = getIpcRouter(windowManager, {
+      systemMonitor,
       validateSource: true,
       logMessages: config.dev.debugMode,
       logErrors: true,
@@ -145,7 +157,7 @@ async function initialize() {
     
     ipcRouter.initialize();
     
-    // 8. Initialize shortcut manager
+    // 9. Initialize shortcut manager
     shortcutManager = getShortcutManager(windowManager, {
       enabled: true,
     });
@@ -205,6 +217,12 @@ async function shutdown() {
     if (healthMonitoringStop) {
       healthMonitoringStop();
       healthMonitoringStop = null;
+    }
+    
+    // 1.5 Stop system monitor
+    if (systemMonitor) {
+      systemMonitor.stop();
+      systemMonitor = null;
     }
     
     // 2. Set quitting flag
