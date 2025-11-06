@@ -658,6 +658,11 @@ class MessageManager {
       
       await this._notifyBackendContextSwitch(chatId);
 
+      if (window.ipcBridge && typeof window.ipcBridge.send === 'function') {
+        window.ipcBridge.send('artifacts:switch-chat', chatId);
+        console.log('[MessageManager] Notified artifacts window of chat switch');
+      }
+
       const messages = this.messageState.getMessages();
       
       if (messages.length === 0) {

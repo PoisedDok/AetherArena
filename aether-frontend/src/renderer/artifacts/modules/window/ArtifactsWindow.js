@@ -72,7 +72,6 @@ class ArtifactsWindow {
     // DOM elements
     this.element = null;
     this.header = null;
-    this.title = null;
     this.tabsContainer = null;
     this.controlsContainer = null;
     this.contentContainer = null;
@@ -151,7 +150,6 @@ class ArtifactsWindow {
     // Clear references
     this.element = null;
     this.header = null;
-    this.title = null;
     this.tabsContainer = null;
     this.controlsContainer = null;
     this.contentContainer = null;
@@ -253,12 +251,7 @@ class ArtifactsWindow {
     this.header = document.createElement('div');
     this.header.className = CONFIG.CLASS_NAMES.HEADER;
 
-    // Create title
-    this.title = document.createElement('div');
-    this.title.className = CONFIG.CLASS_NAMES.TITLE;
-    this.title.textContent = 'ARTIFACTS';
-
-    // Create tabs container
+    // Create tabs container (no separate title - tabs are the main UI)
     this.tabsContainer = document.createElement('div');
     this.tabsContainer.className = CONFIG.CLASS_NAMES.TABS;
 
@@ -273,9 +266,8 @@ class ArtifactsWindow {
     this.closeButton.textContent = '×';
     this.closeButton.title = 'Close';
 
-    // Assemble header
+    // Assemble header (no title element)
     this.controlsContainer.appendChild(this.closeButton);
-    this.header.appendChild(this.title);
     this.header.appendChild(this.tabsContainer);
     this.header.appendChild(this.controlsContainer);
 
@@ -323,6 +315,15 @@ class ArtifactsWindow {
    */
   _handleClose() {
     this.hide();
+    
+    // Notify main process to hide the window
+    if (window.aether && window.aether.windowControl) {
+      try {
+        window.aether.windowControl.control('close');
+      } catch (error) {
+        console.error('[ArtifactsWindow] Failed to notify main process:', error);
+      }
+    }
   }
 
   /**

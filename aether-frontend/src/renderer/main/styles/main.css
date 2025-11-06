@@ -518,8 +518,8 @@ body.widget-mode #root {
 
 .settings-panel {
   width: 100%;
-  max-width: 900px;
-  max-height: 85vh;
+  max-width: 1400px;
+  height: 90vh;
   background: rgba(10, 10, 15, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
@@ -630,7 +630,9 @@ body.widget-mode #root {
 }
 
 .settings-sidebar {
-  width: 200px;
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
   background: linear-gradient(to right, rgba(10, 10, 15, 0.4), rgba(10, 10, 15, 0.2));
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   overflow-y: auto;
@@ -638,28 +640,35 @@ body.widget-mode #root {
 }
 
 .settings-tabs {
-  padding: 16px 0;
+  padding: 10px 0;
 }
 
 .settings-tab {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  margin: 4px 12px;
+  gap: 10px;
+  padding: 10px 16px;
+  margin: 3px 10px;
   cursor: pointer;
   color: rgba(255, 255, 255, 0.4);
   border-radius: 10px;
   transition: all 0.3s ease;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   position: relative;
+  white-space: nowrap;
 }
 
 .settings-tab i {
-  font-size: 16px;
-  width: 20px;
+  font-size: 14px;
+  width: 18px;
   text-align: center;
+  flex-shrink: 0;
+}
+
+.settings-tab span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .settings-tab:hover {
@@ -689,7 +698,8 @@ body.widget-mode #root {
 .settings-main {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 24px;
+  overflow-x: hidden;
+  padding: 20px 28px;
 }
 
 .settings-section {
@@ -705,7 +715,7 @@ body.widget-mode #root {
 }
 
 .section-header h3 {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.95);
   margin: 0 0 6px 0;
@@ -746,7 +756,7 @@ body.widget-mode #root {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
   margin: 0;

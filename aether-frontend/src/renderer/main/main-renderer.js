@@ -529,18 +529,46 @@ class MainApp {
       });
     }
 
-    // Refresh integrations display when switching to integrations tab
-    if (tabName === 'integrations' && this.currentSettings && this.currentSettings.integrations) {
-      const integrations = this.currentSettings.integrations;
-      const perplexicaEl = document.getElementById('integration-perplexica');
-      const searxngEl = document.getElementById('integration-searxng');
-      const doclingEl = document.getElementById('integration-docling');
-      const mcpEl = document.getElementById('integration-mcp');
+    if (tabName === 'integrations' && this.settingsManager && this.settingsManager.currentSettings) {
+      const integrations = this.settingsManager.currentSettings.integrations;
+      if (integrations) {
+        this.settingsManager._populateIntegrationSettings(integrations);
+      }
+    }
 
-      if (perplexicaEl) perplexicaEl.checked = integrations.perplexica_enabled || false;
-      if (searxngEl) searxngEl.checked = integrations.searxng_enabled || false;
-      if (doclingEl) doclingEl.checked = integrations.docling_enabled || false;
-      if (mcpEl) mcpEl.checked = integrations.mcp_enabled || false;
+    if (tabName === 'advanced' && this.settingsManager && this.settingsManager.currentSettings) {
+      const { llm, interpreter } = this.settingsManager.currentSettings;
+      if (llm && interpreter) {
+        this.settingsManager._populateAdvancedSettings(llm, interpreter);
+      }
+    }
+
+    if (tabName === 'database' && this.settingsManager && this.settingsManager.currentSettings) {
+      const { database } = this.settingsManager.currentSettings;
+      if (database) {
+        this.settingsManager._populateDatabaseSettings(database);
+      }
+    }
+
+    if (tabName === 'memory' && this.settingsManager && this.settingsManager.currentSettings) {
+      const { memory } = this.settingsManager.currentSettings;
+      if (memory) {
+        this.settingsManager._populateMemorySettings(memory);
+      }
+    }
+
+    if (tabName === 'monitoring' && this.settingsManager && this.settingsManager.currentSettings) {
+      const { monitoring } = this.settingsManager.currentSettings;
+      if (monitoring) {
+        this.settingsManager._populateMonitoringSettings(monitoring);
+      }
+    }
+
+    if (tabName === 'storage' && this.settingsManager && this.settingsManager.currentSettings) {
+      const { storage } = this.settingsManager.currentSettings;
+      if (storage) {
+        this.settingsManager._populateStorageSettings(storage);
+      }
     }
   }
   

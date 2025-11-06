@@ -335,6 +335,33 @@ class IpcRouter {
       const artifactsWindow = this.windowManager.getArtifactsWindow();
       this._sendToWindow(artifactsWindow, 'artifacts:switch-tab', targetTab);
     });
+    
+    this._registerRoute('artifacts:show-artifact', (event, data) => {
+      const artifactsWindow = this.windowManager.getArtifactsWindow();
+      
+      if (!artifactsWindow || artifactsWindow.isDestroyed()) {
+        this.windowManager.createArtifactsWindow();
+      }
+      
+      this.windowManager.sendToArtifacts('artifacts:show-artifact', data);
+      
+      const win = this.windowManager.getArtifactsWindow();
+      if (win && !win.isDestroyed()) {
+        win.show();
+        win.focus();
+      }
+    });
+    
+    this._registerRoute('artifacts:show-window', (event) => {
+      const artifactsWindow = this.windowManager.getArtifactsWindow();
+      
+      if (!artifactsWindow || artifactsWindow.isDestroyed()) {
+        this.windowManager.createArtifactsWindow();
+      } else {
+        artifactsWindow.show();
+        artifactsWindow.focus();
+      }
+    });
 
     this._registerRoute('artifacts:load-code', (event, data) => {
       this.windowManager.loadArtifactsCode(data);

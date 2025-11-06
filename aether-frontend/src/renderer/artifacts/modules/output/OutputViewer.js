@@ -275,7 +275,7 @@ class OutputViewer {
 
     // Create clear button
     const clearBtn = document.createElement('button');
-    clearBtn.textContent = '🗑️ Clear';
+    clearBtn.textContent = 'Clear';
     clearBtn.title = 'Clear output';
     clearBtn.addEventListener('click', this._handleClear);
     this.controlsContainer.appendChild(clearBtn);
@@ -381,7 +381,7 @@ class OutputViewer {
    */
   _renderText(data) {
     const pre = document.createElement('pre');
-    pre.style.cssText = 'padding: 16px; margin: 0; font-family: "Courier New", monospace; font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;';
+    pre.style.cssText = 'padding: 16px; margin: 0; font-family: var(--font-family-mono, "Courier New", monospace); font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; color: rgba(255, 255, 255, 0.95);';
     
     const text = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
     pre.textContent = text;
@@ -472,30 +472,31 @@ class OutputViewer {
       }
 
       .${CONFIG.CLASS_NAMES.FORMAT_SELECT}:focus {
-        border-color: rgba(255, 100, 0, 0.5);
+        border-color: rgba(255, 255, 255, 0.4);
       }
 
       .${CONFIG.CLASS_NAMES.CONTROLS} button {
         padding: 6px 12px;
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.8);
-        background: rgba(255, 100, 0, 0.1);
-        border: 1px solid rgba(255, 100, 0, 0.3);
+        color: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 6px;
         cursor: pointer;
         transition: all 200ms ease;
       }
 
       .${CONFIG.CLASS_NAMES.CONTROLS} button:hover {
-        color: rgba(255, 100, 0, 0.9);
-        background: rgba(255, 100, 0, 0.2);
-        border-color: rgba(255, 100, 0, 0.5);
+        color: rgba(255, 255, 255, 0.98);
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.3);
       }
 
       .${CONFIG.CLASS_NAMES.CONTENT} {
         flex: 1;
         overflow: auto;
-        background: white;
+        background: rgba(10, 10, 10, 0.6);
+        padding: 12px;
       }
     `;
 

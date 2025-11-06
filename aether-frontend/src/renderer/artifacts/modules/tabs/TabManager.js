@@ -17,9 +17,9 @@ const { freeze } = Object;
 // Tab configuration
 const CONFIG = freeze({
   TABS: freeze({
-    CODE: freeze({ id: 'code', label: 'Code', icon: '📝' }),
-    OUTPUT: freeze({ id: 'output', label: 'Output', icon: '📊' }),
-    FILES: freeze({ id: 'files', label: 'Files', icon: '📁' }),
+    CODE: freeze({ id: 'code', label: 'Code', icon: '' }),
+    OUTPUT: freeze({ id: 'output', label: 'Output', icon: '' }),
+    FILES: freeze({ id: 'files', label: 'Files', icon: '' }),
   }),
   DEFAULT_TAB: 'output',
   CLASS_NAMES: freeze({
@@ -270,7 +270,7 @@ class TabManager {
     const button = document.createElement('button');
     button.className = CONFIG.CLASS_NAMES.TAB_BUTTON;
     button.dataset.tab = config.id;
-    button.textContent = `${config.icon} ${config.label}`;
+    button.innerHTML = `<span class="tab-label">${config.label}</span>`;
     button.title = config.label;
 
     // Add click handler

@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: bridge-factory (getChannelConfig, canSend, canReceive) --- {method_call, string}
- * Processing: Define frozen channel whitelist per window (mainWindow: send 16 channels, receive 7 channels; chatWindow: send 13 channels, receive 6 channels; artifactsWindow: send 6 channels, receive 9 channels), normalize context names (main → mainWindow, chat → chatWindow, artifacts → artifactsWindow), provide channel validation (canSend, canReceive, validateChannel), frozen registry prevents runtime modification --- {2 jobs: JOB_GET_STATE, JOB_VALIDATE_SCHEMA}
+ * Processing: Define frozen channel whitelist per window (mainWindow: send 16 channels, receive 7 channels; chatWindow: send 17 channels, receive 7 channels; artifactsWindow: send 6 channels, receive 9 channels), normalize context names (main → mainWindow, chat → chatWindow, artifacts → artifactsWindow), provide channel validation (canSend, canReceive, validateChannel), frozen registry prevents runtime modification --- {2 jobs: JOB_GET_STATE, JOB_VALIDATE_SCHEMA}
  * Outgoing: Channel config {name, send, receive}, validation results --- {channel_config | boolean, javascript_object_frozen | boolean}
  * 
  * 
@@ -92,6 +92,8 @@ const chatWindow = freeze({
     'artifacts:open-file',
     'artifacts:stream:ready',
     'artifacts:ensure-visible',
+    'artifacts:show-artifact',
+    'artifacts:show-window',
   ]),
   
   // Channels this window can RECEIVE from main process
@@ -133,6 +135,7 @@ const artifactsWindow = freeze({
     'artifacts:switch-chat',
     'artifacts:load-code',
     'artifacts:load-output',
+    'artifacts:show-artifact',
   ]),
 });
 

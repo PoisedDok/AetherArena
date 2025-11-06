@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: main-renderer.js, Endpoint.getSettings()/setSettings()/getProfiles()/getModels()/getServicesStatus() --- {Settings objects, Profile arrays, Model arrays, Service status}
- * Processing: Load/validate/populate/save settings, manage form state, handle errors, security validation, service status display --- {9 jobs: data_validation, error_handling, form_population, form_collection, security_validation, state_management, dropdown_management, backend_communication, service_monitoring}
- * Outgoing: DOM updates (form elements), Endpoint API calls, settings-updated events --- {HTMLElements, HTTP requests, CustomEvent}
+ * Incoming: main-renderer.js, Endpoint.getSettings()/setSettings()/getProfiles()/getModels()/getServicesStatus() --- {Settings objects: llm/interpreter/security/database/monitoring/memory/storage/integrations, Profile arrays, Model arrays, Service status}
+ * Processing: Load/validate/populate/save full settings stack (LLM, Interpreter, Security, Database, Monitoring, Memory, Storage, Integrations, Advanced), manage form state across 8 tabs, handle errors, security validation, service status display --- {11 jobs: data_validation, error_handling, form_population, form_collection, security_validation, state_management, dropdown_management, backend_communication, service_monitoring, settings_application, immediate_reload}
+ * Outgoing: DOM updates (form elements across 8 tabs), Endpoint API calls (GET /v1/settings, PATCH /v1/settings, GET /v1/services/status), settings-updated events, model indicator refresh --- {HTMLElements, HTTP requests, CustomEvent}
  */
 
 class SettingsManager {
@@ -83,30 +83,19 @@ class SettingsManager {
    */
   async populateForm(settings) {
     try {
-      console.log('[SettingsManager] 📝 Populating form...');
+      console.log('[SettingsManager] Populating form');
       
-      // LLM Settings
-      if (settings.llm) {
-        await this._populateLLMSettings(settings.llm);
-      }
+      if (settings.llm) await this._populateLLMSettings(settings.llm);
+      if (settings.interpreter) await this._populateInterpreterSettings(settings.interpreter);
+      if (settings.security) this._populateSecuritySettings(settings.security);
+      if (settings.integrations) this._populateIntegrationSettings(settings.integrations);
+      if (settings.database) this._populateDatabaseSettings(settings.database);
+      if (settings.monitoring) this._populateMonitoringSettings(settings.monitoring);
+      if (settings.memory) this._populateMemorySettings(settings.memory);
+      if (settings.storage) this._populateStorageSettings(settings.storage);
+      if (settings.llm && settings.interpreter) this._populateAdvancedSettings(settings.llm, settings.interpreter);
       
-      // Interpreter Settings
-      if (settings.interpreter) {
-        await this._populateInterpreterSettings(settings.interpreter);
-      }
-      
-      // Security Settings
-      if (settings.security) {
-        this._populateSecuritySettings(settings.security);
-      }
-      
-      // Integration Settings
-      if (settings.integrations) {
-        this._populateIntegrationSettings(settings.integrations);
-      }
-      
-      console.log('[SettingsManager] ✅ Form populated');
-      
+      console.log('[SettingsManager] Form populated');
     } catch (error) {
       console.error('[SettingsManager] Failed to populate form:', error);
       throw error;
@@ -351,12 +340,81 @@ class SettingsManager {
     const perplexicaEl = document.getElementById('integration-perplexica');
     const searxngEl = document.getElementById('integration-searxng');
     const doclingEl = document.getElementById('integration-docling');
+    const xlwingsEl = document.getElementById('integration-xlwings');
     const mcpEl = document.getElementById('integration-mcp');
 
     if (perplexicaEl) perplexicaEl.checked = integrations.perplexica_enabled || false;
     if (searxngEl) searxngEl.checked = integrations.searxng_enabled || false;
     if (doclingEl) doclingEl.checked = integrations.docling_enabled || false;
+    if (xlwingsEl) xlwingsEl.checked = integrations.xlwings_enabled || false;
     if (mcpEl) mcpEl.checked = integrations.mcp_enabled || false;
+
+    const perplexicaUrlEl = document.getElementById('integration-perplexica-url');
+    const searxngUrlEl = document.getElementById('integration-searxng-url');
+    const doclingUrlEl = document.getElementById('integration-docling-url');
+    const xlwingsUrlEl = document.getElementById('integration-xlwings-url');
+
+    if (perplexicaUrlEl) perplexicaUrlEl.value = integrations.perplexica_url || '';
+    if (searxngUrlEl) searxngUrlEl.value = integrations.searxng_url || '';
+    if (doclingUrlEl) doclingUrlEl.value = integrations.docling_url || '';
+    if (xlwingsUrlEl) xlwingsUrlEl.value = integrations.xlwings_url || '';
+  }
+
+  _populateDatabaseSettings(database) {
+    const poolSizeEl = document.getElementById('db-pool-size');
+    const maxOverflowEl = document.getElementById('db-max-overflow');
+    const poolTimeoutEl = document.getElementById('db-pool-timeout');
+    const echoSqlEl = document.getElementById('db-echo-sql');
+
+    if (poolSizeEl) poolSizeEl.value = database.pool_size || 10;
+    if (maxOverflowEl) maxOverflowEl.value = database.max_overflow || 20;
+    if (poolTimeoutEl) poolTimeoutEl.value = database.pool_timeout || 30;
+    if (echoSqlEl) echoSqlEl.checked = database.echo_sql || false;
+  }
+
+  _populateMonitoringSettings(monitoring) {
+    const logLevelEl = document.getElementById('monitoring-log-level');
+    const logFormatEl = document.getElementById('monitoring-log-format');
+    const metricsEl = document.getElementById('monitoring-metrics-enabled');
+    const tracingEl = document.getElementById('monitoring-tracing-enabled');
+    const healthIntervalEl = document.getElementById('monitoring-health-check-interval');
+
+    if (logLevelEl) logLevelEl.value = monitoring.log_level || 'INFO';
+    if (logFormatEl) logFormatEl.value = monitoring.log_format || 'json';
+    if (metricsEl) metricsEl.checked = monitoring.metrics_enabled !== false;
+    if (tracingEl) tracingEl.checked = monitoring.tracing_enabled !== false;
+    if (healthIntervalEl) healthIntervalEl.value = monitoring.health_check_interval || 30;
+  }
+
+  _populateMemorySettings(memory) {
+    const enabledEl = document.getElementById('memory-enabled');
+    const typeEl = document.getElementById('memory-type');
+    const embedderEl = document.getElementById('memory-embedder');
+    const topKEl = document.getElementById('memory-top-k');
+
+    if (enabledEl) enabledEl.checked = memory.enabled !== false;
+    if (typeEl) typeEl.value = memory.type || 'sqlite';
+    if (embedderEl) embedderEl.value = memory.embedder || 'local-minilm';
+    if (topKEl) topKEl.value = memory.top_k || 5;
+  }
+
+  _populateStorageSettings(storage) {
+    const maxUploadEl = document.getElementById('storage-max-upload-size');
+    if (maxUploadEl) maxUploadEl.value = storage.max_upload_size_mb || 100;
+  }
+
+  _populateAdvancedSettings(llm, interpreter) {
+    const tempEl = document.getElementById('llm-temperature-adv');
+    const maxTokensEl = document.getElementById('llm-max-tokens-adv');
+    const contextWindowEl = document.getElementById('llm-context-window-adv');
+    const supportsVisionEl = document.getElementById('llm-supports-vision');
+    const systemMessageEl = document.getElementById('interpreter-system-message');
+
+    if (tempEl) tempEl.value = llm.temperature || 0.7;
+    if (maxTokensEl) maxTokensEl.value = llm.max_tokens || 4096;
+    if (contextWindowEl) contextWindowEl.value = llm.context_window || 100000;
+    if (supportsVisionEl) supportsVisionEl.checked = llm.supports_vision || false;
+    if (systemMessageEl) systemMessageEl.value = interpreter.system_message || '';
   }
 
   /**
@@ -441,16 +499,23 @@ class SettingsManager {
    */
   collectSettings() {
     try {
+      const llmBasic = this._collectLLMSettings();
+      const llmAdvanced = this._collectAdvancedLLMSettings();
+      const interpreterBasic = this._collectInterpreterSettings();
+      const interpreterAdvanced = this._collectAdvancedInterpreterSettings();
+
       const settings = {
-        llm: this._collectLLMSettings(),
-        interpreter: this._collectInterpreterSettings(),
+        llm: { ...llmBasic, ...llmAdvanced },
+        interpreter: { ...interpreterBasic, ...interpreterAdvanced },
         security: this._collectSecuritySettings(),
+        database: this._collectDatabaseSettings(),
+        monitoring: this._collectMonitoringSettings(),
+        memory: this._collectMemorySettings(),
+        storage: this._collectStorageSettings(),
         integrations: this._collectIntegrationSettings()
       };
       
-      // Validate settings
       this._validateSettings(settings);
-      
       return settings;
       
     } catch (error) {
@@ -555,14 +620,102 @@ class SettingsManager {
     const perplexicaEl = document.getElementById('integration-perplexica');
     const searxngEl = document.getElementById('integration-searxng');
     const doclingEl = document.getElementById('integration-docling');
+    const xlwingsEl = document.getElementById('integration-xlwings');
     const mcpEl = document.getElementById('integration-mcp');
+
+    const perplexicaUrlEl = document.getElementById('integration-perplexica-url');
+    const searxngUrlEl = document.getElementById('integration-searxng-url');
+    const doclingUrlEl = document.getElementById('integration-docling-url');
+    const xlwingsUrlEl = document.getElementById('integration-xlwings-url');
 
     if (perplexicaEl) integrations.perplexica_enabled = perplexicaEl.checked;
     if (searxngEl) integrations.searxng_enabled = searxngEl.checked;
     if (doclingEl) integrations.docling_enabled = doclingEl.checked;
+    if (xlwingsEl) integrations.xlwings_enabled = xlwingsEl.checked;
     if (mcpEl) integrations.mcp_enabled = mcpEl.checked;
 
+    if (perplexicaUrlEl && perplexicaUrlEl.value) integrations.perplexica_url = perplexicaUrlEl.value;
+    if (searxngUrlEl && searxngUrlEl.value) integrations.searxng_url = searxngUrlEl.value;
+    if (doclingUrlEl && doclingUrlEl.value) integrations.docling_url = doclingUrlEl.value;
+    if (xlwingsUrlEl && xlwingsUrlEl.value) integrations.xlwings_url = xlwingsUrlEl.value;
+
     return integrations;
+  }
+
+  _collectDatabaseSettings() {
+    const database = {};
+    const poolSizeEl = document.getElementById('db-pool-size');
+    const maxOverflowEl = document.getElementById('db-max-overflow');
+    const poolTimeoutEl = document.getElementById('db-pool-timeout');
+    const echoSqlEl = document.getElementById('db-echo-sql');
+
+    if (poolSizeEl) database.pool_size = parseInt(poolSizeEl.value) || 10;
+    if (maxOverflowEl) database.max_overflow = parseInt(maxOverflowEl.value) || 20;
+    if (poolTimeoutEl) database.pool_timeout = parseInt(poolTimeoutEl.value) || 30;
+    if (echoSqlEl) database.echo_sql = echoSqlEl.checked;
+
+    return database;
+  }
+
+  _collectMonitoringSettings() {
+    const monitoring = {};
+    const logLevelEl = document.getElementById('monitoring-log-level');
+    const logFormatEl = document.getElementById('monitoring-log-format');
+    const metricsEl = document.getElementById('monitoring-metrics-enabled');
+    const tracingEl = document.getElementById('monitoring-tracing-enabled');
+    const healthIntervalEl = document.getElementById('monitoring-health-check-interval');
+
+    if (logLevelEl) monitoring.log_level = logLevelEl.value;
+    if (logFormatEl) monitoring.log_format = logFormatEl.value;
+    if (metricsEl) monitoring.metrics_enabled = metricsEl.checked;
+    if (tracingEl) monitoring.tracing_enabled = tracingEl.checked;
+    if (healthIntervalEl) monitoring.health_check_interval = parseInt(healthIntervalEl.value) || 30;
+
+    return monitoring;
+  }
+
+  _collectMemorySettings() {
+    const memory = {};
+    const enabledEl = document.getElementById('memory-enabled');
+    const typeEl = document.getElementById('memory-type');
+    const embedderEl = document.getElementById('memory-embedder');
+    const topKEl = document.getElementById('memory-top-k');
+
+    if (enabledEl) memory.enabled = enabledEl.checked;
+    if (typeEl) memory.type = typeEl.value;
+    if (embedderEl) memory.embedder = embedderEl.value;
+    if (topKEl) memory.top_k = parseInt(topKEl.value) || 5;
+
+    return memory;
+  }
+
+  _collectStorageSettings() {
+    const storage = {};
+    const maxUploadEl = document.getElementById('storage-max-upload-size');
+    if (maxUploadEl) storage.max_upload_size_mb = parseInt(maxUploadEl.value) || 100;
+    return storage;
+  }
+
+  _collectAdvancedLLMSettings() {
+    const llm = {};
+    const tempEl = document.getElementById('llm-temperature-adv');
+    const maxTokensEl = document.getElementById('llm-max-tokens-adv');
+    const contextWindowEl = document.getElementById('llm-context-window-adv');
+    const supportsVisionEl = document.getElementById('llm-supports-vision');
+
+    if (tempEl && tempEl.value) llm.temperature = parseFloat(tempEl.value) || 0.7;
+    if (maxTokensEl && maxTokensEl.value) llm.max_tokens = parseInt(maxTokensEl.value) || 4096;
+    if (contextWindowEl && contextWindowEl.value) llm.context_window = parseInt(contextWindowEl.value) || 100000;
+    if (supportsVisionEl) llm.supports_vision = supportsVisionEl.checked;
+
+    return llm;
+  }
+
+  _collectAdvancedInterpreterSettings() {
+    const interpreter = {};
+    const systemMessageEl = document.getElementById('interpreter-system-message');
+    if (systemMessageEl && systemMessageEl.value) interpreter.system_message = systemMessageEl.value;
+    return interpreter;
   }
   
   /**

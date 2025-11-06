@@ -193,6 +193,26 @@
                                     <i class="fas fa-puzzle-piece"></i>
                                     <span>Integrations</span>
                                 </div>
+                                <div class="settings-tab" data-tab="advanced">
+                                    <i class="fas fa-sliders-h"></i>
+                                    <span>Advanced</span>
+                                </div>
+                                <div class="settings-tab" data-tab="database">
+                                    <i class="fas fa-database"></i>
+                                    <span>Database</span>
+                                </div>
+                                <div class="settings-tab" data-tab="memory">
+                                    <i class="fas fa-brain"></i>
+                                    <span>Memory</span>
+                                </div>
+                                <div class="settings-tab" data-tab="monitoring">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Monitoring</span>
+                                </div>
+                                <div class="settings-tab" data-tab="storage">
+                                    <i class="fas fa-hdd"></i>
+                                    <span>Storage</span>
+                                </div>
                             </div>
                         </div>
 
@@ -329,10 +349,303 @@
 
                                         <div class="form-field">
                                             <label style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="checkbox" id="integration-xlwings" />
+                                                <span>xlwings (Excel Automation)</span>
+                                            </label>
+                                            <div class="form-help">Excel workbook creation and automation</div>
+                                        </div>
+
+                                        <div class="form-field">
+                                            <label style="display: flex; align-items: center; gap: 10px;">
                                                 <input type="checkbox" id="integration-mcp" />
                                                 <span>MCP Servers (Model Context Protocol)</span>
                                             </label>
                                             <div class="form-help">Dynamic tool registration via MCP servers</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-card">
+                                    <div class="card-header">
+                                        <h4><i class="fas fa-link"></i> Integration URLs</h4>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="form-row">
+                                            <div class="form-field">
+                                                <label for="integration-perplexica-url">Perplexica URL</label>
+                                                <div class="input-wrapper">
+                                                    <input id="integration-perplexica-url" type="text" placeholder="http://localhost:3000" />
+                                                    <div class="field-icon"><i class="fas fa-link"></i></div>
+                                                </div>
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="integration-searxng-url">SearXNG URL</label>
+                                                <div class="input-wrapper">
+                                                    <input id="integration-searxng-url" type="text" placeholder="http://127.0.0.1:4000" />
+                                                    <div class="field-icon"><i class="fas fa-link"></i></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-field">
+                                                <label for="integration-docling-url">Docling URL</label>
+                                                <div class="input-wrapper">
+                                                    <input id="integration-docling-url" type="text" placeholder="http://127.0.0.1:8000" />
+                                                    <div class="field-icon"><i class="fas fa-link"></i></div>
+                                                </div>
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="integration-xlwings-url">xlwings URL</label>
+                                                <div class="input-wrapper">
+                                                    <input id="integration-xlwings-url" type="text" placeholder="http://127.0.0.1:8001" />
+                                                    <div class="field-icon"><i class="fas fa-link"></i></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-section" id="tab-advanced">
+                                <div class="section-header">
+                                    <h3>Advanced Settings</h3>
+                                    <p>Advanced LLM and interpreter configuration</p>
+                                </div>
+
+                                <div class="settings-card">
+                                    <div class="card-header">
+                                        <h4><i class="fas fa-sliders-h"></i> LLM Advanced</h4>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="form-row">
+                                            <div class="form-field">
+                                                <label for="llm-temperature-adv">Temperature</label>
+                                                <div class="input-wrapper">
+                                                    <input id="llm-temperature-adv" type="number" step="0.1" min="0" max="2" value="0.7" />
+                                                    <div class="field-icon"><i class="fas fa-thermometer-half"></i></div>
+                                                </div>
+                                                <div class="form-help">Controls randomness (0=focused, 2=creative)</div>
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="llm-max-tokens-adv">Max Tokens</label>
+                                                <div class="input-wrapper">
+                                                    <input id="llm-max-tokens-adv" type="number" step="256" min="256" max="32768" value="4096" />
+                                                    <div class="field-icon"><i class="fas fa-hashtag"></i></div>
+                                                </div>
+                                                <div class="form-help">Maximum response length</div>
+                                            </div>
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="llm-context-window-adv">Context Window</label>
+                                            <div class="input-wrapper">
+                                                <input id="llm-context-window-adv" type="number" step="1000" min="2048" max="200000" value="100000" />
+                                                <div class="field-icon"><i class="fas fa-window-maximize"></i></div>
+                                            </div>
+                                            <div class="form-help">Total context length the model can process</div>
+                                        </div>
+                                        <div class="form-field">
+                                            <label style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="checkbox" id="llm-supports-vision" />
+                                                <span>Supports Vision</span>
+                                            </label>
+                                            <div class="form-help">Enable image understanding capabilities</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-card">
+                                    <div class="card-header">
+                                        <h4><i class="fas fa-cog"></i> Interpreter Options</h4>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="form-field">
+                                            <label for="interpreter-system-message">System Message</label>
+                                            <div class="input-wrapper">
+                                                <textarea id="interpreter-system-message" rows="3" placeholder="Custom system prompt..." style="width: 100%; padding: 10px; background: var(--color-surface-base); border: 1px solid var(--color-border-base); border-radius: var(--radius-lg); color: var(--color-text-primary); font-family: var(--font-family-base); resize: vertical;"></textarea>
+                                            </div>
+                                            <div class="form-help">Custom system prompt for the interpreter</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-section" id="tab-database">
+                                <div class="section-header">
+                                    <h3>Database Configuration</h3>
+                                    <p>PostgreSQL connection pool and performance settings</p>
+                                </div>
+
+                                <div class="settings-card">
+                                    <div class="card-header">
+                                        <h4><i class="fas fa-database"></i> Connection Pool</h4>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="form-row">
+                                            <div class="form-field">
+                                                <label for="db-pool-size">Pool Size</label>
+                                                <div class="input-wrapper">
+                                                    <input id="db-pool-size" type="number" min="1" max="100" value="10" />
+                                                    <div class="field-icon"><i class="fas fa-layer-group"></i></div>
+                                                </div>
+                                                <div class="form-help">Number of persistent connections</div>
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="db-max-overflow">Max Overflow</label>
+                                                <div class="input-wrapper">
+                                                    <input id="db-max-overflow" type="number" min="0" max="100" value="20" />
+                                                    <div class="field-icon"><i class="fas fa-plus-circle"></i></div>
+                                                </div>
+                                                <div class="form-help">Additional connections when busy</div>
+                                            </div>
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="db-pool-timeout">Pool Timeout (seconds)</label>
+                                            <div class="input-wrapper">
+                                                <input id="db-pool-timeout" type="number" min="5" max="300" value="30" />
+                                                <div class="field-icon"><i class="fas fa-clock"></i></div>
+                                            </div>
+                                            <div class="form-help">Wait time for connection availability</div>
+                                        </div>
+                                        <div class="form-field">
+                                            <label style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="checkbox" id="db-echo-sql" />
+                                                <span>Echo SQL Queries</span>
+                                            </label>
+                                            <div class="form-help">Log all SQL queries (debug mode)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-section" id="tab-memory">
+                                <div class="section-header">
+                                    <h3>Memory & RAG Configuration</h3>
+                                    <p>Vector database and retrieval settings</p>
+                                </div>
+
+                                <div class="settings-card">
+                                    <div class="card-header">
+                                        <h4><i class="fas fa-brain"></i> Memory System</h4>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="form-field">
+                                            <label style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="checkbox" id="memory-enabled" />
+                                                <span>Enable Memory System</span>
+                                            </label>
+                                            <div class="form-help">Activate long-term memory and RAG</div>
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="memory-type">Memory Backend</label>
+                                            <div class="input-wrapper">
+                                                <select id="memory-type">
+                                                    <option value="sqlite">SQLite (Local)</option>
+                                                    <option value="chroma">ChromaDB</option>
+                                                    <option value="pgvector">PostgreSQL pgvector</option>
+                                                </select>
+                                                <div class="field-icon"><i class="fas fa-chevron-down"></i></div>
+                                            </div>
+                                            <div class="form-help">Vector storage backend type</div>
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="memory-embedder">Embedder Model</label>
+                                            <div class="input-wrapper">
+                                                <input id="memory-embedder" type="text" value="local-minilm" />
+                                                <div class="field-icon"><i class="fas fa-brain"></i></div>
+                                            </div>
+                                            <div class="form-help">Embedding model for semantic search</div>
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="memory-top-k">Top K Results</label>
+                                            <div class="input-wrapper">
+                                                <input id="memory-top-k" type="number" min="1" max="100" value="5" />
+                                                <div class="field-icon"><i class="fas fa-list-ol"></i></div>
+                                            </div>
+                                            <div class="form-help">Number of relevant memories to retrieve</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-section" id="tab-monitoring">
+                                <div class="section-header">
+                                    <h3>Monitoring & Logging</h3>
+                                    <p>System observability and telemetry configuration</p>
+                                </div>
+
+                                <div class="settings-card">
+                                    <div class="card-header">
+                                        <h4><i class="fas fa-chart-line"></i> Logging Configuration</h4>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="form-row">
+                                            <div class="form-field">
+                                                <label for="monitoring-log-level">Log Level</label>
+                                                <div class="input-wrapper">
+                                                    <select id="monitoring-log-level">
+                                                        <option value="DEBUG">DEBUG</option>
+                                                        <option value="INFO">INFO</option>
+                                                        <option value="WARNING">WARNING</option>
+                                                        <option value="ERROR">ERROR</option>
+                                                        <option value="CRITICAL">CRITICAL</option>
+                                                    </select>
+                                                    <div class="field-icon"><i class="fas fa-chevron-down"></i></div>
+                                                </div>
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="monitoring-log-format">Log Format</label>
+                                                <div class="input-wrapper">
+                                                    <select id="monitoring-log-format">
+                                                        <option value="json">JSON</option>
+                                                        <option value="text">Plain Text</option>
+                                                    </select>
+                                                    <div class="field-icon"><i class="fas fa-chevron-down"></i></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-field">
+                                            <label style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="checkbox" id="monitoring-metrics-enabled" />
+                                                <span>Enable Metrics Collection</span>
+                                            </label>
+                                            <div class="form-help">Prometheus-compatible metrics</div>
+                                        </div>
+                                        <div class="form-field">
+                                            <label style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="checkbox" id="monitoring-tracing-enabled" />
+                                                <span>Enable Distributed Tracing</span>
+                                            </label>
+                                            <div class="form-help">OpenTelemetry tracing</div>
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="monitoring-health-check-interval">Health Check Interval (seconds)</label>
+                                            <div class="input-wrapper">
+                                                <input id="monitoring-health-check-interval" type="number" min="10" max="300" value="30" />
+                                                <div class="field-icon"><i class="fas fa-heartbeat"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-section" id="tab-storage">
+                                <div class="section-header">
+                                    <h3>Storage Configuration</h3>
+                                    <p>File upload and storage management settings</p>
+                                </div>
+
+                                <div class="settings-card">
+                                    <div class="card-header">
+                                        <h4><i class="fas fa-hdd"></i> Upload Settings</h4>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="form-field">
+                                            <label for="storage-max-upload-size">Max Upload Size (MB)</label>
+                                            <div class="input-wrapper">
+                                                <input id="storage-max-upload-size" type="number" min="1" max="1000" value="100" />
+                                                <div class="field-icon"><i class="fas fa-upload"></i></div>
+                                            </div>
+                                            <div class="form-help">Maximum file size for uploads</div>
                                         </div>
                                     </div>
                                 </div>

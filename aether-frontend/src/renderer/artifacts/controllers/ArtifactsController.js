@@ -180,7 +180,6 @@ class ArtifactsController {
       throw new Error('[ArtifactsController] Invalid artifact');
     }
 
-    // Store artifact
     this.artifacts.set(artifact.id, artifact);
     this.currentArtifact = artifact;
     this.hasContent = true;
@@ -192,15 +191,11 @@ class ArtifactsController {
       contentLen: artifact.content ? artifact.content.length : 0
     });
 
-    // Determine which view to use based on artifact type/format
-    // Code artifacts: Python, JavaScript, etc. from assistant
-    // Output artifacts: HTML, console output, execution results
     const isCodeArtifact = artifact.type === 'code' && artifact.format !== 'html';
     
     if (isCodeArtifact) {
       console.log('[ArtifactsController] Routing to CODE viewer');
       this.switchTab('code');
-      // Load into code viewer
       if (this.modules.codeViewer) {
         this.modules.codeViewer.loadCode(
           artifact.content, 
@@ -211,7 +206,6 @@ class ArtifactsController {
     } else {
       console.log('[ArtifactsController] Routing to OUTPUT viewer');
       this.switchTab('output');
-      // Load into output viewer
       if (this.modules.outputViewer) {
         const format = artifact.format || 'text';
         console.log('[ArtifactsController] Calling outputViewer.loadOutput:', format);
@@ -219,7 +213,10 @@ class ArtifactsController {
       }
     }
 
-    // Report state to main process
+    if (this.modules.fileManager && typeof this.modules.fileManager.highlightArtifact === 'function') {
+      this.modules.fileManager.highlightArtifact(artifact.id);
+    }
+
     this._reportWindowState();
 
     this.eventBus.emit(EventTypes.ARTIFACTS.LOADED, { artifact });
@@ -248,14 +245,98 @@ class ArtifactsController {
       // Execute with SafeCodeExecutor
       const result = await this.modules.codeExecutor.executeJavaScript(code);
 
-      this.eventBus.emit(EventTypes.ARTIFACTS.EXECUTION_COMPLETE, { result });
+      // Create output artifact
+      const outputArtifact = {
+        id: `output_${Date.now()}`,
+        type: 'output',
+        format: 'text',
+        content: this._formatExecutionResult(result),
+        role: 'computer',
+        chatId: this.currentChatId,
+        timestamp: Date.now(),
+        executionResult: result
+      };
+
+      // Store artifact
+      this.artifacts.set(outputArtifact.id, outputArtifact);
+
+      // Add to session
+      if (this.modules.sessionManager) {
+        this.modules.sessionManager.addArtifact(outputArtifact);
+      }
+
+      // Route to output viewer
+      this.switchTab('output');
+      if (this.modules.outputViewer) {
+        this.modules.outputViewer.loadOutput(outputArtifact.content, outputArtifact.format);
+      }
+
+      // Emit events
+      this.eventBus.emit(EventTypes.ARTIFACTS.EXECUTION_COMPLETE, { result, artifact: outputArtifact });
+      this.eventBus.emit(EventTypes.ARTIFACTS.ARTIFACT_ADDED, { 
+        artifact: outputArtifact, 
+        chatId: this.currentChatId 
+      });
+
+      console.log('[ArtifactsController] Execution output routed to Output tab');
+
       return result;
 
     } catch (error) {
       console.error('[ArtifactsController] Execution failed:', error);
-      this.eventBus.emit(EventTypes.ARTIFACTS.EXECUTION_ERROR, { error });
+      
+      // Create error artifact
+      const errorArtifact = {
+        id: `error_${Date.now()}`,
+        type: 'output',
+        format: 'text',
+        content: `Error: ${error.message}\n\n${error.stack || ''}`,
+        role: 'computer',
+        chatId: this.currentChatId,
+        timestamp: Date.now(),
+        isError: true
+      };
+
+      // Store and display error
+      this.artifacts.set(errorArtifact.id, errorArtifact);
+      
+      if (this.modules.sessionManager) {
+        this.modules.sessionManager.addArtifact(errorArtifact);
+      }
+
+      this.switchTab('output');
+      if (this.modules.outputViewer) {
+        this.modules.outputViewer.loadOutput(errorArtifact.content, errorArtifact.format);
+      }
+
+      this.eventBus.emit(EventTypes.ARTIFACTS.EXECUTION_ERROR, { error, artifact: errorArtifact });
+      this.eventBus.emit(EventTypes.ARTIFACTS.ARTIFACT_ADDED, { 
+        artifact: errorArtifact, 
+        chatId: this.currentChatId 
+      });
+
       throw error;
     }
+  }
+
+  /**
+   * Format execution result for display
+   * @param {*} result - Execution result
+   * @returns {string}
+   * @private
+   */
+  _formatExecutionResult(result) {
+    if (result === null) return 'null';
+    if (result === undefined) return 'undefined';
+    if (typeof result === 'string') return result;
+    if (typeof result === 'object') {
+      try {
+        return JSON.stringify(result, null, 2);
+      } catch (e) {
+        return String(result);
+      }
+    }
+    return String(result);
   }
 
   /**
@@ -311,8 +392,12 @@ class ArtifactsController {
   async _initializeCore() {
     console.log('📦 ArtifactsController: Initializing core...');
 
-    // Get or create Endpoint singleton (may already exist from main/chat window)
-    let endpoint = this.container.resolve('endpoint');
+    let endpoint = null;
+    
+    try {
+      endpoint = this.container.resolve('endpoint');
+    } catch (e) {
+    }
     
     if (!endpoint) {
       endpoint = new Endpoint({
@@ -324,10 +409,7 @@ class ArtifactsController {
       this.container.register('endpoint', () => endpoint, { singleton: true });
     }
 
-    // Store in modules
     this.modules.endpoint = endpoint;
-
-    // Make globally available (for debugging and legacy compatibility)
     window.endpoint = endpoint;
 
     console.log('✅ ArtifactsController: Core initialized');
@@ -353,56 +435,64 @@ class ArtifactsController {
   async _initializeModules() {
     console.log('📦 ArtifactsController: Initializing modules...');
 
-    // Import modules
     const ArtifactsWindow = require('../modules/window/ArtifactsWindow');
     const TabManager = require('../modules/tabs/TabManager');
     const CodeViewer = require('../modules/code/CodeViewer');
     const OutputViewer = require('../modules/output/OutputViewer');
     const SafeCodeExecutor = require('../modules/execution/SafeCodeExecutor');
     const FileManager = require('../modules/files/FileManager');
+    const ArtifactSessionManager = require('../../../domain/artifacts/services/ArtifactSessionManager');
+    const { TraceabilityService } = require('../../../domain/artifacts/services/TraceabilityService');
 
-    // 1. ArtifactsWindow (window management)
+    this.modules.traceabilityService = new TraceabilityService({
+      storageAPI: window.storageAPI,
+      autoSave: true
+    });
+
+    this.modules.sessionManager = new ArtifactSessionManager({
+      eventBus: this.eventBus,
+      traceabilityService: this.modules.traceabilityService,
+      storageAPI: window.storageAPI
+    });
+    await this.modules.sessionManager.init();
+    window.artifactSessionManager = this.modules.sessionManager;
+
     this.modules.artifactsWindow = new ArtifactsWindow({
       controller: this,
       eventBus: this.eventBus,
     });
     await this.modules.artifactsWindow.init();
 
-    // 2. TabManager (tab switching)
     this.modules.tabManager = new TabManager({
       artifactsWindow: this.modules.artifactsWindow,
       eventBus: this.eventBus,
     });
     await this.modules.tabManager.init();
 
-    // Get panes from tab manager
     const codePaneEl = this.modules.tabManager.getPane('code');
     const outputPaneEl = this.modules.tabManager.getPane('output');
     const filesPaneEl = this.modules.tabManager.getPane('files');
 
-    // 3. CodeViewer (code display)
     this.modules.codeViewer = new CodeViewer({
       controller: this,
       eventBus: this.eventBus,
     });
     await this.modules.codeViewer.init(codePaneEl);
 
-    // 4. OutputViewer (output rendering)
     this.modules.outputViewer = new OutputViewer({
       controller: this,
       eventBus: this.eventBus,
     });
     await this.modules.outputViewer.init(outputPaneEl);
 
-    // 5. SafeCodeExecutor (code execution)
     this.modules.codeExecutor = new SafeCodeExecutor({
       timeout: 5000,
     });
 
-    // 6. FileManager (file operations)
     this.modules.fileManager = new FileManager({
       controller: this,
       eventBus: this.eventBus,
+      sessionManager: this.modules.sessionManager
     });
     await this.modules.fileManager.init(filesPaneEl);
 
@@ -428,53 +518,52 @@ class ArtifactsController {
   async _setupIpcListeners() {
     console.log('📦 ArtifactsController: Setting up IPC listeners...');
 
-    // Listen for artifact stream
     const cleanupStream = window.aether.artifacts.onStream((data) => {
       this._handleStream(data);
     });
     this._ipcListeners.push(cleanupStream);
 
-    // Listen for load code
     const cleanupLoadCode = window.aether.artifacts.onLoadCode((code, language, filename) => {
       this._handleLoadCode(code, language, filename);
     });
     this._ipcListeners.push(cleanupLoadCode);
 
-    // Listen for load output
     const cleanupLoadOutput = window.aether.artifacts.onLoadOutput((data) => {
       this._handleLoadOutput(data);
     });
     this._ipcListeners.push(cleanupLoadOutput);
 
-    // Listen for switch tab
     const cleanupSwitchTab = window.aether.artifacts.onSwitchTab((tab) => {
       this._handleSwitchTab(tab);
     });
     this._ipcListeners.push(cleanupSwitchTab);
 
-    // Listen for switch chat
     const cleanupSwitchChat = window.aether.artifacts.onSwitchChat((chatId) => {
       this._handleSwitchChat(chatId);
     });
     this._ipcListeners.push(cleanupSwitchChat);
 
-    // Listen for focus
     const cleanupFocus = window.aether.artifacts.onFocus(() => {
       this._handleFocus();
     });
     this._ipcListeners.push(cleanupFocus);
 
-    // Listen for ensure visible
     const cleanupEnsureVisible = window.aether.artifacts.onEnsureVisible(() => {
       this._handleEnsureVisible();
     });
     this._ipcListeners.push(cleanupEnsureVisible);
 
-    // Listen for set mode
     const cleanupSetMode = window.aether.artifacts.onSetMode((mode) => {
       this._handleSetMode(mode);
     });
     this._ipcListeners.push(cleanupSetMode);
+
+    if (window.aether.artifacts.onShowArtifact) {
+      const cleanupShowArtifact = window.aether.artifacts.onShowArtifact((data) => {
+        this._handleShowArtifact(data);
+      });
+      this._ipcListeners.push(cleanupShowArtifact);
+    }
 
     console.log('✅ ArtifactsController: IPC listeners setup');
   }
@@ -519,6 +608,11 @@ class ArtifactsController {
     // Report initial state
     this._reportWindowState();
 
+    // Show the artifacts window
+    if (this.modules.artifactsWindow) {
+      this.modules.artifactsWindow.show();
+    }
+
     console.log('✅ ArtifactsController: Global state initialized');
   }
 
@@ -545,7 +639,6 @@ class ArtifactsController {
       const artifactId = data.id || `artifact_${Date.now()}`;
       const throttle = this._logThrottle.get(artifactId) || { lastLog: 0, chunkCount: 0 };
       
-      // ALWAYS log START marker
       if (data.start) {
         console.log(`[ArtifactsController] 🚀 Stream started: ${data.type}/${data.format} (ID: ${artifactId.slice(0,8)}...)`);
         throttle.chunkCount = 0;
@@ -555,11 +648,9 @@ class ArtifactsController {
       
       this.eventBus.emit(EventTypes.ARTIFACTS.STREAM_RECEIVED, { data });
 
-      // Check if artifact already exists (streaming update)
       let artifact = this.artifacts.get(artifactId);
       
       if (!artifact) {
-        // New artifact
         artifact = {
           id: artifactId,
           backend_id: data.backendId || data._backend_id,
@@ -567,22 +658,22 @@ class ArtifactsController {
           content: '',
           language: data.language || data.format || 'text',
           format: data.format || 'text',
+          role: data.role || 'assistant',
           chatId: data.chatId || this.currentChatId,
           messageId: data.messageId,
           parentId: data.parentId,
+          correlationId: data.correlationId,
           timestamp: Date.now(),
           chunkCount: 0
         };
         this.artifacts.set(artifactId, artifact);
       }
       
-      // Update content (streaming accumulation)
       if (data.content) {
         artifact.content += data.content;
         artifact.chunkCount++;
         throttle.chunkCount++;
         
-        // Throttled progress logging - once per second max
         const now = Date.now();
         if (now - throttle.lastLog > 1000) {
           console.log(`[ArtifactsController] 📝 Streaming: ${artifact.chunkCount} chunks, ${artifact.content.length} chars`);
@@ -590,12 +681,20 @@ class ArtifactsController {
         }
       }
       
-      // Load artifact on end marker or if it's a complete artifact
       if (data.end || (!data.start && !data.end)) {
-        // ALWAYS log END marker
         if (data.end) {
           console.log(`[ArtifactsController] ✅ Stream complete: ${artifact.chunkCount} chunks, ${artifact.content.length} chars`);
           this._logThrottle.delete(artifactId);
+          
+          if (this.modules.sessionManager) {
+            this.modules.sessionManager.addArtifact(artifact);
+          }
+
+          // Emit artifact added for FileManager
+          this.eventBus.emit(EventTypes.ARTIFACTS.ARTIFACT_ADDED, {
+            artifact,
+            chatId: this.currentChatId
+          });
         }
         this.loadArtifact(artifact);
       }
@@ -664,16 +763,23 @@ class ArtifactsController {
    * Handle switch chat
    * @private
    */
-  _handleSwitchChat(chatId) {
+  async _handleSwitchChat(chatId) {
     try {
       console.log(`[ArtifactsController] Switching to chat: ${chatId}`);
+      
       this.currentChatId = chatId;
+      
+      if (this.modules.sessionManager) {
+        await this.modules.sessionManager.switchSession(chatId);
+      }
+      
       this.eventBus.emit(EventTypes.ARTIFACTS.CHAT_SWITCHED, { chatId });
 
-      // Filter artifacts for this chat when implemented
-      // if (this.modules.fileManager) {
-      //   this.modules.fileManager.filterByChat(chatId);
-      // }
+      if (this.modules.fileManager) {
+        await this.modules.fileManager.loadFiles(chatId);
+      }
+
+      console.log(`[ArtifactsController] ✅ Chat switched: ${chatId?.slice(0,8)}`);
 
     } catch (error) {
       console.error('[ArtifactsController] Handle switch chat failed:', error);
@@ -699,6 +805,11 @@ class ArtifactsController {
    */
   _handleEnsureVisible() {
     try {
+      // Actually show the window
+      if (this.modules.artifactsWindow) {
+        this.modules.artifactsWindow.show();
+      }
+      
       this.eventBus.emit(EventTypes.UI.WINDOW_VISIBILITY_REQUESTED, { window: 'artifacts' });
       console.log('[ArtifactsController] Ensure visible');
     } catch (error) {
@@ -716,6 +827,35 @@ class ArtifactsController {
       this.eventBus.emit(EventTypes.ARTIFACTS.MODE_CHANGED, { mode });
     } catch (error) {
       console.error('[ArtifactsController] Handle set mode failed:', error);
+    }
+  }
+
+  /**
+   * Handle show artifact (from trail nodes)
+   * @private
+   */
+  _handleShowArtifact(data) {
+    try {
+      const { artifactId, tab } = data;
+      console.log(`[ArtifactsController] Show artifact: ${artifactId?.slice(0,8)}, tab: ${tab}`);
+
+      let artifact = this.artifacts.get(artifactId);
+
+      if (!artifact && this.modules.sessionManager) {
+        artifact = this.modules.sessionManager.getArtifact(artifactId);
+      }
+
+      if (artifact) {
+        this.loadArtifact(artifact);
+      } else {
+        console.warn(`[ArtifactsController] Artifact not found: ${artifactId}`);
+      }
+
+      if (tab) {
+        this.switchTab(tab);
+      }
+    } catch (error) {
+      console.error('[ArtifactsController] Handle show artifact failed:', error);
     }
   }
 }

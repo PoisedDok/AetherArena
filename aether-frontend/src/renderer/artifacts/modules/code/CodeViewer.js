@@ -361,6 +361,20 @@ class CodeViewer {
     if (tab.editor) {
       tab.editor.setValue(code, -1); // -1 moves cursor to start
       this._setEditorLanguage(tab.editor, language);
+    } else {
+      // Update fallback display
+      const codeEl = tab.content.querySelector('code');
+      if (codeEl) {
+        codeEl.textContent = code;
+        codeEl.className = `language-${language}`;
+        if (this.hljs) {
+          try {
+            this.hljs.highlightElement(codeEl);
+          } catch (error) {
+            console.error('[CodeViewer] Failed to highlight code:', error);
+          }
+        }
+      }
     }
 
     // Emit event
@@ -556,10 +570,17 @@ class CodeViewer {
     }
 
     // Fallback: simple display with syntax highlighting
-    editorEl.innerHTML = `<pre><code>${this._escapeHtml(code)}</code></pre>`;
+    editorEl.className += ` ${CONFIG.CLASS_NAMES.CODE_DISPLAY}`;
+    const pre = document.createElement('pre');
+    const codeEl = document.createElement('code');
+    codeEl.textContent = code;
+    codeEl.className = `language-${language}`;
+    pre.appendChild(codeEl);
+    editorEl.appendChild(pre);
+    
     if (this.hljs) {
       try {
-        this.hljs.highlightElement(editorEl.querySelector('code'));
+        this.hljs.highlightElement(codeEl);
       } catch (error) {
         console.error('[CodeViewer] Failed to highlight code:', error);
       }
@@ -580,19 +601,19 @@ class CodeViewer {
 
     // Copy button
     const copyBtn = document.createElement('button');
-    copyBtn.textContent = '📋 Copy';
+    copyBtn.textContent = 'Copy';
     copyBtn.title = 'Copy to clipboard';
     copyBtn.addEventListener('click', this._handleCopyCode);
 
     // Execute button
     const executeBtn = document.createElement('button');
-    executeBtn.textContent = '▶ Execute';
+    executeBtn.textContent = 'Execute';
     executeBtn.title = 'Execute code';
     executeBtn.addEventListener('click', this._handleExecuteCode);
 
     // Export button
     const exportBtn = document.createElement('button');
-    exportBtn.textContent = '💾 Export';
+    exportBtn.textContent = 'Export';
     exportBtn.title = 'Export to file';
     exportBtn.addEventListener('click', this._handleExportCode);
 
@@ -843,8 +864,8 @@ class CodeViewer {
         display: flex;
         gap: 4px;
         padding: 8px;
-        background: rgba(25, 25, 30, 0.9);
-        border-bottom: 1px solid rgba(255, 100, 0, 0.2);
+        background: rgba(25, 25, 30, 0.95);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         overflow-x: auto;
         flex-shrink: 0;
       }
@@ -855,8 +876,8 @@ class CodeViewer {
         gap: 8px;
         padding: 6px 12px;
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.6);
-        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.7);
+        background: rgba(255, 255, 255, 0.04);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 6px;
         cursor: pointer;
@@ -865,15 +886,15 @@ class CodeViewer {
       }
 
       .${CONFIG.CLASS_NAMES.TAB_BUTTON}:hover {
-        color: rgba(255, 255, 255, 0.9);
-        background: rgba(255, 100, 0, 0.1);
-        border-color: rgba(255, 100, 0, 0.3);
+        color: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
       }
 
       .${CONFIG.CLASS_NAMES.TAB_BUTTON}.${CONFIG.CLASS_NAMES.ACTIVE_TAB} {
-        color: rgba(255, 100, 0, 0.9);
-        background: rgba(255, 100, 0, 0.15);
-        border-color: rgba(255, 100, 0, 0.4);
+        color: rgba(255, 255, 255, 0.98);
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.25);
       }
 
       .${CONFIG.CLASS_NAMES.TAB_CLOSE} {
@@ -883,7 +904,7 @@ class CodeViewer {
         align-items: center;
         justify-content: center;
         font-size: 16px;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgba(255, 255, 255, 0.5);
         background: transparent;
         border: none;
         border-radius: 3px;
@@ -892,8 +913,8 @@ class CodeViewer {
       }
 
       .${CONFIG.CLASS_NAMES.TAB_CLOSE}:hover {
-        color: rgba(255, 100, 0, 0.9);
-        background: rgba(255, 100, 0, 0.2);
+        color: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.15);
       }
 
       .${CONFIG.CLASS_NAMES.TABS_CONTENT} {
@@ -921,7 +942,7 @@ class CodeViewer {
         display: flex;
         gap: 8px;
         padding: 8px;
-        background: rgba(25, 25, 30, 0.9);
+        background: rgba(25, 25, 30, 0.95);
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         flex-shrink: 0;
       }
@@ -929,35 +950,45 @@ class CodeViewer {
       .${CONFIG.CLASS_NAMES.CODE_CONTROLS} button {
         padding: 6px 12px;
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.8);
-        background: rgba(255, 100, 0, 0.1);
-        border: 1px solid rgba(255, 100, 0, 0.3);
+        color: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 6px;
         cursor: pointer;
         transition: all 200ms ease;
       }
 
       .${CONFIG.CLASS_NAMES.CODE_CONTROLS} button:hover {
-        color: rgba(255, 100, 0, 0.9);
-        background: rgba(255, 100, 0, 0.2);
-        border-color: rgba(255, 100, 0, 0.5);
+        color: rgba(255, 255, 255, 0.98);
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.3);
       }
 
       .${CONFIG.CLASS_NAMES.CODE_EDITOR} {
         flex: 1;
         overflow: auto;
-        background: #2b2b2b;
+        background: var(--color-bg-primary);
+        position: relative;
+        min-height: 0;
       }
 
       .${CONFIG.CLASS_NAMES.CODE_DISPLAY} pre {
         margin: 0;
         padding: 16px;
-        font-family: 'Courier New', monospace;
+        font-family: var(--font-family-mono);
         font-size: 14px;
-        line-height: 1.5;
-        color: rgba(255, 255, 255, 0.9);
-        background: #2b2b2b;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.95);
+        background: transparent;
         overflow-x: auto;
+        width: 100%;
+        height: 100%;
+      }
+      
+      .${CONFIG.CLASS_NAMES.CODE_DISPLAY} pre code {
+        display: block;
+        width: 100%;
+        height: 100%;
       }
     `;
 

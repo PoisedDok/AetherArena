@@ -30,6 +30,14 @@ const EventTypes = freeze({
     MODAL_CLOSED: 'ui:modal:closed',
     THEME_CHANGED: 'ui:theme:changed',
     WIDGET_MODE_CHANGED: 'ui:widget:mode:changed',
+    COMPONENT_READY: 'ui:component:ready',
+    ERROR: 'ui:error',
+    NOTIFICATION: 'ui:notification',
+    WINDOW_SHOWN: 'ui:window:shown',
+    WINDOW_HIDDEN: 'ui:window:hidden',
+    WINDOW_MOVED: 'ui:window:moved',
+    WINDOW_FOCUSED: 'ui:window:focused',
+    WINDOW_VISIBILITY_REQUESTED: 'ui:window:visibility:requested',
   }),
 
   // Connection Events
@@ -73,14 +81,19 @@ const EventTypes = freeze({
   // Chat Events
   CHAT: freeze({
     MESSAGE_SENT: 'chat:message:sent',
+    MESSAGE_SENDING: 'chat:message:sending',
     MESSAGE_RECEIVED: 'chat:message:received',
+    MESSAGE_ERROR: 'chat:message:error',
     STREAM_STARTED: 'chat:stream:started',
     STREAM_CHUNK: 'chat:stream:chunk',
     STREAM_ENDED: 'chat:stream:ended',
     STREAM_ERROR: 'chat:stream:error',
     REQUEST_STARTED: 'chat:request:started',
     REQUEST_COMPLETED: 'chat:request:completed',
+    REQUEST_COMPLETE: 'chat:request:complete',
     REQUEST_STOPPED: 'chat:request:stopped',
+    STOP_REQUESTED: 'chat:stop:requested',
+    ASSISTANT_STREAM: 'chat:assistant:stream',
     WINDOW_OPENED: 'chat:window:opened',
     WINDOW_CLOSED: 'chat:window:closed',
     CREATED: 'chat:created',
@@ -92,6 +105,7 @@ const EventTypes = freeze({
   // Artifacts Events
   ARTIFACTS: freeze({
     STREAM: 'artifacts:stream',
+    STREAM_RECEIVED: 'artifacts:stream:received',
     CODE_RECEIVED: 'artifacts:code:received',
     OUTPUT_RECEIVED: 'artifacts:output:received',
     HTML_RECEIVED: 'artifacts:html:received',
@@ -100,6 +114,8 @@ const EventTypes = freeze({
     WINDOW_OPENED: 'artifacts:window:opened',
     WINDOW_CLOSED: 'artifacts:window:closed',
     ACTIVITY: 'artifacts:activity',
+    LOADED: 'artifacts:loaded',
+    MODE_CHANGED: 'artifacts:mode:changed',
     
     // Trail Management Events
     TRAIL_CREATED: 'artifacts:trail:created',
@@ -113,6 +129,7 @@ const EventTypes = freeze({
     EXECUTION_STARTED: 'artifacts:execution:started',
     EXECUTION_UPDATED: 'artifacts:execution:updated',
     EXECUTION_COMPLETED: 'artifacts:execution:completed',
+    EXECUTION_COMPLETE: 'artifacts:execution:complete',
     EXECUTION_ERROR: 'artifacts:execution:error',
     
     // Phase Events
@@ -120,6 +137,28 @@ const EventTypes = freeze({
     PHASE_UPDATED: 'artifacts:phase:updated',
     PHASE_COMPLETED: 'artifacts:phase:completed',
     PHASE_ERROR: 'artifacts:phase:error',
+    
+    // Tab Management Events
+    TAB_CHANGED: 'artifacts:tab:changed',
+    CODE_TAB_CREATED: 'artifacts:code:tab:created',
+    CODE_TAB_CLOSED: 'artifacts:code:tab:closed',
+    CODE_TAB_CHANGED: 'artifacts:code:tab:changed',
+    
+    // Content Events
+    CODE_LOADED: 'artifacts:code:loaded',
+    OUTPUT_LOADED: 'artifacts:output:loaded',
+    
+    // File Events
+    FILE_SELECTED: 'artifacts:file:selected',
+    FILE_EXPORT_STARTED: 'artifacts:file:export:started',
+    FILE_EXPORTED: 'artifacts:file:exported',
+    FILE_EXPORT_ERROR: 'artifacts:file:export:error',
+    
+    // Session Events
+    SESSION_SWITCHED: 'artifacts:session:switched',
+    SESSION_LOADED: 'artifacts:session:loaded',
+    ARTIFACT_ADDED: 'artifacts:artifact:added',
+    CHAT_SWITCHED: 'artifacts:chat:switched',
   }),
 
   // Audio Events

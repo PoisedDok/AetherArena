@@ -316,6 +316,15 @@ const aetherAPI = freeze({
     onLoadOutput: (callback) => {
       return ipcBridge.on('artifacts:load-output', callback);
     },
+    
+    /**
+     * Listen for show artifact request
+     * @param {Function} callback - Callback({ artifactId, tab })
+     * @returns {Function} Cleanup function
+     */
+    onShowArtifact: (callback) => {
+      return ipcBridge.on('artifacts:show-artifact', callback);
+    },
   }),
   
   /**

@@ -49,6 +49,40 @@ class SecuritySettingsResponse(BaseModel):
     rate_limit_enabled: bool
 
 
+class DatabaseSettingsResponse(BaseModel):
+    """Database settings response."""
+    url: str
+    pool_size: int
+    max_overflow: int
+    pool_timeout: int
+    echo_sql: bool
+
+
+class MonitoringSettingsResponse(BaseModel):
+    """Monitoring settings response."""
+    log_level: str
+    log_format: str
+    metrics_enabled: bool
+    tracing_enabled: bool
+    health_check_interval: int
+
+
+class MemorySettingsResponse(BaseModel):
+    """Memory settings response."""
+    enabled: bool
+    type: str
+    path: str
+    embedder: str
+    top_k: int
+
+
+class StorageSettingsResponse(BaseModel):
+    """Storage settings response."""
+    base_path: str
+    max_upload_size_mb: int
+    allowed_extensions: List[str]
+
+
 class IntegrationSettingsResponse(BaseModel):
     """Integration settings response."""
     perplexica_url: str
@@ -57,8 +91,13 @@ class IntegrationSettingsResponse(BaseModel):
     searxng_enabled: bool
     docling_url: str
     docling_enabled: bool
+    xlwings_url: str
+    xlwings_enabled: bool
+    lm_studio_url: str
+    lm_studio_enabled: bool
     mcp_enabled: bool
     mcp_auto_start: bool
+    mcp_health_check_interval: int
 
 
 class SettingsResponse(BaseModel):
@@ -69,6 +108,10 @@ class SettingsResponse(BaseModel):
     llm: LLMSettingsResponse
     interpreter: InterpreterSettingsResponse
     security: SecuritySettingsResponse
+    database: DatabaseSettingsResponse
+    monitoring: MonitoringSettingsResponse
+    memory: MemorySettingsResponse
+    storage: StorageSettingsResponse
     integrations: IntegrationSettingsResponse
     
     class Config:
@@ -141,19 +184,61 @@ class InterpreterSettingsUpdate(BaseModel):
     profile: Optional[str] = None
 
 
+class DatabaseSettingsUpdate(BaseModel):
+    """Database settings update request."""
+    pool_size: Optional[int] = Field(None, ge=1, le=100)
+    max_overflow: Optional[int] = Field(None, ge=0, le=100)
+    pool_timeout: Optional[int] = Field(None, ge=5, le=300)
+    echo_sql: Optional[bool] = None
+
+
+class MonitoringSettingsUpdate(BaseModel):
+    """Monitoring settings update request."""
+    log_level: Optional[str] = Field(None, pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
+    log_format: Optional[str] = Field(None, pattern="^(json|text)$")
+    metrics_enabled: Optional[bool] = None
+    tracing_enabled: Optional[bool] = None
+    health_check_interval: Optional[int] = Field(None, ge=10, le=300)
+
+
+class MemorySettingsUpdate(BaseModel):
+    """Memory settings update request."""
+    enabled: Optional[bool] = None
+    type: Optional[str] = Field(None, pattern="^(sqlite|chroma|pgvector)$")
+    embedder: Optional[str] = None
+    top_k: Optional[int] = Field(None, ge=1, le=100)
+
+
+class StorageSettingsUpdate(BaseModel):
+    """Storage settings update request."""
+    max_upload_size_mb: Optional[int] = Field(None, ge=1, le=1000)
+
+
 class IntegrationSettingsUpdate(BaseModel):
     """Integration settings update request."""
+    perplexica_url: Optional[str] = None
     perplexica_enabled: Optional[bool] = None
+    searxng_url: Optional[str] = None
     searxng_enabled: Optional[bool] = None
+    docling_url: Optional[str] = None
     docling_enabled: Optional[bool] = None
+    xlwings_url: Optional[str] = None
+    xlwings_enabled: Optional[bool] = None
+    lm_studio_url: Optional[str] = None
+    lm_studio_enabled: Optional[bool] = None
     mcp_enabled: Optional[bool] = None
     mcp_auto_start: Optional[bool] = None
+    mcp_health_check_interval: Optional[int] = Field(None, ge=10, le=300)
 
 
 class SettingsUpdateRequest(BaseModel):
     """Settings update request."""
     llm: Optional[LLMSettingsUpdate] = None
     interpreter: Optional[InterpreterSettingsUpdate] = None
+    database: Optional[DatabaseSettingsUpdate] = None
+    monitoring: Optional[MonitoringSettingsUpdate] = None
+    memory: Optional[MemorySettingsUpdate] = None
+    storage: Optional[StorageSettingsUpdate] = None
     integrations: Optional[IntegrationSettingsUpdate] = None
     
     class Config:

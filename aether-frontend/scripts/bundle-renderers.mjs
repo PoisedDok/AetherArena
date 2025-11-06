@@ -75,8 +75,8 @@ const baseConfig = {
   define: {
     'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
   },
-  // External modules that shouldn't be bundled (none for renderer)
-  external: [],
+  // External modules that shouldn't be bundled (renderer doesn't need main process modules)
+  external: ['electron', 'path', 'fs', 'os', 'crypto', 'child_process', 'net', 'http', 'https'],
 };
 
 // ============================================================================

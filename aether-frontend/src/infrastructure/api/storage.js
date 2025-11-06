@@ -21,16 +21,27 @@
  */
 
 const { ApiClient } = require('../../core/communication/ApiClient');
-const config = require('../../core/config');
 const { freeze } = Object;
+
+let config = null;
+try {
+  config = require('../../core/config/renderer-config');
+} catch (e) {
+  try {
+    config = require('../../core/config');
+  } catch (e2) {
+  }
+}
 
 /**
  * StorageAPI - PostgreSQL Backend Client
  */
 class StorageAPI {
   constructor(options = {}) {
-    // Use centralized config for baseURL
-    const defaultBaseURL = `${config.backend.baseUrl}${config.endpoints.storageApi}`;
+    let defaultBaseURL = 'http://localhost:8000/api/storage';
+    if (config && config.backend && config.backend.baseUrl && config.endpoints && config.endpoints.storageApi) {
+      defaultBaseURL = `${config.backend.baseUrl}${config.endpoints.storageApi}`;
+    }
     this.baseURL = options.baseURL || defaultBaseURL;
     
     this.client = new ApiClient({
