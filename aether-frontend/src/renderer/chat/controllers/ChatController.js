@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: IPC 'chat:assistant-stream', 'chat:request-complete', 'chat:ensure-visible', 'artifacts:stream' (from chat-preload.js) --- {ipc_stream_chunk | artifact_types.*, json}
- * Processing: Coordinate 7 modules (ChatWindow, DragResizeManager, MessageManager, FileManager, SidebarManager, ThinkingBubble), setup IPC/event listeners, manage chat lifecycle --- {3 jobs: JOB_INITIALIZE, JOB_DELEGATE_TO_MODULE, JOB_EMIT_EVENT}
- * Outgoing: Event handlers → MessageManager, SidebarManager, FileManager (module delegation) --- {method_calls, javascript_api}
+ * Incoming: IPC 'chat:assistant-stream', 'chat:request-complete', 'chat:ensure-visible', EventBus 'artifact:stream' (from MessageManager via WebSocket) --- {ipc_stream_chunk | artifact_types.*, json}
+ * Processing: Coordinate 6 modules (ChatWindow, DragResizeManager, MessageManager, FileManager, SidebarManager, ThinkingBubble), setup IPC/event listeners, manage chat lifecycle, enrich artifacts with chatId from messageManager.messageState.currentChatId, forward to artifacts window via IPC --- {5 jobs: JOB_DELEGATE_TO_MODULE, JOB_EMIT_EVENT, JOB_GET_STATE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE}
+ * Outgoing: MessageManager/SidebarManager/FileManager (module delegation), window.aether.artifacts.streamReady() (artifact routing with chatId) --- {method_calls | ipc_artifact_stream, javascript_api | json}
  * 
  * 
  * @module renderer/chat/controllers/ChatController
@@ -471,6 +471,17 @@ class ChatController {
     });
     this._eventListeners.push(cleanupClearChat);
 
+    // Artifact stream from MessageManager (WebSocket artifacts)
+    const cleanupArtifactStream = this.eventBus.on('artifact:stream', (payload) => {
+      try {
+        console.log('[ChatController] Artifact from WebSocket - forwarding to artifacts window');
+        this._handleArtifactStream(payload);
+      } catch (error) {
+        console.error('[ChatController] Failed to handle artifact stream:', error);
+      }
+    });
+    this._eventListeners.push(cleanupArtifactStream);
+
     console.log('✅ ChatController: Event listeners setup');
   }
 
@@ -692,10 +703,12 @@ class ChatController {
     try {
       console.log('[ChatController] Received artifact stream:', data);
       
-      // Get current chat ID from MessageState
-      const chatId = this.modules.messageState?.currentChatId;
+      // CRITICAL FIX: MessageState is a sub-module of MessageManager
+      const chatId = this.modules.messageManager?.messageState?.currentChatId;
       if (!chatId) {
         console.warn('[ChatController] No current chat ID - cannot route artifact');
+        console.warn('[ChatController] Debug: messageManager exists:', !!this.modules.messageManager);
+        console.warn('[ChatController] Debug: messageState exists:', !!this.modules.messageManager?.messageState);
         return;
       }
 

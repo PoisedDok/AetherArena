@@ -80,11 +80,25 @@ transform_jobs:
     output: "string (accumulated)"
     errors: []
   
+  JOB_ACCUMULATE:
+    category: "transform"
+    description: "Accumulate streaming data chunks (generic)"
+    input: "any (chunk), any (accumulator)"
+    output: "any (accumulated)"
+    errors: []
+  
   JOB_PARSE_THINK_TAGS:
     category: "transform"
     description: "Extract visible and thinking text from <think> tags"
     input: "string (text with tags)"
     output: "object (visible, thinking)"
+    errors: []
+  
+  JOB_CALCULATE_TIME:
+    category: "transform"
+    description: "Calculate time/duration/elapsed time"
+    input: "number (timestamp) | Date"
+    output: "string (formatted time) | number (duration)"
     errors: []
 
 # =============================================================================
@@ -112,6 +126,13 @@ validation_jobs:
     input: "object (chunk)"
     output: "boolean (is_duplicate)"
     errors: []
+  
+  JOB_VALIDATE:
+    category: "validation"
+    description: "Generic validation of input data"
+    input: "any (data to validate)"
+    output: "boolean (valid)"
+    errors: ["validation_failed"]
 
 # =============================================================================
 # SANITIZATION JOBS (Category: Security)

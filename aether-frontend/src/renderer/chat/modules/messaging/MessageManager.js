@@ -4,8 +4,8 @@
  * @.architecture
  * 
  * Incoming: IPC 'chat:assistant-stream', 'chat:request-complete' (from ChatController.js) --- {stream_types.ipc_stream_chunk, json}
- * Processing: Coordinate 7 submodules (SecuritySanitizer, MarkdownRenderer, MessageView, MessageState, SendController, StopController, StreamHandler), route IPC to StreamHandler, handle user input --- {8 jobs: JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GENERATE_SESSION_ID, JOB_GET_STATE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_UPDATE_STATE}
- * Outgoing: streamHandler.processChunk() → StreamHandler.js, sendController.send() → Endpoint.js --- {message_types.user_message | method_call, json}
+ * Processing: Coordinate 8 submodules (SecuritySanitizer, MarkdownRenderer, MessageView, MessageState, SendController, StopController, StreamHandler, TrailContainerManager), route IPC to StreamHandler, visualize execution pipeline in TRAIL containers, handle user input --- {8 jobs: JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GENERATE_SESSION_ID, JOB_GET_STATE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_UPDATE_STATE}
+ * Outgoing: streamHandler.processChunk() → StreamHandler.js, sendController.send() → Endpoint.js, trailContainerManager.createTrail() → DOM --- {message_types.user_message | method_call, json}
  * 
  * 
  * @module renderer/chat/modules/messaging/MessageManager
@@ -19,6 +19,9 @@ const SendController = require('./SendController');
 const StopController = require('./StopController');
 const StreamHandler = require('./StreamHandler');
 const { sessionManager, ID_TYPES } = require('../../../../core/session/SessionManager');
+const TrailContainerManager = require('../trail/TrailContainerManager');
+const TrailDOMRenderer = require('../trail/TrailDOMRenderer');
+const TrailStyleManager = require('../trail/TrailStyleManager');
 
 class MessageManager {
   constructor(options = {}) {
@@ -36,6 +39,7 @@ class MessageManager {
     this.sendController = null;
     this.stopController = null;
     this.streamHandler = null;
+    this.trailContainerManager = null;
 
     // DOM references (populated on init)
     this.inputElement = null;
@@ -148,6 +152,26 @@ class MessageManager {
     });
     this.streamHandler.init();
 
+    // 8. TrailContainerManager (execution pipeline visualization)
+    // Create style manager and inject CSS
+    const trailStyleManager = new TrailStyleManager();
+    trailStyleManager.inject(); // FIXED: Correct method name is inject()
+    
+    // Create DOM renderer
+    const trailDOMRenderer = new TrailDOMRenderer({
+      styleManager: trailStyleManager,
+      eventBus: this.eventBus,
+      enableLogging: false
+    });
+    
+    // Create trail container manager
+    this.trailContainerManager = new TrailContainerManager({
+      container: this.contentElement, // Chat content container
+      renderer: trailDOMRenderer,
+      eventBus: this.eventBus,
+      enableLogging: false
+    });
+
     console.log('[MessageManager] ✅ All modules initialized');
   }
 
@@ -253,8 +277,37 @@ class MessageManager {
       return;
     }
 
-    const { role, type, content, start, end, id } = payload;
+    const { role, type, content, start, end, id, format } = payload;
 
+    // =========================================================================
+    // ARTIFACT ROUTING - Forward to artifacts window via ChatController
+    // =========================================================================
+    
+    // Handle code artifacts (assistant writes code)
+    if (role === 'assistant' && type === 'code') {
+      console.log(`[MessageManager] 📦 Code artifact detected: ${id}, format: ${format || 'unknown'}`);
+      this._routeArtifactToChatController(payload);
+      return;
+    }
+
+    // Handle console output (computer execution results)
+    if (role === 'computer' && (type === 'console' || type === 'output')) {
+      console.log(`[MessageManager] 📦 Console output detected: ${id}`);
+      this._routeArtifactToChatController(payload);
+      return;
+    }
+
+    // Handle HTML artifacts (rendered output)
+    if (role === 'computer' && type === 'code' && format === 'html') {
+      console.log(`[MessageManager] 📦 HTML artifact detected: ${id}`);
+      this._routeArtifactToChatController(payload);
+      return;
+    }
+
+    // =========================================================================
+    // MESSAGE STREAMING - Process text messages in StreamHandler
+    // =========================================================================
+    
     // Handle assistant message streams
     if (role === 'assistant' && type === 'message') {
       // Start marker
@@ -290,6 +343,10 @@ class MessageManager {
       }
     }
 
+    // =========================================================================
+    // SERVER CONTROL MESSAGES
+    // =========================================================================
+    
     // Handle completion signal
     if (role === 'server' && type === 'completion') {
       console.log(`[MessageManager] Request complete: ${id}`);
@@ -311,6 +368,103 @@ class MessageManager {
       console.error('[MessageManager] Backend error:', payload);
       this.setProcessing(false);
       this.setStopMode(false);
+    }
+  }
+
+  /**
+   * Route artifact to ChatController for forwarding to artifacts window
+   * AND update TRAIL container visualization
+   * @private
+   * @param {Object} payload - Artifact payload
+   */
+  _routeArtifactToChatController(payload) {
+    // Route to artifacts window via ChatController
+    if (this.eventBus) {
+      this.eventBus.emit('artifact:stream', payload);
+    } else {
+      console.warn('[MessageManager] No eventBus - cannot route artifact');
+    }
+    
+    // Update TRAIL container with execution phases
+    this._updateTrailWithArtifact(payload);
+  }
+  
+  /**
+   * Update TRAIL container with artifact execution data
+   * Maps artifacts to execution phases: write → process → execute → output
+   * @private
+   * @param {Object} payload - Artifact payload
+   */
+  _updateTrailWithArtifact(payload) {
+    if (!this.trailContainerManager) {
+      return;
+    }
+    
+    const { id, role, type, format, start, end, content } = payload;
+    
+    // Determine phase based on artifact type and role
+    let phase = null;
+    let status = 'pending';
+    
+    if (role === 'assistant' && type === 'code') {
+      phase = 'write'; // Assistant writing code
+      status = start ? 'active' : (end ? 'complete' : 'active');
+    } else if (role === 'computer' && type === 'console') {
+      phase = 'execute'; // Computer executing code
+      status = start ? 'active' : (end ? 'complete' : 'active');
+    } else if (role === 'computer' && type === 'code') {
+      phase = 'output'; // Computer returning output/HTML
+      status = start ? 'active' : (end ? 'complete' : 'active');
+    }
+    
+    if (!phase) {
+      return; // Not a trail-tracked artifact
+    }
+    
+    // Create or update execution in trail
+    const execution = {
+      id: id,
+      phases: [
+        {
+          kind: 'write',  // Changed from 'name' to 'kind' to match TrailDOMRenderer expectation
+          status: phase === 'write' ? status : (phase === 'execute' || phase === 'output' ? 'complete' : 'pending'),
+          artifactId: phase === 'write' ? id : null,
+          artifactType: phase === 'write' ? format : null,
+          startTime: phase === 'write' && start ? Date.now() : undefined,
+          endTime: phase === 'write' && end ? Date.now() : undefined
+        },
+        {
+          kind: 'process',
+          status: phase === 'execute' || phase === 'output' ? 'complete' : 'pending',
+          artifactId: null,
+          artifactType: null
+        },
+        {
+          kind: 'execute',
+          status: phase === 'execute' ? status : (phase === 'output' ? 'complete' : 'pending'),
+          artifactId: phase === 'execute' ? id : null,
+          artifactType: 'console',
+          startTime: phase === 'execute' && start ? Date.now() : undefined,
+          endTime: phase === 'execute' && end ? Date.now() : undefined
+        },
+        {
+          kind: 'output',
+          status: phase === 'output' ? status : 'pending',
+          artifactId: phase === 'output' ? id : null,
+          artifactType: phase === 'output' ? format : null,
+          startTime: phase === 'output' && start ? Date.now() : undefined,
+          endTime: phase === 'output' && end ? Date.now() : undefined
+        }
+      ]
+    };
+    
+    this.trailContainerManager.addExecutionToTrail(execution);
+    
+    // Finalize trail when output phase completes
+    if (phase === 'output' && end) {
+      setTimeout(() => {
+        this.trailContainerManager.finalizeTrail();
+      }, 500); // Small delay to ensure smooth animation
     }
   }
 
@@ -450,8 +604,10 @@ class MessageManager {
       await this.messageState.loadChat(chatId);
       this.messageView.clear();
       
-      // Set active session in SessionManager
+      // CRITICAL: Set active chat AFTER loadChat succeeds to ensure we have valid PostgreSQL UUID
+      // This activates the session for deterministic ID generation
       sessionManager.setActiveChat(chatId);
+      console.log(`[MessageManager] Set active session: ${chatId}`);
 
       const messages = this.messageState.getMessages();
       
@@ -463,7 +619,7 @@ class MessageManager {
         }
       }
 
-      console.log(`[MessageManager] Loaded ${messages.length} messages`);
+      console.log(`[MessageManager] Loaded ${messages.length} messages, session active: ${chatId.slice(0,8)}`);
     } catch (error) {
       console.error('[MessageManager] Failed to load chat:', error);
     }
@@ -472,6 +628,7 @@ class MessageManager {
   /**
    * Create a new chat
    * @param {string} title - Chat title
+   * @returns {Promise<string>} Chat ID (PostgreSQL UUID)
    */
   async createChat(title = 'New Chat') {
     console.log(`[MessageManager] Creating new chat: ${title}`);
@@ -480,8 +637,10 @@ class MessageManager {
       const chatId = await this.messageState.createChat(title);
       this.clearMessages();
       
-      // Set active session in SessionManager
+      // CRITICAL: Set active chat AFTER createChat returns PostgreSQL UUID
+      // This ensures SessionManager has the correct chat context for ID generation
       sessionManager.setActiveChat(chatId);
+      console.log(`[MessageManager] Created and activated session: ${chatId.slice(0,8)}`);
       
       return chatId;
     } catch (error) {

@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: IPC 'artifacts:stream' (from artifacts-preload.js via ArtifactsStreamHandler.js) --- {artifact_types.* (code_artifact|output_artifact|html_artifact), json}
- * Processing: Route by artifact kind (code|output|console|html), apply syntax highlighting (highlight.js), update tabs, accumulate output --- {4 jobs: JOB_ROUTE_BY_TYPE, JOB_RENDER_MARKDOWN, JOB_UPDATE_STATE, JOB_EMIT_EVENT}
- * Outgoing: DOM updates (code/output/files tabs) --- {dom_types.*, HTMLElement}
+ * Incoming: IPC 'artifacts:stream' (from artifacts-preload.js) --- {artifact_types.* (code_artifact|output_artifact|console_artifact|html_artifact), json}
+ * Processing: Track streaming artifacts in Map by ID, accumulate content chunks (start → content → end protocol), route by artifact type (code|output|console), apply syntax highlighting (highlight.js), update tabs, persist finalized artifacts in registry, switch tabs based on artifact type --- {6 jobs: JOB_ACCUMULATE, JOB_ROUTE_BY_TYPE, JOB_RENDER_MARKDOWN, JOB_TRACK_ENTITY, JOB_UPDATE_STATE, JOB_VALIDATE}
+ * Outgoing: DOM updates (code/output/files tabs), tab switches --- {dom_types.*, HTMLElement}
  * 
  * 
  * @module renderer/artifacts/renderer
@@ -14,6 +14,7 @@
  * ============================================================================
  * Complete artifacts interface with code viewer, syntax highlighting,
  * output display, tab switching, and file export.
+ * Properly handles streaming protocol: start → content chunks → end.
  * Browser-only, CSP-compliant, secure architecture.
  */
 
@@ -52,6 +53,11 @@ class ArtifactsApp {
     this.currentArtifactIndex = 0;
     this.elements = {};
     this.cleanupFunctions = [];
+    
+    // Stream accumulators for handling streaming artifacts
+    this.activeStreams = new Map(); // artifactId -> {type, content, language, role, etc}
+    this.currentChatId = null;
+    this.currentMessageId = null;
   }
   
   /**
@@ -417,50 +423,160 @@ class ArtifactsApp {
   
   /**
    * Handle artifact stream
+   * Properly accumulates streaming content using start/content/end protocol
    */
   handleArtifactStream(data) {
     console.log('[ArtifactsApp] 📦 Handling artifact stream:', data);
     
-    // Handle different artifact kinds from backend
+    // Extract metadata
+    const artifactId = data.id || data._backend_id || `artifact_${Date.now()}`;
     const kind = data.kind || data.type;
-    const content = data.content || data.code || data.output || '';
     const format = data.format || data.language || 'text';
+    const role = data.role || 'assistant';
+    const content = data.content || '';
     
     console.log(`[ArtifactsApp] Kind: ${kind}, Format: ${format}, Content length: ${content.length}`);
     
-    if (kind === 'code' || kind === 'html') {
-      const artifact = {
-        type: 'code',
-        code: content,
-        language: format,
-        filename: data.filename || data.name || `untitled.${format}`,
-        timestamp: Date.now()
-      };
-      
-      console.log('[ArtifactsApp] Processing code artifact:', artifact.language);
-      this.artifacts.push(artifact);
-      this.currentArtifactIndex = this.artifacts.length - 1;
-      this.displayArtifact(artifact);
-      this.switchTab('code');
-    } else if (kind === 'output' || kind === 'console') {
-      console.log('[ArtifactsApp] Processing output artifact');
-      this.currentOutput += content;
-      this.updateOutputDisplay();
-      this.switchTab('output');
-    } else {
-      console.warn('[ArtifactsApp] Unknown artifact kind:', kind);
+    // Track chat/message context
+    if (data.chatId) {
+      this.currentChatId = data.chatId;
     }
+    if (data.messageId) {
+      this.currentMessageId = data.messageId;
+    }
+    
+    // Handle stream lifecycle
+    if (data.start === true) {
+      // Start new stream
+      console.log(`[ArtifactsApp] 🚀 Starting stream: ${artifactId}`);
+      this.activeStreams.set(artifactId, {
+        id: artifactId,
+        type: kind,
+        role: role,
+        format: format,
+        content: '',
+        chatId: this.currentChatId,
+        messageId: this.currentMessageId,
+        startTime: Date.now()
+      });
+      return;
+    }
+    
+    // Get or create accumulator
+    let stream = this.activeStreams.get(artifactId);
+    if (!stream) {
+      // Create implicit stream if we receive content without start
+      console.warn(`[ArtifactsApp] ⚠️ Received content without start, creating implicit stream: ${artifactId}`);
+      stream = {
+        id: artifactId,
+        type: kind,
+        role: role,
+        format: format,
+        content: '',
+        chatId: this.currentChatId,
+        messageId: this.currentMessageId,
+        startTime: Date.now()
+      };
+      this.activeStreams.set(artifactId, stream);
+    }
+    
+    // Accumulate content
+    if (content) {
+      stream.content += content;
+      console.log(`[ArtifactsApp] 📝 Accumulated ${content.length} chars, total: ${stream.content.length}`);
+      
+      // Update display in real-time for better UX
+      this._updateStreamDisplay(stream);
+    }
+    
+    // Handle stream end
+    if (data.end === true) {
+      console.log(`[ArtifactsApp] ✅ Ending stream: ${artifactId}, total content: ${stream.content.length} chars`);
+      
+      // Finalize artifact
+      this._finalizeArtifact(stream);
+      
+      // Clean up accumulator
+      this.activeStreams.delete(artifactId);
+    }
+  }
+  
+  /**
+   * Update display with streaming content (real-time)
+   * @private
+   */
+  _updateStreamDisplay(stream) {
+    if (stream.type === 'code' || stream.format === 'html' || stream.format === 'javascript' || stream.format === 'python') {
+      // Update code display
+      this.currentCode = stream.content;
+      this.currentLanguage = stream.format;
+      this.currentFilename = `stream.${stream.format}`;
+      this.updateCodeDisplay();
+      
+      // Switch to code tab if not already there
+      if (this.currentTab !== 'code') {
+        this.switchTab('code');
+      }
+    } else if (stream.type === 'console' || stream.type === 'output') {
+      // Update output display
+      this.currentOutput = stream.content;
+      this.updateOutputDisplay();
+      
+      // Switch to output tab if not already there
+      if (this.currentTab !== 'output') {
+        this.switchTab('output');
+      }
+    }
+  }
+  
+  /**
+   * Finalize artifact and add to artifacts registry
+   * @private
+   */
+  _finalizeArtifact(stream) {
+    const artifact = {
+      id: stream.id,
+      type: stream.type === 'code' ? 'code' : 'output',
+      content: stream.content,
+      language: stream.format,
+      filename: `artifact_${this.artifacts.length + 1}.${stream.format}`,
+      chatId: stream.chatId,
+      messageId: stream.messageId,
+      role: stream.role,
+      timestamp: Date.now(),
+      duration: Date.now() - stream.startTime
+    };
+    
+    console.log('[ArtifactsApp] 💾 Finalized artifact:', {
+      id: artifact.id,
+      type: artifact.type,
+      contentLength: artifact.content.length,
+      duration: artifact.duration
+    });
+    
+    // Add to artifacts registry
+    this.artifacts.push(artifact);
+    this.currentArtifactIndex = this.artifacts.length - 1;
+    
+    // Display finalized artifact
+    this.displayArtifact(artifact);
   }
   
   /**
    * Display artifact
    */
   displayArtifact(artifact) {
-    this.currentCode = artifact.code;
-    this.currentLanguage = artifact.language;
-    this.currentFilename = artifact.filename;
-    
-    this.updateCodeDisplay();
+    if (artifact.type === 'code') {
+      this.currentCode = artifact.content || artifact.code || '';
+      this.currentLanguage = artifact.language || 'text';
+      this.currentFilename = artifact.filename || 'untitled';
+      this.updateCodeDisplay();
+      this.switchTab('code');
+    } else if (artifact.type === 'output') {
+      this.currentOutput = artifact.content || artifact.output || '';
+      this.updateOutputDisplay();
+      this.switchTab('output');
+    }
   }
   
   
