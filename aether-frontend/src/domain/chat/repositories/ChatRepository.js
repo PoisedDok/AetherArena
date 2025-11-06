@@ -2,7 +2,7 @@
  * @.architecture
  * 
  * Incoming: ChatService.createChat/loadChat/updateChat() (method calls with Chat models) --- {chat_model, javascript_object}
- * Processing: Initialize storageAPI (window.storageAPI or require), transform Chat models to PostgreSQL rows, call storageAPI methods (load/save/update/delete), transform PostgreSQL rows back to Chat model instances via Chat.fromPostgresRow(), validate chat data --- {7 jobs: JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_PARSE_JSON, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_STRINGIFY_JSON, JOB_VALIDATE_SCHEMA}
+ * Processing: Initialize storageAPI (window.storageAPI or require), transform Chat models to PostgreSQL rows, call storageAPI methods (load/save/update/delete) via IPC, transform PostgreSQL rows back to Chat model instances via Chat.fromPostgresRow(), update chat properties, validate chat data --- {6 jobs: JOB_GET_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_UPDATE_STATE}
  * Outgoing: storageAPI.loadChats/saveChat/updateChat() (IPC to main process → PostgreSQL), return Chat model instances --- {chat_model | persistence_result, javascript_object}
  * 
  * 
@@ -105,12 +105,13 @@ class ChatRepository {
     try {
       const chatData = await this.storageAPI.createChat(chat.title);
       
-      // Update chat with PostgreSQL-generated ID
-      chat.id = chatData.id;
-      chat.createdAt = chatData.created_at;
-      chat.updatedAt = chatData.updated_at;
-      
-      return chat;
+      // CRITICAL FIX: Return NEW chat instance instead of mutating input
+      // Prevents unexpected side effects and maintains immutability
+      return chat.clone({
+        id: chatData.id,
+        createdAt: chatData.created_at,
+        updatedAt: chatData.updated_at
+      });
     } catch (error) {
       this.logger.error('[ChatRepository] Failed to create chat:', error);
       throw error;

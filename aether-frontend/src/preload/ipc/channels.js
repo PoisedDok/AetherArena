@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: bridge-factory (getChannelConfig, canSend, canReceive) --- {method_call, string}
- * Processing: Define frozen channel whitelist per window (mainWindow: send 16 channels, receive 7 channels; chatWindow: send 13 channels, receive 6 channels; artifactsWindow: send 6 channels, receive 9 channels), normalize context names (main → mainWindow, chat → chatWindow, artifacts → artifactsWindow), provide channel validation (canSend, canReceive, validateChannel), frozen registry prevents runtime modification --- {4 jobs: JOB_GET_STATE, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA, JOB_VALIDATE_SCHEMA}
+ * Processing: Define frozen channel whitelist per window (mainWindow: send 16 channels, receive 7 channels; chatWindow: send 13 channels, receive 6 channels; artifactsWindow: send 6 channels, receive 9 channels), normalize context names (main → mainWindow, chat → chatWindow, artifacts → artifactsWindow), provide channel validation (canSend, canReceive, validateChannel), frozen registry prevents runtime modification --- {2 jobs: JOB_GET_STATE, JOB_VALIDATE_SCHEMA}
  * Outgoing: Channel config {name, send, receive}, validation results --- {channel_config | boolean, javascript_object_frozen | boolean}
  * 
  * 

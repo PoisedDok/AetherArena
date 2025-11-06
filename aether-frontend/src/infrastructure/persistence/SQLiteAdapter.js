@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: Main process storage/cache modules (.query/.get/.run/.transaction calls) --- {method_calls, javascript_api}
- * Processing: Wrap better-sqlite3 with Promise-compatible API, lazy-load better-sqlite3 module, open database at dbPath (from config.paths.sqliteDb), enable WAL mode (journal_mode = WAL), initialize schema (cache/sessions/metadata tables), execute queries (all/get/run), transaction support, backup/vacuum, getStats (page count/size/tables) --- {9 jobs: JOB_INITIALIZE, JOB_INITIALIZE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_UPDATE_DB, JOB_WRITE_FILE, JOB_DISPOSE, JOB_GET_STATE, JOB_GET_STATE}
+ * Processing: Wrap better-sqlite3 with Promise-compatible API, lazy-load better-sqlite3 module, open database at dbPath (from config.paths.sqliteDb), enable WAL mode (journal_mode = WAL), initialize schema (cache/sessions/metadata tables), execute queries (all/get/run), transaction support, backup/vacuum, getStats (page count/size/tables), close connections --- {6 jobs: JOB_DISPOSE, JOB_GET_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_UPDATE_DB, JOB_WRITE_FILE}
  * Outgoing: Return Promise<data> for queries, info object for run {changes, lastInsertRowid} --- {database_types.*, any}
  * 
  * 

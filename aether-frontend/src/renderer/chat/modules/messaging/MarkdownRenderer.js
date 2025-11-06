@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: MessageView._renderContent() (markdown strings from assistant messages) --- {markdown_content, string}
- * Processing: Load marked.js (or fallback to simple regex), parse markdown to HTML (GFM enabled, breaks=true), extract code blocks with language detection, sanitize via SecuritySanitizer, analyze markdown structure --- {5 jobs: JOB_PARSE_JSON, JOB_SANITIZE_MARKDOWN, JOB_PARSE_JSON, JOB_PARSE_JSON, JOB_RENDER_MARKDOWN}
+ * Processing: Load marked.js (or fallback to simple regex), configure marked with GFM options, parse markdown to HTML (GFM enabled, breaks=true), extract code blocks with language detection, sanitize via SecuritySanitizer, check fallback mode state --- {4 jobs: JOB_GET_STATE, JOB_INITIALIZE, JOB_RENDER_MARKDOWN, JOB_SANITIZE_MARKDOWN}
  * Outgoing: Return sanitized HTML string --- {rendered_html, string}
  * 
  * 

@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: MessageManager.processChunk() (IPC chunk data) --- {ipc_stream_chunk, json}
- * Processing: Deduplicate chunks, detect new streams, parse <think> tags, accumulate text, update DOM, persist to PostgreSQL, link artifacts to message --- {7 jobs: JOB_DEDUPLICATE_CHUNK, JOB_GET_STATE, JOB_PARSE_JSON, JOB_ACCUMULATE_TEXT, JOB_UPDATE_STATE, JOB_SAVE_TO_DB, JOB_UPDATE_STATE}
+ * Processing: Deduplicate chunks, detect new streams, parse <think> tags, accumulate text, update DOM, persist to PostgreSQL, link artifacts to message, generate session IDs, emit events --- {9 jobs: JOB_ACCUMULATE_TEXT, JOB_DEDUPLICATE_CHUNK, JOB_EMIT_EVENT, JOB_GENERATE_SESSION_ID, JOB_GET_STATE, JOB_SAVE_TO_DB, JOB_TRACK_ENTITY, JOB_UPDATE_DOM_ELEMENT, JOB_UPDATE_STATE}
  * Outgoing: messageView.updateMessage() → MessageView.js (DOM), messageState.saveMessage() → MessageState.js (PostgreSQL) --- {dom_types.chat_entry_element | database_types.message_record, HTMLElement | json}
  * 
  * 
@@ -232,10 +232,14 @@ class StreamHandler {
   async _finalizeStream() {
     console.log('[StreamHandler] Finalizing stream...');
 
-    if (!this.currentMessageId || !this.accumulatedText) {
-      console.warn('[StreamHandler] Nothing to finalize');
+    if (!this.currentMessageId) {
+      console.warn('[StreamHandler] Nothing to finalize - no message ID');
       return;
     }
+
+    // CRITICAL FIX: Allow empty accumulatedText
+    // Assistant messages can be empty when only artifacts are produced
+    // We still need to persist for artifact linking
 
     try {
       // Persist message to PostgreSQL
@@ -243,7 +247,7 @@ class StreamHandler {
         const savedMessage = await this.messageState.saveMessage({
           id: this.currentMessageId,
           role: 'assistant',
-          content: this.accumulatedText,
+          content: this.accumulatedText || '', // Ensure string (can be empty)
           timestamp: new Date().toISOString(),
           correlation_id: this.currentRequestId
         });

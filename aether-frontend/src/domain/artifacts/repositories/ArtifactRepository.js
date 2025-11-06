@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: ArtifactService.finalizeArtifact/persistArtifact() (method calls with Artifact models) --- {artifact_model, javascript_object}
- * Processing: Validate via ArtifactValidator.validateForPersistence(), transform Artifact models to PostgreSQL format (artifact.toPostgreSQLFormat()), call storageAPI.saveArtifact/loadArtifacts(), maintain in-memory cache (Map: artifactId → Artifact, max 100 items, 5min TTL), transform PostgreSQL rows back to Artifact models via Artifact.fromPostgresRow(), clear expired cache entries --- {9 jobs: JOB_CACHE_LOCALLY, JOB_CLEAR_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_PARSE_JSON, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_STRINGIFY_JSON, JOB_VALIDATE_SCHEMA}
+ * Processing: Validate via ArtifactValidator.validateForPersistence(), transform Artifact models to PostgreSQL format (artifact.toPostgreSQLFormat()), call storageAPI.saveArtifact/loadArtifacts() via IPC, maintain in-memory cache (Map: artifactId → Artifact, max 100 items, 5min TTL), transform PostgreSQL rows back to Artifact models via Artifact.fromPostgresRow(), clear expired cache entries, update cache state --- {8 jobs: JOB_CACHE_LOCALLY, JOB_CLEAR_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA}
  * Outgoing: storageAPI.saveArtifact/loadArtifacts() (IPC to main process → PostgreSQL), return Artifact model instances --- {artifact_model | persistence_result, javascript_object}
  * 
  * 

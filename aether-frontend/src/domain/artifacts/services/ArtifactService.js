@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: ArtifactStreamHandler.handleStreamChunk(), ArtifactsOrchestrator.loadArtifact() (method calls with stream data) --- {artifact_types.*, json}
- * Processing: Validate stream data via ArtifactValidator, create Artifact model instances, maintain activeArtifacts Map cache, buffer streaming content, update accumulated content, finalize artifacts (mark active), persist to ArtifactRepository (PostgreSQL), clear caches --- {7 jobs: JOB_ACCUMULATE_TEXT, JOB_CACHE_LOCALLY, JOB_CLEAR_STATE, JOB_FINALIZE_STREAM, JOB_GET_STATE, JOB_SAVE_TO_DB, JOB_VALIDATE_SCHEMA}
+ * Processing: Validate stream data via ArtifactValidator, create Artifact model instances, maintain activeArtifacts Map cache, buffer streaming content, update accumulated content, finalize artifacts (mark active), persist to ArtifactRepository (PostgreSQL), load from repository, track with TraceabilityService, clear caches --- {10 jobs: JOB_ACCUMULATE_TEXT, JOB_CACHE_LOCALLY, JOB_CLEAR_STATE, JOB_FINALIZE_STREAM, JOB_GET_STATE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_TRACK_ENTITY, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA}
  * Outgoing: ArtifactRepository.create/update() (persistence), TraceabilityService.linkArtifact() (relationships), return Artifact instances --- {artifact_model, javascript_object}
  * 
  * 

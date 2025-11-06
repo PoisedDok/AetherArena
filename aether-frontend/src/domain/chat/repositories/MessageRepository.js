@@ -2,7 +2,7 @@
  * @.architecture
  * 
  * Incoming: ChatService.saveMessage(), MessageManager.saveMessage() (method calls with Message models) --- {message_model, javascript_object}
- * Processing: Initialize storageAPI (window.storageAPI or require), transform Message models to PostgreSQL rows, call storageAPI methods (loadMessages/saveMessage/updateMessage/deleteMessage), transform PostgreSQL rows back to Message model instances via Message.fromPostgresRow(), validate message data --- {7 jobs: JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_PARSE_JSON, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_STRINGIFY_JSON, JOB_VALIDATE_SCHEMA}
+ * Processing: Initialize storageAPI (window.storageAPI or require), transform Message models to PostgreSQL rows, call storageAPI methods (loadMessages/saveMessage/updateMessage/deleteMessage), transform PostgreSQL rows back to Message model instances via Message.fromPostgresRow(), validate message data, update message properties with PostgreSQL-generated IDs --- {7 jobs: JOB_GET_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA}
  * Outgoing: storageAPI.loadMessages/saveMessage/updateMessage() (IPC to main process → PostgreSQL), return Message model instances --- {message_model | persistence_result, javascript_object}
  * 
  * 
@@ -96,12 +96,13 @@ class MessageRepository {
         correlation_id: message.correlationId
       });
       
-      // Update message with PostgreSQL-generated ID
-      message.id = messageData.id;
-      message.chatId = targetChatId;
-      message.createdAt = messageData.timestamp || messageData.created_at;
-      
-      return message;
+      // CRITICAL FIX: Return NEW message instance instead of mutating input
+      // Prevents unexpected side effects and maintains immutability
+      return message.clone({
+        id: messageData.id,
+        chatId: targetChatId,
+        createdAt: messageData.timestamp || messageData.created_at
+      });
     } catch (error) {
       this.logger.error(`[MessageRepository] Failed to save message to chat ${targetChatId}:`, error);
       throw error;

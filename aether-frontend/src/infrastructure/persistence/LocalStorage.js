@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: Configuration/settings modules (.set/.get/.remove/.has/.clear calls) --- {method_calls, javascript_api}
- * Processing: Wrap localStorage with namespace (prefix keys with 'aether:'), JSON serialize/deserialize with metadata (value/timestamp/version), handle QuotaExceededError with automatic cleanup (remove oldest 25%), fallback to in-memory Map if localStorage unavailable, availability check on construction --- {7 jobs: JOB_GET_STATE, JOB_STRINGIFY_JSON, JOB_PARSE_JSON, JOB_ROUTE_BY_TYPE, JOB_DISPOSE, JOB_GET_STATE, JOB_GET_STATE}
+ * Processing: Wrap localStorage with namespace (prefix keys with 'aether:'), JSON serialize/deserialize with metadata (value/timestamp/version), handle QuotaExceededError with automatic cleanup (remove oldest 25%), fallback to in-memory Map if localStorage unavailable, availability check on construction, route to localStorage or fallback --- {6 jobs: JOB_CLEAR_STATE, JOB_GET_STATE, JOB_PARSE_JSON, JOB_ROUTE_BY_TYPE, JOB_STRINGIFY_JSON, JOB_UPDATE_DB}
  * Outgoing: Return data (get), boolean success (set/remove/clear) --- {any | boolean, any}
  * 
  * 

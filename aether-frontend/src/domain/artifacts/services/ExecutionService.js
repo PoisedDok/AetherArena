@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: ArtifactsOrchestrator.executeCode(), SafeCodeExecutor.execute() (method calls with code strings) --- {code_artifact, string}
- * Processing: Execute JavaScript in Web Worker sandbox (no DOM/window access), track activeWorkers Map (executionId → Worker), enforce max concurrent executions (3), set timeout (default 5s), intercept console logs, capture output/logs/errors, cleanup workers and blob URLs, dispose resources --- {7 jobs: JOB_DISPOSE, JOB_GET_STATE, JOB_ROUTE_BY_TYPE, JOB_TRACK_ENTITY, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA, JOB_VALIDATE_SCHEMA}
+ * Processing: Execute JavaScript in Web Worker sandbox (no DOM/window access), track activeWorkers Map (executionId → Worker), enforce max concurrent executions (3), set timeout (default 5s), intercept console logs, capture output/logs/errors, route worker message types (log/result/error), validate code format and content, cleanup workers and blob URLs, dispose resources --- {6 jobs: JOB_DISPOSE, JOB_GET_STATE, JOB_ROUTE_BY_TYPE, JOB_TRACK_ENTITY, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA}
  * Outgoing: Return ExecutionResult model instances (success/error/timeout) --- {execution_result, javascript_object}
  * 
  * 

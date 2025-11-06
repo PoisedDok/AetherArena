@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: All user inputs (messages, settings, URLs, file paths) --- {user_input_types.*, any}
- * Processing: Validate type/length/pattern/range, detect SQL injection patterns, detect command injection characters, detect XSS patterns, check prototype pollution (dangerous keys), enforce object depth limits, schema-based validation --- {5 jobs: JOB_VALIDATE_SCHEMA, JOB_VALIDATE_SCHEMA, JOB_UPDATE_STATE, JOB_TRACK_ENTITY, JOB_EMIT_EVENT}
+ * Processing: Validate type/length/pattern/range, detect SQL injection patterns, detect command injection characters, detect XSS patterns, check prototype pollution (dangerous keys), enforce object depth limits, schema-based validation --- {3 jobs: JOB_UPDATE_STATE, JOB_TRACK_ENTITY, JOB_VALIDATE_SCHEMA}
  * Outgoing: Return true or throw ValidationError with field/rule details --- {validation_types.result, boolean | ValidationError}
  * 
  * 
@@ -273,9 +273,9 @@ class InputValidator {
   validateObject(obj, schema = {}) {
     this._updateStats('object');
     
-    // Type check
-    if (typeof obj !== 'object' || obj === null) {
-      throw new ValidationError('Value must be an object', 'value', 'type');
+    // Type check - CRITICAL: reject arrays explicitly
+    if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+      throw new ValidationError('Value must be an object (not array)', 'value', 'type');
     }
 
     // Check for dangerous keys (prototype pollution) - only if not explicitly allowed

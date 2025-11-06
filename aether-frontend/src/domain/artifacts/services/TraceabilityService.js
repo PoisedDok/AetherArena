@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: ArtifactService.finalizeArtifact/linkArtifact(), MessageService.registerMessage() (method calls with entity data) --- {message_data | artifact_data, javascript_object}
- * Processing: Maintain 7 indexes (messages/artifacts/correlationIndex/messageArtifactsIndex/artifactMessageIndex/chatMessagesIndex/chatArtifactsIndex Maps), register messages/artifacts with bidirectional linkage, query lineage trees, persist to localStorage with autoSave, clear indexes --- {5 jobs: JOB_CLEAR_STATE, JOB_GET_STATE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_UPDATE_STATE}
+ * Processing: Maintain 7 indexes (messages/artifacts/correlationIndex/messageArtifactsIndex/artifactMessageIndex/chatMessagesIndex/chatArtifactsIndex Maps), register messages/artifacts with bidirectional linkage, track entities in indexes, query lineage trees, persist to localStorage with autoSave, clear indexes --- {6 jobs: JOB_CLEAR_STATE, JOB_GET_STATE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_TRACK_ENTITY, JOB_UPDATE_STATE}
  * Outgoing: localStorage (persist indexes), return linked entity data and lineage trees --- {linked_data | lineage_tree, javascript_object}
  * 
  * 

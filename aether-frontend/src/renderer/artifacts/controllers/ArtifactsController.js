@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: IPC 'artifacts:stream', 'artifacts:load-code', 'artifacts:load-output', 'artifacts:switch-tab' (from artifacts-preload.js) --- {artifact_types.code | artifact_types.output | artifact_types.html, json}
- * Processing: Coordinate 6 modules (ArtifactsWindow, TabManager, CodeViewer, OutputViewer, SafeCodeExecutor, FileManager), route artifacts to viewers, execute code in sandbox, manage tab state --- {5 jobs: JOB_INITIALIZE, JOB_DELEGATE_TO_MODULE, JOB_ROUTE_BY_TYPE, JOB_SAVE_TO_DB, JOB_EMIT_EVENT}
+ * Processing: Coordinate 6 modules (ArtifactsWindow, TabManager, CodeViewer, OutputViewer, SafeCodeExecutor, FileManager), route artifacts to viewers by type, execute code in sandbox, manage tab state, track artifacts in-memory Map, emit lifecycle events, dispose resources --- {9 jobs: JOB_CLEAR_STATE, JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GET_STATE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_TRACK_ENTITY, JOB_UPDATE_STATE}
  * Outgoing: TabManager.setActiveTab(), CodeViewer.loadCode(), OutputViewer.loadOutput() (module delegation) --- {method_calls, javascript_api}
  * 
  * 

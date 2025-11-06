@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: Repository layers (.put/.get/.delete/.clear/.queryByIndex calls) --- {method_calls, javascript_api}
- * Processing: Wrap IndexedDB API in Promise-based interface, manage object stores (define schema: keyPath/autoIncrement/indexes), execute CRUD operations (put/get/getAll/delete/clear), query by indexes, bulk operations, transaction support, version upgrades (onupgradeneeded), storage quota management --- {9 jobs: JOB_INITIALIZE, JOB_INITIALIZE, JOB_UPDATE_DB, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_UPDATE_DB, JOB_UPDATE_DB, JOB_GET_STATE, JOB_GET_STATE}
+ * Processing: Wrap IndexedDB API in Promise-based interface, manage object stores (define schema: keyPath/autoIncrement/indexes), execute CRUD operations (put/get/getAll/delete/clear), query by indexes, bulk operations, transaction support, version upgrades (onupgradeneeded), storage quota management, close connections --- {7 jobs: JOB_CLEAR_STATE, JOB_DISPOSE, JOB_GET_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_UPDATE_DB}
  * Outgoing: Return Promise<data> for all operations --- {database_types.*, any}
  * 
  * 

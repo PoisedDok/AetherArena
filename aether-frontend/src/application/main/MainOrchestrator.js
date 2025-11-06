@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: GuruConnection.on('message') (WebSocket events), IpcBridge.on('main:*') (IPC commands), container.resolve() (DI injections) --- {websocket_stream_chunk | ipc_message | method_calls, json}
- * Processing: Initialize RequestLifecycleManager, coordinate submodules (UIManager/AudioManager/Visualizer/ConnectionMonitor/ModelManager/ProfileManager/SettingsManager), route messages/requests, manage application state --- {8 jobs: JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_DELEGATE_TO_MODULE, JOB_UPDATE_STATE, JOB_GET_STATE, JOB_EMIT_EVENT, JOB_TRACK_ENTITY, JOB_GENERATE_SESSION_ID}
+ * Processing: Initialize RequestLifecycleManager, coordinate submodules (UIManager/AudioManager/Visualizer/ConnectionMonitor/ModelManager/ProfileManager/SettingsManager), route messages/requests, manage application state --- {7 jobs: JOB_DELEGATE_TO_MODULE, JOB_EMIT_EVENT, JOB_GET_STATE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_TRACK_ENTITY, JOB_UPDATE_STATE}
  * Outgoing: GuruConnection.send() → Backend WebSocket, IpcBridge.send() → Chat/Artifacts windows, EventBus.emit() → internal subscribers --- {websocket_stream_chunk | ipc_message | custom_event, json}
  * 
  * 
