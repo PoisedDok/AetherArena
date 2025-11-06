@@ -188,18 +188,15 @@ class ChatStreamer:
                 
                 # Handle assistant message content
                 if out.get("role") == "assistant" and out.get("type") == "message":
-                    # Drop native start if present
-                    out.pop("start", None)
+                    # Skip OI's start markers (we send our own)
+                    if out.get("start"):
+                        continue
+                    
                     is_end = out.get("end")
                     
+                    # Skip OI's end markers (we send our own)
                     if is_end:
                         sent_end = True
-                        yield {
-                            "role": "assistant",
-                            "type": "message",
-                            "end": True,
-                            "id": request_id,
-                        }
                         continue
                     
                     # Forward content chunks

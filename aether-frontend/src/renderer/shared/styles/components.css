@@ -154,7 +154,7 @@
 .textarea:focus,
 .select:focus {
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+  box-shadow: var(--shadow-focus);
   background: var(--color-surface-hover);
 }
 
@@ -256,7 +256,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--color-bg-overlay);
   backdrop-filter: var(--backdrop-blur-md);
   -webkit-backdrop-filter: var(--backdrop-blur-md);
   display: flex;

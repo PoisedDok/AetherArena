@@ -324,18 +324,22 @@ class GuruConnection extends EventEmitter {
       }
     }
 
-    // Emit message events
-    this.emit('message', payload);
+    try {
+      // Emit generic message event
+      this.emit('message', payload);
 
-    if (payload && typeof payload === 'object' && payload.type) {
-      this.emit(payload.type, payload);
-      
-      // Emit 'lmc' events for artifact-related message types
-      // This enables ArtifactsStreamHandler to detect and route artifacts
-      const artifactTypes = ['code', 'console', 'output', 'html', 'image', 'video'];
-      if (artifactTypes.includes(payload.type) || payload.format === 'html') {
-        this.emit('lmc', payload);
+      // Emit type-specific events (but not for 'message' type to avoid duplication)
+      if (payload && typeof payload === 'object' && payload.type && payload.type !== 'message') {
+        this.emit(payload.type, payload);
+        
+        // Emit 'lmc' events for artifact-related message types
+        const artifactTypes = ['code', 'console', 'output', 'html', 'image', 'video'];
+        if (artifactTypes.includes(payload.type) || payload.format === 'html') {
+          this.emit('lmc', payload);
+        }
       }
+    } catch (error) {
+      console.error('[GuruConnection] Error emitting message events:', error);
     }
   }
 

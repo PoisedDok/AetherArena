@@ -1,0 +1,163 @@
+version: "1.0.0"
+purpose: "Global UI Styling Architecture Documentation"
+date: "2025-11-06"
+
+overview: |
+  Unified styling system using CSS custom properties (CSS variables) for 
+  consistent theming across all renderer windows (main, chat, artifacts).
+  Eliminates inline style injection in favor of external CSS files.
+
+structure:
+  global_theme:
+    file: "aether-frontend/src/renderer/shared/styles/theme.css"
+    lines: 578
+    purpose: "Central design tokens and CSS variables"
+    variables:
+      colors:
+        - Background colors (primary, secondary, tertiary, elevated, overlay)
+        - Surface colors (base, hover, active)
+        - Text colors (primary, secondary, tertiary, disabled, inverse)
+        - Border colors (base, strong, hover, focus)
+        - Brand colors (primary, primary-light, primary-dark, primary-alpha)
+        - Semantic colors (success, warning, error, info)
+        - State colors (dormant, listening, processing, speaking)
+        - Chat-specific colors (window-bg, header-bg, sidebar-bg, message-border)
+        - Artifacts-specific colors (window-bg, header-bg, code-bg, output-bg)
+        - Thinking/reasoning colors (bg, border, text, scrollbar)
+        - Trail/execution colors (bg, border, timeline, node states)
+        - Code syntax highlighting colors (keyword, string, number, comment, etc.)
+      
+      typography:
+        - Font families (base, mono)
+        - Font sizes (xs through 4xl)
+        - Font weights (normal, medium, semibold, bold)
+        - Line heights (tight, normal, relaxed)
+      
+      spacing:
+        - Scale from xs (4px) to 3xl (64px)
+      
+      borders:
+        - Radius from sm (6px) to full (9999px)
+      
+      shadows:
+        - 7 levels (sm through 2xl, plus glow and focus)
+      
+      effects:
+        - Backdrop blur (sm through xl)
+        - Transitions (fast, base, slow, slowest with easing functions)
+        - Animation durations
+        - Z-index layers
+    
+    themes:
+      dark_mode: "Default theme (lines 33-219)"
+      light_mode: "Alternative theme (lines 226-287)"
+
+  components:
+    file: "aether-frontend/src/renderer/shared/styles/components.css"
+    lines: 685
+    purpose: "Reusable component styles using theme variables"
+    includes:
+      - Buttons (primary, secondary, ghost, danger, sizes, icon variants)
+      - Inputs (text, textarea, select with focus states)
+      - Cards (header, body, footer)
+      - Modals (overlay, header, body, footer)
+      - Tooltips (with arrow positioning)
+      - Badges (primary, success, warning, error, info)
+      - Loading indicators (spinner, dots)
+      - Windows (draggable, resizable)
+      - Theme toggle
+      - Responsive adjustments
+
+  chat_styles:
+    file: "aether-frontend/src/renderer/chat/styles/chat.css"
+    lines: 1207
+    purpose: "All chat window specific styles using theme variables"
+    includes:
+      - Chat window base (attached, detached, maximized states)
+      - Window header (title, controls)
+      - Content area (scrolling, layout)
+      - Messages (entry, timestamp, text, markdown rendering)
+      - Input area (textarea, buttons, file attachments)
+      - Resize handles (8-directional)
+      - Sidebar (header, list, items, toggle, backdrop)
+      - Thinking bubble (collapsible, states, animations)
+      - Artifact execution trail (timeline, nodes, states)
+      - Processing indicators
+      - Accessibility features
+      - Print styles
+    
+    previous_approach: "Inline style injection via JavaScript (711 lines in StyleManager.js)"
+    refactor: "Moved all styles to external CSS using theme variables"
+
+  artifacts_styles:
+    file: "aether-frontend/src/renderer/artifacts/styles/artifacts.css"
+    lines: 793
+    purpose: "All artifacts window specific styles using theme variables"
+    includes:
+      - Artifacts window base (fixed position, visibility states)
+      - Header and tabs (code, output, files)
+      - Controls (close, minimize, etc.)
+      - Content panes (code, output, files)
+      - Code viewer (syntax highlighting, toolbar)
+      - Output viewer (status, rendering)
+      - File manager (list, search, items)
+      - Execution controls
+      - Split view (resizable divider)
+      - Syntax highlighting (VS Code Dark+ theme)
+      - Responsive adjustments
+    
+    previous_approach: "Inline style injection in ArtifactsWindow.js + inline <style> in renderer.js"
+    refactor: "Moved all styles to external CSS using theme variables"
+
+architecture_benefits:
+  maintainability: "Single source of truth for colors, spacing, and effects"
+  consistency: "All windows use same design tokens via CSS variables"
+  performance: "CSS loaded once via <link> tags, no JavaScript injection overhead"
+  flexibility: "Easy theme switching (dark/light mode) via data attributes"
+  scalability: "New components inherit global styles automatically"
+  debugging: "Styles visible in browser DevTools, easier to debug"
+
+loading_strategy:
+  html_imports:
+    - "shared/styles/index.css (imports theme.css and components.css)"
+    - "Window-specific CSS (chat.css or artifacts.css)"
+  
+  javascript_role: |
+    JavaScript files now only verify CSS is loaded, no injection.
+    StyleManager, ThinkingBubble, SidebarManager, TrailStyleManager, 
+    and ArtifactsWindow all simplified to console.log confirmations.
+
+refactoring_summary:
+  files_modified: 18
+  inline_styles_removed:
+    - "StyleManager.js: ~650 lines of CSS removed"
+    - "SidebarManager.js: ~210 lines of CSS removed"
+    - "ThinkingBubble.js: ~160 lines of CSS removed"
+    - "TrailStyleManager.js: ~370 lines of CSS removed"
+    - "ArtifactsWindow.js: ~160 lines of CSS removed"
+    - "artifacts/renderer.js: ~210 lines of inline <style> removed"
+  
+  total_css_lines_consolidated: ~1770 lines moved to external CSS files
+  
+  css_variables_added:
+    theme.css: 38 new variables for component-specific styling
+  
+  linter_issues: "All resolved (0 errors, 0 warnings)"
+
+usage_guidelines:
+  adding_new_styles:
+    1: "Add color variables to theme.css if needed"
+    2: "Add component styles to appropriate CSS file (chat.css or artifacts.css)"
+    3: "Use existing CSS variables via var(--variable-name)"
+    4: "Follow existing naming conventions"
+    5: "Test in both dark and light modes if applicable"
+  
+  modifying_colors:
+    - "Update theme.css variables, not hardcoded values"
+    - "Ensure light mode theme is also updated if needed"
+  
+  debugging:
+    - "Open browser DevTools → Elements → Styles"
+    - "All styles visible with source file references"
+    - "Live edit CSS variables to test changes"
+

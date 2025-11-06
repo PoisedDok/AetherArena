@@ -48,29 +48,17 @@ class ChatWindow {
     console.log(`[ChatWindow] Constructed in ${this.isDetached ? 'detached' : 'attached'} mode`);
   }
 
-  /**
-   * Initialize window
-   * Creates DOM elements and injects styles
-   */
   async init() {
     console.log('[ChatWindow] Initializing...');
 
     try {
-      // Inject styles
       this.styleManager.injectStyles();
-
-      // Create DOM elements
       this.createElements();
-
-      // Setup event listeners
       this.setupEventListeners();
 
-      // Set initial visibility
       if (this.isDetached) {
-        // Detached windows start visible
         this.show();
       } else {
-        // Attached windows start hidden
         this.hide();
       }
 
@@ -81,23 +69,17 @@ class ChatWindow {
     }
   }
 
-  /**
-   * Create DOM elements for chat window
-   * @private
-   */
   createElements() {
-    // Create main window container
     const windowEl = document.createElement('div');
     windowEl.className = `aether-chat-window ${this.isDetached ? 'detached' : 'attached'}`;
     windowEl.id = 'aether-chat-window';
 
-    // Create header
     const header = document.createElement('div');
     header.className = 'aether-chat-header';
 
     const title = document.createElement('div');
     title.className = 'aether-chat-title';
-    title.textContent = 'Aether Chat';
+    title.textContent = 'New Chat';
 
     const controls = document.createElement('div');
     controls.className = 'aether-chat-controls';
@@ -267,10 +249,6 @@ class ChatWindow {
     console.log('[ChatWindow] DOM elements created');
   }
 
-  /**
-   * Create control button
-   * @private
-   */
   _createControlButton(label, title, onClick) {
     const btn = document.createElement('button');
     btn.className = 'aether-chat-control-btn';
@@ -281,25 +259,17 @@ class ChatWindow {
     return btn;
   }
 
-  /**
-   * Setup event listeners
-   * @private
-   */
   setupEventListeners() {
-    // Listen for visibility requests from EventBus
     if (this.eventBus) {
       this.eventBus.on('chat:show', this._handleVisibilityRequest);
       this.eventBus.on('chat:hide', this._handleVisibilityRequest);
       this.eventBus.on('chat:toggle', this._handleVisibilityRequest);
+      this.eventBus.on('chat:title-changed', (data) => this._handleTitleChange(data));
     }
 
     console.log('[ChatWindow] Event listeners setup');
   }
 
-  /**
-   * Handle visibility request from EventBus
-   * @private
-   */
   _handleVisibilityRequest(event) {
     const action = event.type || event;
     
@@ -312,16 +282,18 @@ class ChatWindow {
     }
   }
 
-  /**
-   * Show the chat window
-   */
+  _handleTitleChange(data) {
+    if (data && data.title) {
+      this.setTitle(data.title);
+    }
+  }
+
   show() {
     if (!this.element) return;
 
     this.isVisible = true;
     this.element.classList.remove('hidden');
 
-    // Focus input if available
     if (this.elements.input) {
       setTimeout(() => {
         try {
@@ -332,7 +304,6 @@ class ChatWindow {
       }, 100);
     }
 
-    // Emit event
     if (this.eventBus) {
       this.eventBus.emit('chat:window:shown', { timestamp: Date.now() });
     }
@@ -340,16 +311,12 @@ class ChatWindow {
     console.log('[ChatWindow] Window shown');
   }
 
-  /**
-   * Hide the chat window
-   */
   hide() {
     if (!this.element) return;
 
     this.isVisible = false;
     this.element.classList.add('hidden');
 
-    // Emit event
     if (this.eventBus) {
       this.eventBus.emit('chat:window:hidden', { timestamp: Date.now() });
     }
@@ -357,9 +324,6 @@ class ChatWindow {
     console.log('[ChatWindow] Window hidden');
   }
 
-  /**
-   * Toggle window visibility
-   */
   toggle() {
     if (this.isVisible) {
       this.hide();
@@ -368,24 +332,13 @@ class ChatWindow {
     }
   }
 
-  /**
-   * Detect if running in detached window mode
-   * @private
-   * @returns {boolean}
-   */
   _detectDetachedMode() {
     if (typeof window === 'undefined') return false;
 
-    // Check URL path
     const isInChatHtml = window.location.pathname.includes('chat.html') ||
                         window.location.pathname.endsWith('chat.html');
-
-    // Check global flag
     const hasDetachedFlag = window.DETACHED_CHAT === true;
-
-    // Check preload API
     const hasDetachedAPI = window.aether && window.aether.isDetachedWindow === true;
-
     const detached = isInChatHtml || hasDetachedFlag || hasDetachedAPI;
 
     console.log(`[ChatWindow] Detached mode detection:`, {
@@ -398,10 +351,6 @@ class ChatWindow {
     return detached;
   }
 
-  /**
-   * Get window state
-   * @returns {Object}
-   */
   getState() {
     return Object.freeze({
       isVisible: this.isVisible,
@@ -410,48 +359,35 @@ class ChatWindow {
     });
   }
 
-  /**
-   * Get DOM element references
-   * @returns {Object}
-   */
   getElements() {
     return { ...this.elements };
   }
 
-  /**
-   * Update window title
-   * @param {string} title
-   */
   setTitle(title) {
     if (this.elements.title) {
-      this.elements.title.textContent = title;
+      const cleanTitle = (title || 'New Chat').trim();
+      const truncatedTitle = cleanTitle.length > 50 ? cleanTitle.substring(0, 50) + '...' : cleanTitle;
+      this.elements.title.textContent = truncatedTitle;
     }
   }
 
-  /**
-   * Dispose and cleanup
-   */
   dispose() {
     console.log('[ChatWindow] Disposing...');
 
-    // Remove event listeners
     if (this.eventBus) {
       this.eventBus.off('chat:show', this._handleVisibilityRequest);
       this.eventBus.off('chat:hide', this._handleVisibilityRequest);
       this.eventBus.off('chat:toggle', this._handleVisibilityRequest);
     }
 
-    // Remove DOM element
     if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element);
     }
 
-    // Dispose style manager
     if (this.styleManager) {
       this.styleManager.dispose();
     }
 
-    // Clear references
     this.element = null;
     this.elements = {};
     this.controller = null;

@@ -176,13 +176,18 @@ class ArtifactsApp {
    */
   initializeUI() {
     this.elements.root.innerHTML = `
-      <div class="artifacts-window">
+      <div class="artifacts-window visible">
         <div class="artifacts-header">
-          <div class="artifacts-title">ARTIFACTS</div>
           <div class="artifacts-tabs">
-            <button class="artifacts-tab active" data-tab="code" id="tab-code">Code</button>
-            <button class="artifacts-tab" data-tab="output" id="tab-output">Output</button>
-            <button class="artifacts-tab" data-tab="files" id="tab-files">Files</button>
+            <div class="artifacts-tab active" data-tab="code" id="tab-code">
+              <span class="tab-label">Code</span>
+            </div>
+            <div class="artifacts-tab" data-tab="output" id="tab-output">
+              <span class="tab-label">Output</span>
+            </div>
+            <div class="artifacts-tab" data-tab="files" id="tab-files">
+              <span class="tab-label">Files</span>
+            </div>
           </div>
           <div class="artifacts-controls">
             <button class="artifacts-control-btn" id="closeBtn" title="Close">×</button>
@@ -207,215 +212,6 @@ class ArtifactsApp {
           </div>
         </div>
       </div>
-      
-      <style>
-        * {
-          box-sizing: border-box;
-        }
-        
-        body {
-          margin: 0;
-          padding: 0;
-          font-family: 'Courier New', monospace;
-          background: transparent;
-          color: white;
-          overflow: hidden;
-        }
-        
-        .artifacts-window {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          background: rgba(0, 0, 0, 1.0);
-          border-radius: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-        }
-        
-        .artifacts-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 10px 12px;
-          background: rgba(255, 255, 255, 0.06);
-        }
-        
-        .artifacts-title {
-          font-weight: 700;
-          letter-spacing: 1px;
-        }
-        
-        .artifacts-tabs {
-          display: flex;
-          gap: 8px;
-        }
-        
-        .artifacts-tab {
-          background: transparent;
-          color: rgba(255, 255, 255, 0.8);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          padding: 6px 10px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 12px;
-        }
-        
-        .artifacts-tab.active {
-          background: rgba(255, 255, 255, 0.15);
-          color: rgba(255, 255, 255, 0.95);
-          border-color: rgba(255, 255, 255, 0.6);
-        }
-        
-        .artifacts-controls {
-          display: flex;
-          gap: 8px;
-        }
-        
-        .artifacts-control-btn {
-          background: none;
-          border: none;
-          color: rgba(255, 255, 255, 0.85);
-          font-size: 16px;
-          cursor: pointer;
-          padding: 4px 8px;
-          border-radius: 6px;
-        }
-        
-        .artifacts-control-btn:hover {
-          background: rgba(255, 255, 255, 0.08);
-        }
-        
-        
-        .artifacts-pane {
-          flex: 1;
-          overflow: auto;
-          display: none;
-          padding: 12px;
-        }
-        
-        .artifacts-pane.active {
-          display: block;
-        }
-        
-        .artifacts-code-pane.active {
-          display: flex;
-          flex-direction: column;
-        }
-        
-        .artifacts-output-pane {
-          padding: 6px;
-          background: rgba(0, 0, 0, 0.6);
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .artifacts-code-block {
-          background: rgba(0, 0, 0, 0.55);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 10px;
-          padding: 12px;
-          width: 100%;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-        }
-        
-        .artifacts-output-block {
-          background: rgba(0, 0, 0, 0.3);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 10px;
-          padding: 12px;
-          margin-bottom: 12px;
-        }
-        
-        .code-display,
-        .output-display {
-          flex: 1;
-          margin: 0;
-          padding: 12px;
-          font-family: 'Fira Code', 'JetBrains Mono', 'Courier New', monospace;
-          font-size: 12px;
-          line-height: 1.5;
-          white-space: pre-wrap;
-          overflow: auto;
-          color: #e0e0e0;
-          tab-size: 2;
-          border-radius: 8px;
-        }
-        
-        .files-list {
-          padding: 12px;
-        }
-        
-        .empty-state {
-          text-align: center;
-          padding: 40px;
-          color: rgba(255, 255, 255, 0.5);
-          font-size: 14px;
-        }
-        
-        /* Syntax highlighting (VS Code Dark+ inspired) */
-        .hljs {
-          background: transparent;
-        }
-        
-        .hljs-keyword,
-        .hljs-selector-tag,
-        .hljs-literal {
-          color: #569cd6;
-        }
-        
-        .hljs-string {
-          color: #ce9178;
-        }
-        
-        .hljs-number {
-          color: #b5cea8;
-        }
-        
-        .hljs-comment {
-          color: #6a9955;
-          font-style: italic;
-        }
-        
-        .hljs-function,
-        .hljs-title {
-          color: #dcdcaa;
-        }
-        
-        .hljs-params {
-          color: #9cdcfe;
-        }
-        
-        .hljs-attr,
-        .hljs-attribute {
-          color: #9cdcfe;
-        }
-        
-        .hljs-built_in,
-        .hljs-class .hljs-title {
-          color: #4ec9b0;
-        }
-        
-        .hljs-tag {
-          color: #569cd6;
-        }
-        
-        .hljs-variable {
-          color: #9cdcfe;
-        }
-        
-        .hljs-operator {
-          color: #d4d4d4;
-        }
-        
-        .hljs-punctuation {
-          color: #d4d4d4;
-        }
-      </style>
     `;
     
     // Cache new elements

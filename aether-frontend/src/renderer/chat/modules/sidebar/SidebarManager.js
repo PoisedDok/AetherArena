@@ -59,30 +59,15 @@ class SidebarManager {
     console.log('[SidebarManager] Constructed');
   }
 
-  /**
-   * Initialize sidebar
-   */
   async init() {
     console.log('[SidebarManager] Initializing...');
 
     try {
-      // Initialize storage API
       this._initStorageAPI();
-
-      // Inject styles
-      this._injectStyles();
-
-      // Create DOM elements
       this._createContainer();
       this._createToggleButton();
-
-      // Setup event listeners
       this._setupEventListeners();
-
-      // Load and display chat list
       await this.refreshChatList();
-
-      // Auto-show if chats exist
       await this._autoShow();
 
       console.log('[SidebarManager] Initialization complete');
@@ -92,10 +77,6 @@ class SidebarManager {
     }
   }
 
-  /**
-   * Initialize storage API
-   * @private
-   */
   _initStorageAPI() {
     if (typeof window !== 'undefined' && window.storageAPI) {
       this.storageAPI = window.storageAPI;
@@ -105,248 +86,21 @@ class SidebarManager {
     }
   }
 
-  /**
-   * Inject styles
-   * @private
-   */
-  _injectStyles() {
-    if (document.getElementById('sidebar-manager-styles')) {
-      console.log('[SidebarManager] Styles already injected');
-      return;
-    }
-
-    const style = document.createElement('style');
-    style.id = 'sidebar-manager-styles';
-    style.textContent = `
-      .aether-sidebar {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: ${CONFIG.SIDEBAR_WIDTH}px;
-        height: 100%;
-        background: rgba(10, 10, 10, 0.90);
-        backdrop-filter: blur(20px) saturate(150%);
-        -webkit-backdrop-filter: blur(20px) saturate(150%);
-        border-right: 1px solid rgba(255, 255, 255, 0.15);
-        box-shadow: 2px 0 20px rgba(0, 0, 0, 0.6);
-        display: flex;
-        flex-direction: column;
-        color: #e5e7eb;
-        font-family: var(--font-family-base, 'Inter', -apple-system, sans-serif);
-        z-index: 1999;
-        transform: translateX(-100%);
-        opacity: 0;
-        transition: transform ${CONFIG.ANIMATION_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1), 
-                    opacity 350ms ease;
-        will-change: transform, opacity;
-      }
-      
-      .aether-sidebar.visible {
-        transform: translateX(0);
-        opacity: 1;
-      }
-      
-      .aether-sidebar-backdrop {
-        position: absolute;
-        left: ${CONFIG.SIDEBAR_WIDTH}px;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(2, 6, 23, 0.35);
-        z-index: 1995;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 350ms ease;
-        pointer-events: none;
-      }
-      
-      .aether-sidebar-backdrop.visible {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-      }
-      
-      .aether-sidebar-toggle {
-        position: absolute;
-        top: 16px;
-        left: 10px;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #e5e7eb;
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 3000;
-        font-size: 16px;
-        transition: all 0.2s ease;
-      }
-      
-      .aether-sidebar-toggle:hover {
-        background: rgba(255, 255, 255, 0.12);
-        color: #fff;
-        transform: scale(1.05);
-      }
-      
-      .aether-sidebar-header {
-        padding: 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.04);
-        -webkit-app-region: no-drag;
-        position: relative;
-        z-index: 2001;
-        pointer-events: auto;
-      }
-      
-      .aether-sidebar-header h3 {
-        margin: 0;
-        color: #f3f3f3;
-        font-size: 15px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        pointer-events: none;
-      }
-      
-      .aether-chat-list-container {
-        flex: 1;
-        overflow-y: auto;
-        padding: 12px;
-      }
-      
-      .aether-chat-list-container::-webkit-scrollbar {
-        width: 6px;
-      }
-      
-      .aether-chat-list-container::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 3px;
-      }
-      
-      .aether-chat-list-container::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 3px;
-      }
-      
-      .aether-chat-list-container::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.25);
-      }
-      
-      .aether-chat-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      
-      .aether-chat-item {
-        padding: 12px 14px;
-        background: rgba(255, 255, 255, 0.04);
-        border-radius: 8px;
-        cursor: pointer;
-        position: relative;
-        border-left: 3px solid transparent;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        transition: all 0.2s ease;
-      }
-      
-      .aether-chat-item:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(255, 255, 255, 0.15);
-        transform: translateX(2px);
-      }
-      
-      .aether-chat-item.active {
-        background: rgba(255, 255, 255, 0.12);
-        border-left: 3px solid rgba(255, 255, 255, 0.6);
-        border-color: rgba(255, 255, 255, 0.25);
-        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
-      }
-      
-      .aether-chat-item-title {
-        font-size: 13px;
-        margin-bottom: 4px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        padding-right: 24px;
-        color: #f3f3f3;
-        font-weight: 500;
-      }
-      
-      .aether-chat-item-info {
-        display: flex;
-        justify-content: space-between;
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.45);
-      }
-      
-      .aether-chat-delete-btn {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: rgba(255, 255, 255, 0.85);
-        border-radius: 6px;
-        width: 22px;
-        height: 22px;
-        line-height: 20px;
-        font-size: 16px;
-        cursor: pointer;
-        opacity: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-      }
-      
-      .aether-chat-item:hover .aether-chat-delete-btn {
-        opacity: 1;
-      }
-      
-      .aether-chat-delete-btn:hover {
-        background: rgba(255, 50, 50, 0.15);
-        border-color: rgba(255, 50, 50, 0.3);
-        color: #ff6b6b;
-      }
-      
-      .aether-chat-list-empty {
-        padding: 20px 0;
-        text-align: center;
-        color: rgba(255, 255, 255, 0.4);
-        font-style: italic;
-        font-size: 13px;
-      }
-    `;
-
-    document.head.appendChild(style);
-    console.log('[SidebarManager] Styles injected');
-  }
-
-  /**
-   * Create sidebar container
-   * @private
-   */
   _createContainer() {
     if (!this.chatWindow || !this.chatWindow.element) {
       console.error('[SidebarManager] ChatWindow element not available');
       return;
     }
 
-    // Ensure chat window is a positioning context
     const windowEl = this.chatWindow.element;
     const style = window.getComputedStyle(windowEl);
     if (!['relative', 'absolute', 'fixed'].includes(style.position)) {
       windowEl.style.position = 'relative';
     }
 
-    // Create sidebar container
     this.container = document.createElement('div');
     this.container.className = 'aether-sidebar';
 
-    // Create header
     const header = document.createElement('div');
     header.className = 'aether-sidebar-header';
 
@@ -354,7 +108,6 @@ class SidebarManager {
     title.textContent = 'GURU';
     header.appendChild(title);
 
-    // Create list container
     const listContainer = document.createElement('div');
     listContainer.className = 'aether-chat-list-container';
 
@@ -362,16 +115,13 @@ class SidebarManager {
     chatList.className = 'aether-chat-list';
     listContainer.appendChild(chatList);
 
-    // Assemble sidebar
     this.container.appendChild(header);
     this.container.appendChild(listContainer);
 
-    // Insert as first child
     windowEl.insertBefore(this.container, windowEl.firstChild);
 
     this.listContainer = chatList;
 
-    // Create backdrop
     this.backdrop = document.createElement('div');
     this.backdrop.className = 'aether-sidebar-backdrop';
     windowEl.appendChild(this.backdrop);
@@ -379,10 +129,6 @@ class SidebarManager {
     console.log('[SidebarManager] Container created');
   }
 
-  /**
-   * Create toggle button
-   * @private
-   */
   _createToggleButton() {
     if (!this.chatWindow || !this.chatWindow.elements || !this.chatWindow.elements.header) {
       console.error('[SidebarManager] ChatWindow header not available');
@@ -391,30 +137,19 @@ class SidebarManager {
 
     const header = this.chatWindow.elements.header;
 
-    // Check if button already exists
     if (header.querySelector('.aether-sidebar-toggle')) {
       console.log('[SidebarManager] Toggle button already exists');
       return;
     }
 
-    // Create toggle button
     this.toggleBtn = document.createElement('button');
     this.toggleBtn.className = 'aether-sidebar-toggle';
     this.toggleBtn.textContent = '☰';
     this.toggleBtn.title = 'Toggle Chat List';
     this.toggleBtn.setAttribute('aria-label', 'Toggle chat list');
 
-    // Insert before title
-    const titleEl = header.querySelector('.aether-chat-title');
-    if (titleEl) {
-      header.insertBefore(this.toggleBtn, titleEl);
-      // Add margin to title to prevent overlap
-      titleEl.style.marginLeft = '35px';
-    } else {
-      header.appendChild(this.toggleBtn);
-    }
+    header.insertBefore(this.toggleBtn, header.firstChild);
 
-    // Add click listener
     const toggleHandler = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -427,19 +162,13 @@ class SidebarManager {
     console.log('[SidebarManager] Toggle button created');
   }
 
-  /**
-   * Setup event listeners
-   * @private
-   */
   _setupEventListeners() {
-    // Backdrop click to close
     if (this.backdrop) {
       const backdropHandler = () => this.toggle(false);
       this.backdrop.addEventListener('click', backdropHandler);
       this._eventListeners.push({ element: this.backdrop, event: 'click', handler: backdropHandler });
     }
 
-    // Escape key to close
     const escapeHandler = (e) => {
       if (this.isVisible && (e.key === 'Escape' || e.key === 'Esc')) {
         this.toggle(false);
@@ -464,10 +193,6 @@ class SidebarManager {
     console.log('[SidebarManager] Event listeners setup');
   }
 
-  /**
-   * Toggle sidebar visibility
-   * @param {boolean} [visible] - Force visibility state
-   */
   toggle(visible = !this.isVisible) {
     console.log(`[SidebarManager] Toggling: ${this.isVisible} → ${visible}`);
 
@@ -479,7 +204,6 @@ class SidebarManager {
     this.isVisible = visible;
 
     if (visible) {
-      // Show sidebar
       this.container.classList.add('visible');
       this.container.style.display = 'flex';
 
@@ -487,19 +211,15 @@ class SidebarManager {
         this.backdrop.classList.add('visible');
       }
 
-      // Update toggle button
       if (this.toggleBtn) {
         this.toggleBtn.textContent = '←';
         this.toggleBtn.title = 'Hide Chat List';
       }
 
-      // Refresh chat list
       this.refreshChatList();
     } else {
-      // Hide sidebar
       this.container.classList.remove('visible');
 
-      // Defer display: none until after animation
       if (this.containerHideTimer) {
         clearTimeout(this.containerHideTimer);
       }
@@ -513,7 +233,6 @@ class SidebarManager {
         this.backdrop.classList.remove('visible');
       }
 
-      // Update toggle button
       if (this.toggleBtn) {
         this.toggleBtn.textContent = '☰';
         this.toggleBtn.title = 'Show Chat List';
@@ -523,9 +242,6 @@ class SidebarManager {
     console.log('[SidebarManager] Toggle complete');
   }
 
-  /**
-   * Refresh chat list from storage
-   */
   async refreshChatList() {
     if (!this.listContainer) {
       console.error('[SidebarManager] List container not available');
@@ -535,18 +251,14 @@ class SidebarManager {
     try {
       console.log('[SidebarManager] Refreshing chat list...');
 
-      // Clear current list
       this.listContainer.innerHTML = '';
 
-      // Get chats from storage
       const chats = await this._getChats();
 
-      // Get current chat ID
       this.currentChatId = this._getCurrentChatId();
 
       console.log(`[SidebarManager] Loaded ${chats.length} chats, current: ${this.currentChatId}`);
 
-      // Display empty state or chat list
       if (!chats || chats.length === 0) {
         this._renderEmptyState();
       } else {
@@ -719,11 +431,6 @@ class SidebarManager {
     deleteBtn.addEventListener('click', deleteHandler);
   }
 
-  /**
-   * Switch to chat
-   * @private
-   * @param {string} chatId
-   */
   async _switchToChat(chatId) {
     console.log(`[SidebarManager] Switching to chat: ${chatId}`);
 
@@ -732,21 +439,22 @@ class SidebarManager {
       return;
     }
 
-    // Validate UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(chatId)) {
       console.error('[SidebarManager] Invalid UUID format:', chatId);
-      await this.refreshChatList(); // Refresh to remove invalid entries
+      await this.refreshChatList();
       return;
     }
 
-    // Use MessageManager to load chat
     if (this.messageManager && typeof this.messageManager.loadChat === 'function') {
       try {
-        // Load chat via MessageManager (handles MessageState and MessageView)
+        const chat = await this.storageAPI.loadChat(chatId);
+        if (chat && chat.title) {
+          this._updateWindowTitle(chat.title);
+        }
+
         await this.messageManager.loadChat(chatId);
 
-        // Update active chat in UI
         this.currentChatId = chatId;
         this._updateActiveChat();
 
@@ -880,12 +588,6 @@ class SidebarManager {
     });
   }
 
-  /**
-   * Format date for display
-   * @private
-   * @param {string|Date} date
-   * @returns {string}
-   */
   _formatDate(date) {
     if (!date) return '';
 
@@ -896,6 +598,12 @@ class SidebarManager {
       return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     } catch (error) {
       return '';
+    }
+  }
+
+  _updateWindowTitle(title) {
+    if (this.eventBus) {
+      this.eventBus.emit('chat:title-changed', { title });
     }
   }
 

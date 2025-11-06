@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: Event 'message' from GuruConnection.js (WebSocket messages) --- {assistant_message | system_message | server_message, json}
- * Processing: WebSocket-to-IPC relay transforming WS payloads to IPC format, route by role (assistant/server), delegate to 7 submodules (ConnectionMonitor/ModelManager/ProfileManager/SettingsManager/UIStateManager/ServiceStatusMonitor/ArtifactsStreamHandler), initialize all managers, start/stop monitors, gather UI elements, setup event listeners, load initial data --- {7 jobs: JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_SEND_IPC, JOB_START, JOB_TRANSFORM_TO_CHUNK}
- * Outgoing: IPC 'chat:assistant-stream' → Chat Window MessageManager.js, IPC 'chat:server-message' → Chat Window --- {ipc_stream_chunk, json}
+ * Incoming: MainOrchestrator (initialization), guru/endpoint instances (constructor injection), DOM elements --- {method_calls | dom_elements, javascript_api | HTMLElement}
+ * Processing: Delegate to 7 submodules (ConnectionMonitor/ModelManager/ProfileManager/SettingsManager/UIStateManager/ServiceStatusMonitor/ArtifactsStreamHandler), initialize all managers, start/stop monitors, gather UI elements, setup event listeners, load initial data, coordinate main window UI (visualizer, connection status, model info) --- {7 jobs: JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_SEND_IPC, JOB_START, JOB_UPDATE_STATE}
+ * Outgoing: ConnectionMonitor.start/stop(), ModelManager/ProfileManager/SettingsManager methods (orchestration delegation), DOM updates (main window UI) --- {method_calls | dom_updates, javascript_api | HTMLElement}
  * 
  * 
  * @module application/main/UIManager
@@ -495,62 +495,19 @@ class UIManager {
   }
 
   /**
-   * Setup WebSocket-to-IPC message relay
-   * Critical component for forwarding streaming messages to chat window
+   * Setup WebSocket-to-IPC relay
    * @private
+   * 
+   * Chat window uses direct WebSocket connection.
+   * Main window only handles visualizer and connection status.
    */
   _setupWebSocketToIPCRelay() {
-    if (!this.guru) {
-      console.error('[UIManager] Cannot setup WS-to-IPC relay: guru not available');
+    if (!this.guru || !this.ipc) {
+      console.warn('[UIManager] WS-to-IPC relay unavailable');
       return;
     }
     
-    if (!this.ipc) {
-      console.warn('[UIManager] Cannot setup WS-to-IPC relay: IPC not available');
-      return;
-    }
-    
-    // Forward all WebSocket 'message' events to chat window via IPC
-    this.guru.on('message', (payload) => {
-      try {
-        // Assistant streaming messages
-        if (payload.role === 'assistant' && payload.type === 'message') {
-          const chunk = {
-            chunk: payload.content || '',
-            id: payload.id || null,  // This is now frontend_id (restored from backend echo)
-            backend_id: payload._backend_id || null,  // Preserved backend ID
-            start: payload.start || false,
-            done: payload.end || false,
-            type: payload.type
-          };
-          
-          // LOG RELAY: Data passing through main → chat window
-          console.log('[UIManager] 🔄 RELAY: Main → Chat window:', {
-            frontend_id: chunk.id,
-            backend_id: chunk.backend_id,
-            contentLength: chunk.chunk.length,
-            start: chunk.start,
-            done: chunk.done
-          });
-          
-          // Forward to chat window
-          this.ipc.send('chat:assistant-stream', chunk);
-        }
-        
-        // Server messages (completion, stopped, errors)
-        if (payload.role === 'server') {
-          console.log('[UIManager] 🔄 RELAY: Server message → Chat window:', {
-            type: payload.type,
-            id: payload.id
-          });
-          this.ipc.send('chat:server-message', payload);
-        }
-      } catch (error) {
-        console.error('[UIManager] Error relaying message to IPC:', error);
-      }
-    });
-    
-    console.log('[UIManager] ✅ WebSocket-to-IPC relay established');
+    console.log('[UIManager] Main window initialized');
   }
 
   /**

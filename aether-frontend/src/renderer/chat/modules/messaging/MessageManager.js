@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: IPC 'chat:assistant-stream', 'chat:request-complete' (from ChatController.js) --- {stream_types.ipc_stream_chunk, json}
- * Processing: Coordinate 8 submodules (SecuritySanitizer, MarkdownRenderer, MessageView, MessageState, SendController, StopController, StreamHandler, TrailContainerManager), route IPC to StreamHandler, visualize execution pipeline in TRAIL containers, handle user input --- {8 jobs: JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GENERATE_SESSION_ID, JOB_GET_STATE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_UPDATE_STATE}
- * Outgoing: streamHandler.processChunk() → StreamHandler.js, sendController.send() → Endpoint.js, trailContainerManager.createTrail() → DOM --- {message_types.user_message | method_call, json}
+ * Incoming: GuruConnection.on('message') via endpoint.connection (WebSocket from backend), IPC 'chat:request-complete' (from ChatController.js) --- {stream_types.websocket_stream_chunk, json}
+ * Processing: Coordinate 8 submodules (SecuritySanitizer, MarkdownRenderer, MessageView, MessageState, SendController, StopController, StreamHandler, TrailContainerManager), route WebSocket streams to StreamHandler, visualize execution pipeline in TRAIL containers, handle user input, route artifacts to ChatController --- {8 jobs: JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GENERATE_SESSION_ID, JOB_GET_STATE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_UPDATE_STATE}
+ * Outgoing: streamHandler.processChunk() → StreamHandler.js, sendController.send() → Endpoint.js, trailContainerManager.createTrail() → DOM, eventBus.emit('artifact:stream') → ChatController --- {message_types.user_message | artifact_stream | method_call, json}
  * 
  * 
  * @module renderer/chat/modules/messaging/MessageManager
@@ -211,24 +211,18 @@ class MessageManager {
   }
 
   /**
-   * Setup IPC listeners for streaming
+   * Setup IPC listeners
    * @private
+   * 
+   * Chat uses direct WebSocket connection for streaming.
+   * IPC is only used for completion signals and control messages.
    */
   _setupIPCListeners() {
     if (!this.ipcBridge) {
-      console.warn('[MessageManager] No IPC bridge - streaming disabled');
+      console.warn('[MessageManager] No IPC bridge available');
       return;
     }
 
-    // Listen for assistant streams
-    // CRITICAL: Make async and await processChunk to prevent race conditions
-    const onAssistantStream = async (_, data) => {
-      console.log('[MessageManager] Received assistant stream chunk');
-      await this.streamHandler.processChunk(data);
-    };
-
-    // Listen for stream completion
-    // CRITICAL: Make async and await forceFinalize
     const onRequestComplete = async (_, data) => {
       console.log('[MessageManager] Request complete:', data);
       this.setProcessing(false);
@@ -236,14 +230,7 @@ class MessageManager {
       await this.streamHandler.forceFinalize();
     };
 
-    this.ipcBridge.on('chat:assistant-stream', onAssistantStream);
     this.ipcBridge.on('chat:request-complete', onRequestComplete);
-
-    // Track for cleanup
-    this._ipcListeners.push({ 
-      channel: 'chat:assistant-stream', 
-      handler: onAssistantStream 
-    });
     this._ipcListeners.push({ 
       channel: 'chat:request-complete', 
       handler: onRequestComplete 
@@ -253,12 +240,8 @@ class MessageManager {
   }
 
   /**
-   * Setup WebSocket listeners for direct endpoint communication
+   * Setup WebSocket listeners for streaming
    * @private
-   * 
-   * NOTE: Chat window has DIRECT WebSocket access via window.endpoint/window.guru.
-   * The endpoint is created in ChatController._initializeCore() and made globally available.
-   * We listen to GuruConnection 'message' events for assistant responses.
    */
   _setupWebSocketListeners() {
     if (!this.endpoint || !this.endpoint.connection) {
@@ -280,11 +263,12 @@ class MessageManager {
    * @param {Object} payload - WebSocket message payload
    */
   _handleWebSocketMessage(payload) {
-    if (!payload || typeof payload !== 'object') {
-      return;
-    }
+    try {
+      if (!payload || typeof payload !== 'object') {
+        return;
+      }
 
-    const { role, type, content, start, end, id, format } = payload;
+      const { role, type, content, start, end, id, format } = payload;
 
     // =========================================================================
     // ARTIFACT ROUTING - Forward to artifacts window via ChatController
@@ -391,6 +375,9 @@ class MessageManager {
       console.error('[MessageManager] Backend error:', payload);
       this.setProcessing(false);
       this.setStopMode(false);
+    }
+    } catch (error) {
+      console.error('[MessageManager] Error handling WebSocket message:', error, payload);
     }
   }
 
@@ -524,17 +511,10 @@ class MessageManager {
     await this.sendMessage(content);
   }
 
-  /**
-   * Send a message
-   * @param {string} content - Message content
-   * @param {Object} options - Send options
-   * @returns {Promise<void>}
-   */
   async sendMessage(content, options = {}) {
     console.log('[MessageManager] Sending message:', content.substring(0, 50));
 
     try {
-      // Add user message to view and state
       const tempId = this._generateMessageId();
       const userMessage = {
         id: tempId,
@@ -543,56 +523,58 @@ class MessageManager {
         timestamp: new Date().toISOString()
       };
 
-      // Render with temporary ID
       this.messageView.renderMessage(userMessage);
       
-      // Save to database and get database UUID
       const savedMessage = await this.messageState.saveMessage(userMessage);
 
-      // CRITICAL: Update DOM element with database UUID
-      // This ensures trail persistence works correctly
       if (savedMessage && savedMessage.id !== tempId) {
         console.log(`[MessageManager] User message ID updated: ${tempId} → ${savedMessage.id}`);
         
-        // Update DOM element's data-message-id attribute
         const element = this.messageView.getMessageElement(tempId);
         if (element) {
           element.dataset.messageId = savedMessage.id;
           
-          // Update MessageView's messageElements map
           this.messageView.messageElements.delete(tempId);
           this.messageView.messageElements.set(savedMessage.id, element);
         }
         
-        // Use database UUID going forward
         userMessage.id = savedMessage.id;
       }
 
-      // Set user message ID in StreamHandler for proper parent-child linking
       if (this.streamHandler) {
         this.streamHandler.userMessageId = userMessage.id;
       }
 
-      // Clear input
       if (this.inputElement) {
         this.inputElement.value = '';
         this._autoResizeInput();
       }
 
-      // Set processing state
       this.setProcessing(true);
       this.setStopMode(true);
 
-      // Send via SendController
       const requestId = await this.sendController.send(content, {
         correlationId: userMessage.id
       });
+
+      this._updateChatTitleIfNeeded(content);
 
       console.log(`[MessageManager] Message sent with requestId: ${requestId}`);
     } catch (error) {
       console.error('[MessageManager] Failed to send message:', error);
       this.setProcessing(false);
       this.setStopMode(false);
+    }
+  }
+
+  _updateChatTitleIfNeeded(content) {
+    const messages = this.messageState.getMessages();
+    if (messages.length === 1) {
+      const title = content.substring(0, 50).trim();
+      if (this.eventBus) {
+        this.eventBus.emit('chat:title-changed', { title });
+      }
+      this.messageState.updateChatTitle(title);
     }
   }
 
@@ -657,27 +639,23 @@ class MessageManager {
     console.log(`[MessageManager] Loading chat: ${chatId}`);
 
     try {
-      await this.messageState.loadChat(chatId);
+      const chat = await this.messageState.loadChat(chatId);
       
-      // CRITICAL ORDER: Save trails BEFORE clearing view
-      // switchChat() saves current chat's trails, then restores new chat's trails
+      if (chat && chat.title && this.eventBus) {
+        this.eventBus.emit('chat:title-changed', { title: chat.title });
+      }
+      
       if (this.trailContainerManager) {
         this.trailContainerManager.switchChat(chatId);
-        // Also set as current chat for tracking (ensures persistence works)
         this.trailContainerManager.setCurrentChat(chatId);
         console.log('[MessageManager] Trail state switched for new chat');
       }
       
-      // Now safe to clear view - trails already saved and will be restored
       this.messageView.clear();
       
-      // CRITICAL: Set active chat AFTER loadChat succeeds to ensure we have valid PostgreSQL UUID
-      // This activates the session for deterministic ID generation
       sessionManager.setActiveChat(chatId);
       console.log(`[MessageManager] Set active session: ${chatId}`);
       
-      // CRITICAL: Notify backend to reset context for this chat
-      // This ensures LM Studio/runtime doesn't carry over conversation from previous chat
       await this._notifyBackendContextSwitch(chatId);
 
       const messages = this.messageState.getMessages();
@@ -690,7 +668,6 @@ class MessageManager {
         }
       }
       
-      // Restore trails AFTER messages are rendered and view is ready
       if (this.trailContainerManager) {
         this.trailContainerManager.restoreTrailState(chatId);
         console.log('[MessageManager] Trail state restored for chat');
@@ -702,37 +679,28 @@ class MessageManager {
     }
   }
 
-  /**
-   * Create a new chat
-   * @param {string} title - Chat title
-   * @returns {Promise<string>} Chat ID (PostgreSQL UUID)
-   */
   async createChat(title = 'New Chat') {
     console.log(`[MessageManager] Creating new chat: ${title}`);
 
     try {
       const chatId = await this.messageState.createChat(title);
       
-      // CRITICAL ORDER: Save trails BEFORE clearing messages
-      // switchChat() saves current chat's trails, then switches to new chat context
+      if (this.eventBus) {
+        this.eventBus.emit('chat:title-changed', { title });
+      }
+      
       if (this.trailContainerManager) {
         this.trailContainerManager.switchChat(chatId);
-        // Set as current chat for tracking (ensures future persistence works)
         this.trailContainerManager.setCurrentChat(chatId);
         this.trailContainerManager.resetNumbering();
         console.log('[MessageManager] Trail state switched for new chat');
       }
       
-      // Now safe to clear messages - trails already saved
       this.clearMessages();
       
-      // CRITICAL: Set active chat AFTER createChat returns PostgreSQL UUID
-      // This ensures SessionManager has the correct chat context for ID generation
       sessionManager.setActiveChat(chatId);
       console.log(`[MessageManager] Created and activated session: ${chatId.slice(0,8)}`);
       
-      // CRITICAL: Notify backend to reset context for new chat
-      // This ensures fresh conversation context in LM Studio/runtime
       await this._notifyBackendContextSwitch(chatId);
       
       return chatId;

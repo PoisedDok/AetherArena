@@ -8,95 +8,346 @@
  * @module renderer/artifacts/styles/artifacts.css
  */
 
-/**
- * Artifacts Window Styles
- * ============================================================================
- * Styles specific to the artifacts window (code viewer, output, tabs).
- * 
- * Features:
- * - Tab navigation (code/output/files)
- * - Code viewer with syntax highlighting
- * - Output rendering
- * - File management
- * - Execution controls
- * 
- * Import order:
- * 1. theme.css
- * 2. components.css
- * 3. artifacts.css (this file)
- */
-
 /* ============================================================================
-   ARTIFACTS WINDOW LAYOUT
+   BODY & GLOBAL STYLES
    ============================================================================ */
 
-#artifacts-window {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: var(--color-bg-overlay);
-  backdrop-filter: var(--backdrop-blur-lg);
-  -webkit-backdrop-filter: var(--backdrop-blur-lg);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border-strong);
-  box-shadow: var(--shadow-2xl);
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-base);
+  background: transparent;
+  color: var(--color-text-primary);
   overflow: hidden;
 }
 
+/* ============================================================================
+   ARTIFACTS WINDOW BASE
+   ============================================================================ */
+
+.artifacts-window {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 1.0);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-base);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.artifacts-window.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.95);
+  transition: opacity var(--duration-slow) var(--transition-smooth),
+              transform var(--duration-slow) var(--transition-smooth);
+}
+
+.artifacts-window.visible {
+  opacity: 1;
+  pointer-events: all;
+  transform: scale(1);
+  transition: opacity var(--duration-slow) var(--transition-smooth),
+              transform var(--duration-slow) var(--transition-smooth);
+}
+
+.artifacts-window.dragging {
+  cursor: move;
+  user-select: none;
+}
 
 /* ============================================================================
-   HEADER & TABS
+   HEADER & TABS (Safari-like Design)
    ============================================================================ */
 
 .artifacts-header {
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-surface-base);
-  border-bottom: 1px solid var(--color-border-base);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  -webkit-app-region: drag;
+  align-items: stretch;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-base);
+  flex-shrink: 0;
+  height: 40px;
+  position: relative;
 }
 
 .artifacts-tabs {
   display: flex;
-  gap: var(--spacing-xs);
-  -webkit-app-region: no-drag;
+  flex: 1;
+  align-items: stretch;
+  gap: 0;
+  padding-left: var(--spacing-sm);
 }
 
 .artifacts-tab {
-  padding: var(--spacing-xs) var(--spacing-md);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  padding: 0 var(--spacing-lg);
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
   cursor: pointer;
+  user-select: none;
   transition: all var(--transition-base);
+  border: none;
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+  margin-right: 2px;
 }
 
-.artifacts-tab:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-text-primary);
+.artifacts-tab::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background var(--transition-base);
+}
+
+.artifacts-tab:hover:not(.active) {
+  background: var(--color-surface-base);
+  color: var(--color-text-secondary);
 }
 
 .artifacts-tab.active {
-  background: var(--color-surface-active);
-  border-color: var(--color-border-strong);
+  background: var(--color-bg-primary);
   color: var(--color-text-primary);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.artifacts-actions {
+.artifacts-tab.active::before {
+  background: linear-gradient(90deg, 
+    var(--color-primary) 0%, 
+    var(--color-primary-light) 50%, 
+    var(--color-primary) 100%
+  );
+}
+
+.artifacts-tab.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -10px;
+  right: -10px;
+  bottom: -1px;
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  z-index: -1;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tab-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.3px;
+  transition: all var(--transition-base);
+}
+
+.artifacts-tab.active .tab-label {
+  font-weight: var(--font-weight-semibold);
+}
+
+.artifacts-controls {
   display: flex;
+  align-items: center;
+  padding: 0 var(--spacing-md);
   gap: var(--spacing-xs);
-  -webkit-app-region: no-drag;
 }
 
+.artifacts-control-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
+}
+
+.artifacts-control-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  transform: scale(1.1);
+}
 
 /* ============================================================================
-   CODE VIEWER
+   CONTENT AREA
+   ============================================================================ */
+
+.artifacts-pane {
+  flex: 1;
+  overflow: auto;
+  display: none;
+  padding: var(--spacing-md);
+}
+
+.artifacts-pane.active {
+  display: block;
+}
+
+/* ============================================================================
+   CODE PANE
+   ============================================================================ */
+
+.artifacts-code-pane.active {
+  display: flex;
+  flex-direction: column;
+}
+
+.artifacts-code-block {
+  background: var(--artifacts-code-bg);
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.code-display {
+  flex: 1;
+  margin: 0;
+  padding: var(--spacing-md);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  white-space: pre-wrap;
+  overflow: auto;
+  color: var(--color-text-primary);
+  tab-size: 2;
+  border-radius: var(--radius-md);
+}
+
+/* ============================================================================
+   OUTPUT PANE
+   ============================================================================ */
+
+.artifacts-output-pane {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.artifacts-output-block {
+  background: var(--artifacts-output-bg);
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.output-display {
+  flex: 1;
+  margin: 0;
+  padding: var(--spacing-md);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  white-space: pre-wrap;
+  overflow: auto;
+  color: var(--color-text-primary);
+  tab-size: 2;
+  border-radius: var(--radius-md);
+}
+
+/* ============================================================================
+   FILES PANE
+   ============================================================================ */
+
+.artifacts-files-pane {
+  padding: var(--spacing-md);
+}
+
+.files-list {
+  padding: var(--spacing-md);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+/* ============================================================================
+   SYNTAX HIGHLIGHTING (VS Code Dark+ Theme)
+   ============================================================================ */
+
+.hljs {
+  background: transparent;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal {
+  color: var(--code-keyword);
+}
+
+.hljs-string {
+  color: var(--code-string);
+}
+
+.hljs-number {
+  color: var(--code-number);
+}
+
+.hljs-comment {
+  color: var(--code-comment);
+  font-style: italic;
+}
+
+.hljs-function,
+.hljs-title {
+  color: var(--code-function);
+}
+
+.hljs-params {
+  color: var(--code-param);
+}
+
+.hljs-attr,
+.hljs-attribute {
+  color: var(--code-param);
+}
+
+.hljs-built_in,
+.hljs-class .hljs-title {
+  color: var(--code-builtin);
+}
+
+.hljs-tag {
+  color: var(--code-keyword);
+}
+
+.hljs-variable {
+  color: var(--code-param);
+}
+
+.hljs-operator {
+  color: var(--code-operator);
+}
+
+.hljs-punctuation {
+  color: var(--code-operator);
+}
+
+/* ============================================================================
+   CODE VIEWER COMPONENTS
    ============================================================================ */
 
 .code-viewer {
@@ -138,11 +389,6 @@
   background: var(--color-bg-primary);
 }
 
-.code-editor #ace-editor {
-  width: 100%;
-  height: 100%;
-}
-
 .code-line-numbers {
   background: var(--color-bg-secondary);
   border-right: 1px solid var(--color-border-base);
@@ -163,9 +409,8 @@
   overflow: auto;
 }
 
-
 /* ============================================================================
-   OUTPUT VIEWER
+   OUTPUT VIEWER COMPONENTS
    ============================================================================ */
 
 .output-viewer {
@@ -199,7 +444,6 @@
   background: var(--color-bg-primary);
 }
 
-/* Output rendering */
 .output-item {
   margin-bottom: var(--spacing-lg);
   padding: var(--spacing-md);
@@ -211,7 +455,7 @@
 .output-header {
   display: flex;
   align-items: center;
-  justify-content: between;
+  justify-content: space-between;
   margin-bottom: var(--spacing-sm);
   padding-bottom: var(--spacing-sm);
   border-bottom: 1px solid var(--color-border-base);
@@ -233,7 +477,6 @@
   color: var(--color-text-secondary);
 }
 
-/* Output types */
 .output-item.html .output-type {
   background: var(--color-info-bg);
   color: var(--color-info);
@@ -254,9 +497,8 @@
   color: var(--color-success);
 }
 
-
 /* ============================================================================
-   FILE MANAGER
+   FILE MANAGER COMPONENTS
    ============================================================================ */
 
 .file-manager {
@@ -343,7 +585,6 @@
   font-family: var(--font-family-mono);
 }
 
-
 /* ============================================================================
    EXECUTION CONTROLS
    ============================================================================ */
@@ -383,7 +624,7 @@
   background: var(--color-warning-bg);
   border-color: var(--color-warning-border);
   color: var(--color-warning);
-  animation: pulse 1.5s ease-in-out infinite;
+  animation: executePulse 1.5s ease-in-out infinite;
 }
 
 .execution-status {
@@ -391,7 +632,6 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
-
 
 /* ============================================================================
    SPLIT VIEW
@@ -441,7 +681,6 @@
   opacity: 1;
 }
 
-
 /* ============================================================================
    RESPONSIVE ADJUSTMENTS
    ============================================================================ */
@@ -485,7 +724,6 @@
   }
 }
 
-
 /* ============================================================================
    ANIMATIONS
    ============================================================================ */
@@ -500,8 +738,3 @@
     transform: scale(1.02);
   }
 }
-
-.execute-btn.running {
-  animation: executePulse 2s ease-in-out infinite;
-}
-

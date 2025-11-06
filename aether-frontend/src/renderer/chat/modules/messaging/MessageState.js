@@ -29,10 +29,6 @@ class MessageState {
     console.log('[MessageState] Constructed');
   }
 
-  /**
-   * Initialize storage API
-   * @private
-   */
   _initStorageAPI() {
     if (typeof window !== 'undefined' && window.storageAPI) {
       this.storageAPI = window.storageAPI;
@@ -42,11 +38,6 @@ class MessageState {
     }
   }
 
-  /**
-   * Initialize with current chat
-   * Loads messages if chatId provided
-   * @param {string} [chatId] - Optional chat ID to load
-   */
   async init(chatId = null) {
     console.log('[MessageState] Initializing...');
 
@@ -57,10 +48,8 @@ class MessageState {
 
     try {
       if (chatId) {
-        // Load specific chat
         await this.loadChat(chatId);
       } else {
-        // Create or load default chat
         await this.ensureDefaultChat();
       }
 
@@ -71,43 +60,29 @@ class MessageState {
     }
   }
 
-  /**
-   * Ensure a default chat exists
-   * @private
-   */
   async ensureDefaultChat() {
     if (!this.storageAPI) return;
 
     try {
-      // Get all chats
       const chats = await this.storageAPI.loadChats();
 
       if (chats && chats.length > 0) {
-        // Load most recent chat
         const recentChat = chats[0];
         await this.loadChat(recentChat.id);
       } else {
-        // Create new chat
         await this.createChat('New Chat');
       }
     } catch (error) {
       console.error('[MessageState] Failed to ensure default chat:', error);
-      // Create local temporary chat
       this.currentChatId = this._generateLocalChatId();
       this.messages = [];
     }
   }
 
-  /**
-   * Create a new chat
-   * @param {string} title - Chat title
-   * @returns {Promise<string>} Chat ID
-   */
   async createChat(title = 'New Chat') {
     console.log(`[MessageState] Creating new chat: "${title}"`);
 
     if (!this.storageAPI) {
-      // Fallback to local chat
       this.currentChatId = this._generateLocalChatId();
       this.messages = [];
       console.log(`[MessageState] Created local chat: ${this.currentChatId}`);
@@ -121,7 +96,6 @@ class MessageState {
 
       console.log(`[MessageState] Chat created: ${chat.id}`);
 
-      // Emit event
       if (this.eventBus) {
         this.eventBus.emit('chat:created', {
           chatId: chat.id,
@@ -129,7 +103,6 @@ class MessageState {
         });
       }
 
-      // Notify artifacts window via IPC (schema expects string, not object)
       if (this.ipcBridge) {
         this.ipcBridge.send('artifacts:switch-chat', chat.id);
       }
@@ -141,10 +114,6 @@ class MessageState {
     }
   }
 
-  /**
-   * Load chat and its messages
-   * @param {string} chatId - Chat ID
-   */
   async loadChat(chatId) {
     console.log(`[MessageState] Loading chat: ${chatId}`);
 
@@ -171,7 +140,6 @@ class MessageState {
 
       console.log(`[MessageState] Loaded ${this.messages.length} messages`);
 
-      // Emit event
       if (this.eventBus) {
         this.eventBus.emit('chat:loaded', {
           chatId: chat.id,
@@ -186,10 +154,6 @@ class MessageState {
     }
   }
 
-  /**
-   * Switch to different chat
-   * @param {string} chatId - Chat ID to switch to
-   */
   async switchChat(chatId) {
     console.log(`[MessageState] Switching to chat: ${chatId}`);
 
@@ -201,12 +165,10 @@ class MessageState {
     try {
       await this.loadChat(chatId);
 
-      // Emit event
       if (this.eventBus) {
         this.eventBus.emit('chat:switched', { chatId });
       }
 
-      // Notify artifacts window via IPC
       if (this.ipcBridge) {
         this.ipcBridge.send('chat:switch', { chatId });
       }
@@ -216,15 +178,6 @@ class MessageState {
     }
   }
 
-  /**
-   * Save a message to PostgreSQL
-   * @param {Object} message - Message object
-   * @param {string} message.role - Message role (user|assistant|system)
-   * @param {string} message.content - Message content
-   * @param {string} [message.id] - Message ID (generated if not provided)
-   * @param {string} [message.timestamp] - ISO timestamp
-   * @returns {Promise<Object|null>} Saved message with DB-assigned ID
-   */
   async saveMessage(message) {
     console.log('[MessageState] Saving message:', {
       role: message?.role,
@@ -244,7 +197,6 @@ class MessageState {
 
     if (!this.storageAPI) {
       console.warn('[MessageState] No storage API - message not persisted');
-      // Add to local messages array
       const localMessage = {
         ...message,
         id: message.id || this._generateMessageId(),
@@ -255,10 +207,8 @@ class MessageState {
     }
 
     try {
-      // Ensure chat exists in PostgreSQL (migrates local ID to UUID)
       await this.ensureChatExists();
 
-      // Prepare message for storage
       const messageToSave = {
         role: message.role,
         content: message.content,
@@ -266,18 +216,15 @@ class MessageState {
         correlation_id: message.correlation_id || null
       };
 
-      // Save to PostgreSQL
       const savedMessage = await this.storageAPI.saveMessage(
         this.currentChatId,
         messageToSave
       );
 
       if (savedMessage) {
-        // Add to local messages array
         this.messages.push(savedMessage);
         console.log(`[MessageState] Message saved: ${savedMessage.id}`);
 
-        // Emit event
         if (this.eventBus) {
           this.eventBus.emit('message:saved', {
             chatId: this.currentChatId,
@@ -291,7 +238,6 @@ class MessageState {
       return null;
     } catch (error) {
       console.error('[MessageState] Failed to save message:', error);
-      // Add to local messages as fallback
       const fallbackMessage = {
         ...message,
         id: message.id || this._generateMessageId(),
@@ -302,16 +248,10 @@ class MessageState {
     }
   }
 
-  /**
-   * Update an existing message
-   * @param {string} messageId - Message ID
-   * @param {Object} updates - Fields to update
-   */
   async updateMessage(messageId, updates) {
     console.log(`[MessageState] Updating message: ${messageId}`);
 
     if (!this.storageAPI) {
-      // Update local message
       const message = this.messages.find(m => m.id === messageId);
       if (message) {
         Object.assign(message, updates);
@@ -322,7 +262,6 @@ class MessageState {
     try {
       await this.storageAPI.updateMessage(messageId, updates);
       
-      // Update local message
       const message = this.messages.find(m => m.id === messageId);
       if (message) {
         Object.assign(message, updates);
@@ -334,10 +273,6 @@ class MessageState {
     }
   }
 
-  /**
-   * Update chat title
-   * @param {string} title - New chat title
-   */
   async updateChatTitle(title) {
     if (!this.currentChatId || !this.storageAPI) return;
 
@@ -349,11 +284,6 @@ class MessageState {
     }
   }
 
-  /**
-   * Ensure current chat exists in PostgreSQL
-   * Migrates local chat IDs to UUID-based PostgreSQL chats
-   * @returns {Promise<boolean>} Whether chat is ready
-   */
   async ensureChatExists() {
     if (!this.currentChatId) {
       console.warn('[MessageState] No chat ID to ensure');
@@ -365,18 +295,15 @@ class MessageState {
       return false;
     }
 
-    // Check if current ID is a local temp ID (starts with 'chat_')
     const isLocalId = this.currentChatId.startsWith('chat_');
 
     if (!isLocalId) {
-      // Already a PostgreSQL UUID
       return true;
     }
 
     try {
       console.log(`[MessageState] Migrating local chat to PostgreSQL: ${this.currentChatId}`);
 
-      // Create chat in PostgreSQL
       const title = this._deriveTitleFromMessages();
       const chat = await this.storageAPI.createChat(title);
 
@@ -385,7 +312,6 @@ class MessageState {
 
       console.log(`[MessageState] Chat migrated: ${oldId} → ${chat.id}`);
 
-      // Emit event
       if (this.eventBus) {
         this.eventBus.emit('chat:migrated', {
           oldId,
@@ -400,10 +326,6 @@ class MessageState {
     }
   }
 
-  /**
-   * Get all chats
-   * @returns {Promise<Array>} Array of chat objects
-   */
   async getChats() {
     if (!this.storageAPI) {
       return [];
@@ -418,12 +340,6 @@ class MessageState {
     }
   }
 
-  /**
-   * Normalize messages from storage format to internal format
-   * @private
-   * @param {Array} messages - Raw messages from storage
-   * @returns {Array} Normalized messages
-   */
   _normalizeMessages(messages) {
     if (!Array.isArray(messages)) return [];
 
@@ -436,17 +352,11 @@ class MessageState {
     }));
   }
 
-  /**
-   * Derive chat title from messages
-   * @private
-   * @returns {string}
-   */
   _deriveTitleFromMessages() {
     if (this.messages.length === 0) {
       return 'New Chat';
     }
 
-    // Use first user message as title
     const firstUserMessage = this.messages.find(m => m.role === 'user');
     if (firstUserMessage) {
       const title = firstUserMessage.content.substring(0, 50).trim();
@@ -456,52 +366,28 @@ class MessageState {
     return 'New Chat';
   }
 
-  /**
-   * Generate local chat ID
-   * @private
-   * @returns {string}
-   */
   _generateLocalChatId() {
     return `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  /**
-   * Generate message ID
-   * @private
-   * @returns {string}
-   */
   _generateMessageId() {
     console.error('[MessageState] FALLBACK ID GENERATED - SessionManager not properly integrated!');
     return `FALLBACK_msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  /**
-   * Get messages
-   * @returns {Array}
-   */
   getMessages() {
     return [...this.messages];
   }
 
-  /**
-   * Get current chat ID
-   * @returns {string|null}
-   */
   getCurrentChatId() {
     return this.currentChatId;
   }
 
-  /**
-   * Clear messages (local only)
-   */
   clearMessages() {
     this.messages = [];
     console.log('[MessageState] Messages cleared');
   }
 
-  /**
-   * Dispose and cleanup
-   */
   dispose() {
     console.log('[MessageState] Disposing...');
 

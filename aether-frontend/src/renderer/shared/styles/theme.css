@@ -87,6 +87,19 @@
   --color-processing: #b088ff;
   --color-speaking: #ff9500;
   
+  /* Control colors (for buttons, widgets) */
+  --color-control-bg: rgba(30, 30, 30, 0.9);
+  --color-control-bg-hover: rgba(60, 60, 60, 0.9);
+  --color-control-border: rgba(255, 255, 255, 0.1);
+  --color-control-border-hover: rgba(255, 255, 255, 0.3);
+  --color-control-text: rgba(255, 255, 255, 0.7);
+  --color-control-text-hover: rgba(255, 255, 255, 0.9);
+  
+  /* Accent colors */
+  --color-accent-blue: #0099ff;
+  --color-accent-blue-alpha: rgba(0, 153, 255, 0.2);
+  --color-accent-cyan: #e0f7ff;
+  
   /* --- Typography --- */
   --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', Courier, monospace;
@@ -134,6 +147,7 @@
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   --shadow-glow: 0 0 15px rgba(255, 255, 255, 0.3);
+  --shadow-focus: 0 0 0 3px rgba(255, 255, 255, 0.15);
   
   /* --- Backdrop Filters --- */
   --backdrop-blur-sm: blur(4px);
@@ -185,6 +199,61 @@
   --window-normal-height: 800px;
   --window-min-width: 400px;
   --window-min-height: 300px;
+  
+  /* --- Control Sizes --- */
+  --control-button-size: 50px;
+  --control-button-size-sm: 44px;
+  --control-icon-size: 24px;
+  --control-icon-size-sm: 18px;
+  --control-icon-size-md: 16px;
+  
+  /* --- Layout Spacing --- */
+  --layout-offset-sm: 16px;
+  --layout-offset-md: 20px;
+  --layout-gap-controls: 60px;
+  
+  /* --- Backdrop Effects --- */
+  --backdrop-opacity-high: 0.95;
+  --backdrop-opacity-medium: 0.9;
+  --backdrop-opacity-low: 0.85;
+  
+  /* --- Chat Window Specific --- */
+  --chat-window-bg: rgba(10, 10, 10, 0.95);
+  --chat-header-bg: linear-gradient(to bottom, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+  --chat-sidebar-bg: rgba(10, 10, 10, 0.90);
+  --chat-message-border: rgba(255, 255, 255, 0.05);
+  
+  /* --- Artifacts Window Specific --- */
+  --artifacts-window-bg: rgba(10, 10, 10, 0.95);
+  --artifacts-header-bg: rgba(255, 255, 255, 0.06);
+  --artifacts-code-bg: rgba(0, 0, 0, 0.55);
+  --artifacts-output-bg: rgba(0, 0, 0, 0.3);
+  
+  /* --- Thinking/Reasoning Components --- */
+  --thinking-bg: var(--color-primary-alpha);
+  --thinking-border: rgba(255, 100, 0, 0.3);
+  --thinking-text: #ff9500;
+  --thinking-scrollbar: rgba(255, 149, 0, 0.3);
+  
+  /* --- Trail/Execution Components --- */
+  --trail-bg: rgba(15, 15, 15, 0.45);
+  --trail-border: rgba(255, 255, 255, 0.15);
+  --trail-timeline: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.08) 100%);
+  --trail-node-bg: rgba(255, 255, 255, 0.03);
+  --trail-node-active: rgba(255, 255, 255, 0.9);
+  --trail-node-completed: #10b981;
+  --trail-node-error: #ef4444;
+  --trail-node-pending: rgba(255, 255, 255, 0.5);
+  
+  /* --- Code Syntax Highlighting (VS Code Dark+ inspired) --- */
+  --code-keyword: #569cd6;
+  --code-string: #ce9178;
+  --code-number: #b5cea8;
+  --code-comment: #6a9955;
+  --code-function: #dcdcaa;
+  --code-param: #9cdcfe;
+  --code-builtin: #4ec9b0;
+  --code-operator: #d4d4d4;
 }
 
 
@@ -245,6 +314,14 @@
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.06);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.30);
   --shadow-glow: 0 0 15px rgba(0, 0, 0, 0.15);
+  
+  /* Control colors - adjusted for light mode */
+  --color-control-bg: rgba(255, 255, 255, 0.95);
+  --color-control-bg-hover: rgba(240, 240, 240, 0.95);
+  --color-control-border: rgba(0, 0, 0, 0.1);
+  --color-control-border-hover: rgba(0, 0, 0, 0.3);
+  --color-control-text: rgba(0, 0, 0, 0.7);
+  --color-control-text-hover: rgba(0, 0, 0, 0.9);
 }
 
 
