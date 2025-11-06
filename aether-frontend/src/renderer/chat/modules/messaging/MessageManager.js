@@ -225,13 +225,22 @@ class MessageManager {
    * Setup WebSocket listeners for direct endpoint communication
    * @private
    * 
-   * NOTE: Chat window receives messages via IPC from main process.
-   * Direct WebSocket listening is disabled to prevent duplicate message processing.
+   * NOTE: Chat window has DIRECT WebSocket access via window.endpoint/window.guru.
+   * The endpoint is created in ChatController._initializeCore() and made globally available.
+   * We listen to GuruConnection 'message' events for assistant responses.
    */
   _setupWebSocketListeners() {
-    // DISABLED: Chat window receives messages via IPC, not directly from WebSocket
-    // This prevents duplicate chunk processing
-    console.log('[MessageManager] WebSocket listeners disabled (using IPC)');
+    if (!this.endpoint || !this.endpoint.connection) {
+      console.warn('[MessageManager] No endpoint connection - WebSocket streaming disabled');
+      return;
+    }
+
+    // Listen for WebSocket messages from GuruConnection
+    this.endpoint.connection.on('message', (payload) => {
+      this._handleWebSocketMessage(payload);
+    });
+
+    console.log('[MessageManager] WebSocket listeners enabled (direct connection)');
   }
 
   /**

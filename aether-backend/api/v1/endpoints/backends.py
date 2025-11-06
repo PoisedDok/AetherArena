@@ -6,7 +6,7 @@ Provides comprehensive metadata and health status for all integrated backends.
 
 @.architecture
 Incoming: api/v1/router.py, Frontend (HTTP GET), config/integrations_registry.yaml --- {HTTP requests to /v1/backends/*, YAML registry data}
-Processing: list_backends(), get_backend_details(), check_backend_health(), get_registry_info(), check_all_backends_health() --- {5 jobs: registry_loading, backend_discovery, health_aggregation, metadata_extraction}
+Processing: list_backends(), get_backend_details(), check_backend_health(), get_registry_info(), check_all_backends_health() --- {4 jobs: backend_discovery, health_aggregation, metadata_extraction, registry_loading}
 Outgoing: core/integrations/libraries/*, Frontend (HTTP) --- {backend integration health checks, BackendInfo, JSONResponse with registry metadata and health status}
 """
 

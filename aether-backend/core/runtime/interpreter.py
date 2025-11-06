@@ -325,10 +325,10 @@ class InterpreterManager:
         if not self._interpreter:
             return
             
-        def basic_web_search(query: str, max_results: int = 5) -> str:
+        async def basic_web_search(query: str, max_results: int = 5) -> str:
             """Basic web search using DuckDuckGo API (no API key required)"""
             try:
-                import requests
+                import aiohttp
                 
                 params = {
                     "q": query,
@@ -337,30 +337,30 @@ class InterpreterManager:
                     "skip_disambig": "1",
                 }
                 
-                response = requests.get(
-                    "https://api.duckduckgo.com/",
-                    params=params,
-                    timeout=10,
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    result = f"Search results for '{query}':\n\n"
-                    
-                    if data.get("AbstractText"):
-                        result += f"Summary: {data.get('AbstractText')}\n"
-                        if data.get("AbstractURL"):
-                            result += f"Source: {data.get('AbstractURL')}\n"
-                    
-                    for topic in data.get("RelatedTopics", [])[:max_results]:
-                        if isinstance(topic, dict) and topic.get("Text"):
-                            result += f"• {topic.get('Text')}\n"
-                            if topic.get("FirstURL"):
-                                result += f"  Link: {topic.get('FirstURL')}\n"
-                    
-                    return result if result.strip() else f"No detailed results found for: {query}"
-                else:
-                    return f"Search failed for: {query}"
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                        "https://api.duckduckgo.com/",
+                        params=params,
+                        timeout=aiohttp.ClientTimeout(total=10),
+                    ) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            result = f"Search results for '{query}':\n\n"
+                            
+                            if data.get("AbstractText"):
+                                result += f"Summary: {data.get('AbstractText')}\n"
+                                if data.get("AbstractURL"):
+                                    result += f"Source: {data.get('AbstractURL')}\n"
+                            
+                            for topic in data.get("RelatedTopics", [])[:max_results]:
+                                if isinstance(topic, dict) and topic.get("Text"):
+                                    result += f"• {topic.get('Text')}\n"
+                                    if topic.get("FirstURL"):
+                                        result += f"  Link: {topic.get('FirstURL')}\n"
+                            
+                            return result if result.strip() else f"No detailed results found for: {query}"
+                        else:
+                            return f"Search failed for: {query}"
                     
             except Exception as e:
                 return f"Search error: {str(e)}. Query was: {query}"

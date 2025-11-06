@@ -3,7 +3,7 @@ Profile Manager - Profile discovery and loading for Open Interpreter
 
 @.architecture
 Incoming: utils/oi_paths.py, api/v1/endpoints/profiles.py, Local filesystem (OI profiles directory) --- {candidate_open_interpreter_paths(), profile discovery/loading/metadata requests, .py/.yaml/.yml profile files}
-Processing: discover_profiles(), get_profile_path(), load_profile_content(), get_default_profile(), has_profile(), list_profile_names(), get_profile_metadata(), clear_cache(), _get_profiles_directory(), get_health_status() --- {10 jobs: filesystem_scanning, path_resolution, file_reading, metadata_extraction, caching, health_checking}
+Processing: discover_profiles(), get_profile_path(), load_profile_content(), get_default_profile(), has_profile(), list_profile_names(), get_profile_metadata(), clear_cache(), _get_profiles_directory(), get_health_status() --- {6 jobs: caching, file_reading, filesystem_scanning, health_checking, metadata_extraction, path_resolution}
 Outgoing: api/v1/endpoints/profiles.py --- {List[Dict[str, str]] profile metadata with name/path/type, str file content, Optional[Path] profile path}
 
 Handles:

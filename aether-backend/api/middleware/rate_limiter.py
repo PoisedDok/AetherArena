@@ -113,7 +113,7 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
             )
             
             # Add rate limit headers
-            self._add_rate_limit_headers(limit_info, response)
+            self._add_rate_limit_headers(response, limit_info)
             response.headers["Retry-After"] = str(int(e.retry_after))
             
             return response
@@ -175,15 +175,15 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
     
     def _add_rate_limit_headers(
         self,
-        limit_info: dict,
-        response: Response
+        response: Response,
+        limit_info: dict
     ) -> None:
         """
         Add rate limit information to response headers.
         
         Args:
-            limit_info: Rate limit info from limiter
             response: HTTP response
+            limit_info: Rate limit info from limiter
         """
         response.headers["X-RateLimit-Limit"] = str(limit_info['limit'])
         response.headers["X-RateLimit-Remaining"] = str(limit_info['remaining'])

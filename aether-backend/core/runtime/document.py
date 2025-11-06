@@ -4,7 +4,7 @@ Consolidated from document_processor.py and file_chat_processor.py
 
 @.architecture
 Incoming: core/runtime/engine.py --- {file paths, file data, user prompts, Docling API URL}
-Processing: process_file_chat(), _convert_with_docling(), _build_combined_prompt(), _run_llm_analysis() --- {4 jobs: file_validation, document_conversion, prompt_generation, llm_integration}
+Processing: process_file(), process_file_chat(), _create_combined_prompt(), _analyze_with_llm() --- {4 jobs: document_conversion, file_validation, llm_integration, prompt_generation}
 Outgoing: Docling API (HTTP POST), core/runtime/interpreter.py --- {HTTP POST to /convert with multipart file upload, AsyncGenerator[Dict] LLM response chunks}
 
 Handles:

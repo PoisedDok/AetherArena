@@ -555,10 +555,46 @@ class ChatController {
   async _loadExistingMessages() {
     console.log('📦 ChatController: Loading existing messages...');
 
-    // Will be implemented when MessageManager is created
-    // This will load messages from backend storage API
+    try {
+      // Check if storage API is available
+      if (!this.modules.messageManager.messageState.storageAPI) {
+        console.warn('[ChatController] Storage API not available, creating local chat');
+        const newChatId = await this.modules.messageManager.createChat('New Chat');
+        this.currentChatId = newChatId;
+        return;
+      }
 
-    console.log('✅ ChatController: Existing messages loaded (stub)');
+      // Try to load chats from backend
+      const chats = await this.modules.messageManager.messageState.storageAPI.loadChats();
+      
+      if (chats && chats.length > 0) {
+        // Load the most recent chat (storageAPI returns sorted by updated_at desc)
+        const mostRecent = chats[0];
+        console.log(`[ChatController] Loading most recent chat: ${mostRecent.id}`);
+        await this.modules.messageManager.loadChat(mostRecent.id);
+        this.currentChatId = mostRecent.id;
+      } else {
+        // No existing chats - create a new one and activate it
+        console.log('[ChatController] No existing chats, creating new chat');
+        const newChatId = await this.modules.messageManager.createChat('New Chat');
+        this.currentChatId = newChatId;
+      }
+
+      console.log(`✅ ChatController: Active chat session: ${this.currentChatId}`);
+    } catch (error) {
+      console.error('[ChatController] Failed to load existing messages:', error);
+      
+      // Fallback: Create new chat on error
+      try {
+        const newChatId = await this.modules.messageManager.createChat('New Chat');
+        this.currentChatId = newChatId;
+        console.log(`✅ ChatController: Created fallback chat: ${this.currentChatId}`);
+      } catch (fallbackError) {
+        console.error('[ChatController] Failed to create fallback chat:', fallbackError);
+        // Last resort: Set the chatId that was generated in _initializeCore
+        console.warn('[ChatController] Using fallback chat ID from _initializeCore');
+      }
+    }
   }
 
   /**

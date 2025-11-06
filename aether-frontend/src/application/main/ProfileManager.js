@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: MainOrchestrator.refreshProfileList calls, MainOrchestrator.setCurrentProfile calls --- {lifecycle_types.method_call, string}
- * Processing: Fetch profiles via Endpoint.getProfiles, parse response, persist selection via Endpoint.setSettings, emit EventBus events --- {4 jobs: JOB_EMIT_EVENT, JOB_HTTP_REQUEST, JOB_PARSE_JSON, JOB_UPDATE_STATE}
+ * Processing: Fetch profiles via Endpoint.getProfiles, parse response, persist selection via Endpoint.setSettings, emit EventBus events (LIST_UPDATED/CHANGED), update state (profiles array/currentProfile), provide getters for state/stats/search/default, dispose resources --- {6 jobs: JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GET_STATE, JOB_HTTP_REQUEST, JOB_PARSE_JSON, JOB_UPDATE_STATE}
  * Outgoing: EventBus.emit (PROFILE.* events), Endpoint.setSettings request, return profile arrays --- {event_types.profile_list_updated, profile_types.profile_array}
  * 
  * @module application/main/ProfileManager

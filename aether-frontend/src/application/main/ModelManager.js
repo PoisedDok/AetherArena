@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: MainOrchestrator.refreshModelList calls, MainOrchestrator.probeCapabilities calls --- {lifecycle_types.method_call, string}
- * Processing: Fetch models via Endpoint HTTP methods, merge/deduplicate, cache in Map, emit EventBus events --- {4 jobs: JOB_CACHE_LOCALLY, JOB_EMIT_EVENT, JOB_HTTP_REQUEST, JOB_UPDATE_STATE}
+ * Processing: Fetch models via Endpoint HTTP methods (TOML/provider/direct sources), merge/deduplicate, cache capabilities in Map, emit EventBus events (LIST_UPDATED/CAPABILITIES_UPDATED/VISION_DETECTED/CHANGED), update state (models array/currentModel), provide getters for state/capabilities/stats, clear cache, dispose resources --- {7 jobs: JOB_CACHE_LOCALLY, JOB_CLEAR_STATE, JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GET_STATE, JOB_HTTP_REQUEST, JOB_UPDATE_STATE}
  * Outgoing: EventBus.emit (MODEL.* events), return model arrays/capability objects --- {event_types.model_list_updated, model_types.model_array}
  * 
  * @module application/main/ModelManager

@@ -2,7 +2,7 @@
  * @.architecture
  * 
  * Incoming: none --- {none, none}
- * Processing: Re-export Message/Chat/Conversation (models), MessageValidator/ChatValidator (validators), ChatRepository/MessageRepository (repositories), MessageService/ChatService/ChatSessionService (services) for centralized import path --- {1 job: JOB_DELEGATE_TO_MODULE}
+ * Processing: Re-export Message/Chat/Conversation (models), MessageValidator/ChatValidator (validators), ChatRepository/MessageRepository (repositories), MessageService/ChatService (services) for centralized import path --- {1 job: JOB_DELEGATE_TO_MODULE}
  * Outgoing: application/*, renderer/* (chat domain layer) --- {module_exports, javascript_object}
  * 
  * 
@@ -33,7 +33,6 @@ module.exports = {
   
   // Services
   MessageService: services.MessageService,
-  ChatService: services.ChatService,
-  ChatSessionService: services.ChatSessionService
+  ChatService: services.ChatService
 };
 

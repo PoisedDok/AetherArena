@@ -3,7 +3,7 @@ Profile Enrichment System - Tool Discovery for Open Interpreter Profiles
 
 @.architecture
 Incoming: core/runtime/interpreter.py, core/profiles/manager.py --- {Open Interpreter instance with computer.tools._engine, original profile prompt str, enrichment strategy}
-Processing: enrich_profile_prompt(), inject_profile_tools(), _generate_category_brief(), _generate_tools_brief(), _generate_discovery_instructions(), _generate_minimal_instructions(), get_profile_tool_summary(), get_health_status() --- {8 jobs: prompt_enrichment, strategy_selection, text_generation, tool_discovery_injection, summary_generation, health_checking}
+Processing: enrich_profile_prompt(), inject_profile_tools(), _generate_category_brief(), _generate_tools_brief(), _generate_discovery_instructions(), _generate_minimal_instructions(), get_profile_tool_summary(), get_health_status() --- {6 jobs: health_checking, prompt_enrichment, strategy_selection, summary_generation, text_generation, tool_discovery_injection}
 Outgoing: core/runtime/interpreter.py, core/profiles/manager.py --- {enriched system_message str with tool discovery instructions, tool summary Dict, health status Dict}
 
 Provides just-in-time tool discovery for Open Interpreter profiles without

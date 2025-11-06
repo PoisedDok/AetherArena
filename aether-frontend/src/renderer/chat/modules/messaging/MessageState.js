@@ -129,9 +129,9 @@ class MessageState {
         });
       }
 
-      // Notify artifacts window via IPC
+      // Notify artifacts window via IPC (using artifacts:switch-chat which is whitelisted)
       if (this.ipcBridge) {
-        this.ipcBridge.send('chat:switch', { chatId: chat.id });
+        this.ipcBridge.send('artifacts:switch-chat', { chatId: chat.id });
       }
 
       return chat.id;

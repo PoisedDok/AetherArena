@@ -3,7 +3,7 @@ MCP Server Manager
 
 @.architecture
 Incoming: app.py (startup_event), api/v1/endpoints/mcp.py, core/mcp/database.py, core/mcp/server.py, core/mcp/sandbox.py --- {MCPDatabase instance, server registration/execution requests, LocalMcpServer/RemoteMcpServer classes, MCPSandbox}
-Processing: start(), stop(), register_server(), get_server(), list_servers(), delete_server(), execute_tool(), check_server_health(), get_server_tools(), get_server_stats(), _health_check_loop() --- {11 jobs: lifecycle_management, server_registration, tool_discovery, tool_execution, health_monitoring, execution_auditing, sandbox_coordination}
+Processing: start(), stop(), register_server(), get_server(), list_servers(), delete_server(), execute_tool(), check_server_health(), get_server_tools(), get_server_stats(), _health_check_loop() --- {7 jobs: execution_auditing, health_monitoring, lifecycle_management, sandbox_coordination, server_registration, tool_discovery, tool_execution}
 Outgoing: core/mcp/database.py, core/mcp/server.py, core/mcp/sandbox.py, api/v1/endpoints/mcp.py --- {database method calls, McpServer instance control, sandboxed execution, Dict[str, Any] server/tool/execution records}
 
 Central orchestrator for MCP server lifecycle and tool execution.

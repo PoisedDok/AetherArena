@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: Event 'message' from GuruConnection.js (WebSocket messages) --- {assistant_message | system_message | server_message, json}
- * Processing: WebSocket-to-IPC relay transforming WS payloads to IPC format, route by role (assistant/server), delegate to 7 submodules (ConnectionMonitor/ModelManager/ProfileManager/SettingsManager/UIStateManager/ServiceStatusMonitor/ArtifactsStreamHandler), initialize all managers, start/stop monitors, gather UI elements, setup event listeners, load initial data --- {8 jobs: JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_GET_STATE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_SEND_IPC, JOB_START, JOB_TRANSFORM_TO_CHUNK}
+ * Processing: WebSocket-to-IPC relay transforming WS payloads to IPC format, route by role (assistant/server), delegate to 7 submodules (ConnectionMonitor/ModelManager/ProfileManager/SettingsManager/UIStateManager/ServiceStatusMonitor/ArtifactsStreamHandler), initialize all managers, start/stop monitors, gather UI elements, setup event listeners, load initial data --- {7 jobs: JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_SEND_IPC, JOB_START, JOB_TRANSFORM_TO_CHUNK}
  * Outgoing: IPC 'chat:assistant-stream' → Chat Window MessageManager.js, IPC 'chat:server-message' → Chat Window --- {ipc_stream_chunk, json}
  * 
  * 

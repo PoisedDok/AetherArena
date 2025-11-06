@@ -5,7 +5,7 @@ Comprehensive health checks integrating with monitoring layer.
 
 @.architecture
 Incoming: api/v1/router.py, Frontend (HTTP GET), Load Balancers --- {HTTP requests to /v1/health, /v1/health/detailed, /v1/health/ready, /v1/health/live, /api/status}
-Processing: health_check(), detailed_health_check(), readiness_probe(), liveness_probe(), check_component_health() --- {3 jobs: component_checking, health_monitoring, resource_monitoring}
+Processing: health_check(), detailed_health_check(), readiness_probe(), liveness_probe(), check_component_health() --- {7 jobs: component_checking, data_validation, dependency_injection, error_handling, health_monitoring, http_communication, resource_monitoring}
 Outgoing: monitoring/health.py, api/dependencies.py, Frontend (HTTP) --- {health check results, HealthCheckResponse, SimpleHealthResponse, ComponentHealth schemas}
 """
 

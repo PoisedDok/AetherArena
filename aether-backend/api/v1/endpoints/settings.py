@@ -5,7 +5,7 @@ Endpoints for managing application settings.
 
 @.architecture
 Incoming: api/v1/router.py, Frontend (HTTP GET/PUT/PATCH/POST) --- {HTTP requests to /v1/settings, SettingsUpdateRequest JSON payloads}
-Processing: get_application_settings(), update_application_settings(), reload_application_settings() --- {3 jobs: settings_retrieval, settings_mutation, settings_reloading}
+Processing: get_application_settings(), update_application_settings(), reload_application_settings() --- {7 jobs: data_validation, dependency_injection, error_handling, http_communication, settings_mutation, settings_reloading, settings_retrieval}
 Outgoing: config/settings.py, Frontend (HTTP) --- {Settings instance mutations, SettingsResponse with LLM/interpreter/security/integration configs}
 """
 

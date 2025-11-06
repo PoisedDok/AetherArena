@@ -124,12 +124,10 @@ class MessageRepository {
     }
 
     try {
-      const savedMessages = [];
-      
-      for (const message of messages) {
-        const saved = await this.save(message, chatId);
-        savedMessages.push(saved);
-      }
+      // Execute all saves in parallel for performance
+      const savedMessages = await Promise.all(
+        messages.map(message => this.save(message, chatId))
+      );
       
       return savedMessages;
     } catch (error) {

@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: MainOrchestrator.loadSettings calls, MainOrchestrator.saveSettings calls, MainOrchestrator.getSetting calls --- {lifecycle_types.method_call, settings_types.settings_object}
- * Processing: Load via Endpoint HTTP methods, parse/merge with defaults, validate, persist, emit EventBus events --- {5 jobs: JOB_EMIT_EVENT, JOB_HTTP_REQUEST, JOB_PARSE_JSON, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA}
+ * Processing: Load via Endpoint HTTP methods (TOML with JSON fallback), parse/merge with defaults, validate schemas, persist, emit EventBus events (LLM_UPDATED), update state, provide getters, reset to defaults, dispose resources --- {8 jobs: JOB_CLEAR_STATE, JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GET_STATE, JOB_HTTP_REQUEST, JOB_PARSE_JSON, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA}
  * Outgoing: EventBus.emit (SETTINGS.* events), Endpoint.setTOMLSettings request, return settings objects --- {event_types.settings_updated, settings_types.settings_object}
  * 
  * @module application/main/SettingsManager

@@ -5,14 +5,16 @@ Endpoints for Open Interpreter profile management.
 
 @.architecture
 Incoming: api/v1/router.py, Frontend (HTTP GET/POST) --- {HTTP requests to /v1/profiles, /v1/profiles/active, /v1/profiles/switch, /v1/profiles/{name}}
-Processing: get_profiles(), get_active_profile(), switch_profile(), get_profile_details() --- {4 jobs: file_discovery, metadata_extraction, path_validation, profile_validation}
+Processing: get_profiles(), get_active_profile(), switch_profile(), get_profile_details() --- {8 jobs: dependency_injection, error_handling, file_discovery, file_reading, http_communication, metadata_extraction, path_validation, profile_validation}
 Outgoing: Local filesystem (profiles directory), Frontend (HTTP) --- {JSONResponse with profile list, metadata, and content previews}
 """
 
+import aiofiles
 from pathlib import Path
 from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 from api.dependencies import get_settings, setup_request_context
 from config.settings import Settings
@@ -23,6 +25,11 @@ router = APIRouter(tags=["profiles"])
 
 # Max profile file size for preview (1MB)
 MAX_PROFILE_SIZE = 1024 * 1024
+
+
+class SwitchProfileRequest(BaseModel):
+    """Request model for switching profiles."""
+    profile: str = Field(..., min_length=1, max_length=255, description="Profile name to switch to")
 
 
 def get_profiles_dir(settings: Settings = None) -> Path:
@@ -186,20 +193,37 @@ async def get_active_profile(
     description="Switch to a different profile"
 )
 async def switch_profile(
-    request: Dict[str, Any],
+    request: SwitchProfileRequest,
+    settings: Settings = Depends(get_settings),
     _context: dict = Depends(setup_request_context)
 ) -> JSONResponse:
     """
     Switch to a different profile.
     
     Args:
-        request: Request containing profile name
+        request: Request containing profile name (validated via Pydantic)
         
     Returns:
         Success message with new profile info
+        
+    Security:
+        - Profile name validated via Pydantic model
+        - Path traversal protection via validate_profile_path
     """
     try:
-        profile_name = request.get("profile", "default")
+        profile_name = request.profile
+        profiles_dir = get_profiles_dir(settings)
+        
+        # Validate profile path to prevent path traversal
+        profile_path = validate_profile_path(profile_name, profiles_dir)
+        
+        # Verify profile exists
+        if not profile_path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Profile '{profile_name}' not found"
+            )
+        
         logger.info(f"Switching to profile: {profile_name}")
         
         return JSONResponse({
@@ -208,6 +232,8 @@ async def switch_profile(
             "profile": profile_name
         })
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to switch profile: {e}", exc_info=True)
         raise HTTPException(
@@ -259,9 +285,10 @@ async def get_profile_details(
                 detail=f"Profile file too large (max {MAX_PROFILE_SIZE} bytes)"
             )
         
-        # Read profile content (limit to first 1000 chars for preview)
+        # Read profile content asynchronously (limit to first 1000 chars for preview)
         try:
-            content = profile_path.read_text(encoding="utf-8")
+            async with aiofiles.open(profile_path, 'r', encoding="utf-8") as f:
+                content = await f.read()
         except UnicodeDecodeError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

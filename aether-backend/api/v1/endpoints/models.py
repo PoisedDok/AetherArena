@@ -5,7 +5,7 @@ Endpoints for LLM model discovery and capabilities.
 
 @.architecture
 Incoming: api/v1/router.py, Frontend (HTTP GET), External LLM APIs --- {HTTP requests to /v1/models, /v1/models/active, /v1/models/capabilities, HTTP responses from LLM providers}
-Processing: list_models(), get_active_model(), model_capabilities() --- {3 jobs: model_discovery, capability_detection, provider_communication}
+Processing: list_models(), get_active_model(), model_capabilities() --- {7 jobs: capability_detection, data_validation, dependency_injection, error_handling, http_communication, model_discovery, provider_communication}
 Outgoing: External LLM APIs (HTTP GET), Frontend (HTTP) --- {HTTP GET to {api_base}/models, ModelsListResponse, ModelCapabilitiesResponse}
 """
 

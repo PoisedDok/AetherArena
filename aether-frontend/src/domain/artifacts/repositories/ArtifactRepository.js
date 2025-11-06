@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: ArtifactService.finalizeArtifact/persistArtifact() (method calls with Artifact models) --- {object, javascript_api}
- * Processing: Validate via ArtifactValidator.validateForPersistence(), transform Artifact models to PostgreSQL format (artifact.toPostgreSQLFormat()), call storageAPI.saveArtifact/loadArtifacts() via IPC, maintain in-memory cache (Map: artifactId → Artifact, max 100 items, 5min TTL), transform PostgreSQL rows back to Artifact models via Artifact.fromPostgresRow(), clear expired cache entries, update cache state --- {9 jobs: JOB_CACHE_LOCALLY, JOB_CLEAR_STATE, JOB_DELEGATE_TO_MODULE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA}
+ * Processing: Validate via ArtifactValidator.validateForPersistence(), transform Artifact models to PostgreSQL format (artifact.toPostgreSQLFormat()), call storageAPI.saveArtifact/loadArtifacts() via IPC, maintain in-memory LRU cache (Map: artifactId → Artifact, max 100 items, 5min TTL, auto-cleanup every 60s), transform PostgreSQL rows back to Artifact models via Artifact.fromPostgresRow(), clear expired cache entries, update cache state, dispose cleanup timer --- {10 jobs: JOB_CACHE_LOCALLY, JOB_CLEAR_STATE, JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA}
  * Outgoing: storageAPI.saveArtifact/loadArtifacts() (IPC to main process → PostgreSQL), return Artifact model instances --- {database_types.artifact_record, json}
  * 
  * 
@@ -30,6 +30,9 @@ class ArtifactRepository {
     this.cache = new Map(); // artifactId -> Artifact
     this.cacheMaxSize = dependencies.cacheMaxSize || 100;
     this.cacheTTL = dependencies.cacheTTL || 5 * 60 * 1000; // 5 minutes
+    
+    // Start periodic cache cleanup to prevent memory leaks
+    this.cleanupInterval = setInterval(() => this._cleanupExpiredCache(), 60000); // Every minute
   }
 
   _createDefaultLogger() {
@@ -104,10 +107,13 @@ class ArtifactRepository {
       return cached;
     }
 
-    // Cannot query by artifact_id directly, need to load all artifacts for chat
-    // This is a limitation - artifact lookup requires chatId context
-    this.logger.warn(`Direct artifact lookup by ID not supported: ${artifactId}`);
-    return null;
+    // Backend limitation: Cannot query by artifact_id directly without chatId
+    // Artifact must be loaded via findByChatId() first to populate cache
+    throw new Error(
+      `Artifact ${artifactId} not found in cache. ` +
+      `Direct artifact lookup requires chatId context. ` +
+      `Use findByChatId(chatId) to load artifacts into cache first.`
+    );
   }
 
   /**
@@ -238,16 +244,29 @@ class ArtifactRepository {
    * Cache artifact
    */
   _cacheArtifact(artifact) {
-    // Enforce cache size limit
+    // Enforce cache size limit with LRU eviction
     if (this.cache.size >= this.cacheMaxSize) {
-      // Remove oldest entry
-      const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      // Find and remove least recently used (oldest accessedAt)
+      let lruKey = null;
+      let oldestAccess = Infinity;
+      
+      for (const [key, entry] of this.cache.entries()) {
+        if (entry.accessedAt < oldestAccess) {
+          oldestAccess = entry.accessedAt;
+          lruKey = key;
+        }
+      }
+      
+      if (lruKey) {
+        this.cache.delete(lruKey);
+      }
     }
 
+    const now = Date.now();
     this.cache.set(artifact.id, {
       artifact,
-      cachedAt: Date.now()
+      cachedAt: now,
+      accessedAt: now
     });
   }
 
@@ -263,6 +282,9 @@ class ArtifactRepository {
       this.cache.delete(artifactId);
       return null;
     }
+
+    // Update access time for LRU tracking
+    cached.accessedAt = Date.now();
 
     return cached.artifact;
   }
@@ -314,6 +336,41 @@ class ArtifactRepository {
    */
   clearCache() {
     this._invalidateCache();
+  }
+
+  /**
+   * Clean up expired cache entries (called periodically)
+   */
+  _cleanupExpiredCache() {
+    const now = Date.now();
+    let removedCount = 0;
+
+    for (const [artifactId, entry] of this.cache.entries()) {
+      if (now - entry.cachedAt > this.cacheTTL) {
+        this.cache.delete(artifactId);
+        removedCount++;
+      }
+    }
+
+    if (removedCount > 0) {
+      this.logger.debug(`Cleaned up ${removedCount} expired cache entries`);
+    }
+  }
+
+  /**
+   * Dispose repository and cleanup resources
+   */
+  dispose() {
+    // Clear the cleanup interval
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+
+    // Clear cache
+    this._invalidateCache();
+
+    this.logger.debug('ArtifactRepository disposed');
   }
 }
 
