@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: Electron ipcRenderer (from main process) --- {ipc_types.ipcRenderer, object}
- * Processing: Create secure IPC bridge with validation/rate limiting, freeze API objects, expose to renderer via contextBridge --- {4 jobs: JOB_ATTACH_TO_WINDOW, JOB_CREATE_BRIDGE, JOB_GET_STATE, JOB_INITIALIZE}
- * Outgoing: window.aether (exposed to renderer) --- {preload_types.contextBridge_api, frozen_object}
+ * Incoming: Electron ipcRenderer (from main process) --- {object, javascript_api}
+ * Processing: Create secure IPC bridge with validation/rate limiting, freeze API objects, expose to renderer via contextBridge --- {6 jobs: JOB_ATTACH_TO_WINDOW, JOB_CREATE_BRIDGE, JOB_DELEGATE_TO_MODULE, JOB_GET_STATE, JOB_INITIALIZE, JOB_SEND_IPC}
+ * Outgoing: window.aether (exposed to renderer) --- {object, javascript_api}
  * 
  * @module preload/main-preload
  * 

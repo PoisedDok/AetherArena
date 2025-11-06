@@ -9,6 +9,8 @@ Processing: register_server(), start_server(), list_servers(), get_server(), del
 Outgoing: core/mcp/manager.py, Frontend (HTTP) --- {MCPServerManager method calls, ServerResponse, ToolResponse, ExecutionResponse, HealthResponse schemas}
 """
 
+import time
+import uuid
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
@@ -29,7 +31,6 @@ from core.mcp.manager import MCPServerManager
 from monitoring import get_logger, counter, histogram
 from security.sanitization import sanitize_text, ValidationError
 from pydantic import BaseModel, Field
-import uuid as uuid_lib
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["mcp"], prefix="/api/mcp")
@@ -48,7 +49,7 @@ def validate_server_id(server_id: str) -> str:
     """Validate server ID is UUID format."""
     server_id = server_id.strip()
     try:
-        uuid_lib.UUID(server_id)
+        uuid.UUID(server_id)
         return server_id
     except ValueError:
         raise HTTPException(
@@ -162,14 +163,14 @@ async def register_server(
         logger.warning(f"Invalid server registration request: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            detail="Invalid server configuration"
         )
     except Exception as e:
         mcp_requests.inc(endpoint='register_server', status='error')
         logger.error(f"Failed to register server: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Server registration failed: {str(e)}"
+            detail="Server registration failed"
         )
 
 
@@ -217,7 +218,7 @@ async def start_server(
         logger.error(f"Failed to start server: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to start server: {str(e)}"
+            detail="Failed to start server"
         )
 
 
@@ -274,7 +275,7 @@ async def list_servers(
         logger.error(f"Failed to list servers: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list servers: {str(e)}"
+            detail="Failed to list servers"
         )
 
 
@@ -335,7 +336,7 @@ async def get_server(
         logger.error(f"Failed to get server {server_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get server: {str(e)}"
+            detail="Failed to get server"
         )
 
 
@@ -374,14 +375,14 @@ async def delete_server(
         mcp_requests.inc(endpoint='delete_server', status='error')
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
+            detail="Server not found"
         )
     except Exception as e:
         mcp_requests.inc(endpoint='delete_server', status='error')
         logger.error(f"Failed to delete server {server_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete server: {str(e)}"
+            detail="Failed to delete server"
         )
 
 
@@ -428,14 +429,14 @@ async def get_server_tools(
         mcp_requests.inc(endpoint='get_server_tools', status='error')
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
+            detail="Server not found"
         )
     except Exception as e:
         mcp_requests.inc(endpoint='get_server_tools', status='error')
         logger.error(f"Failed to get tools for {server_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get tools: {str(e)}"
+            detail="Failed to get tools"
         )
 
 
@@ -482,14 +483,14 @@ async def get_server_tools_by_name(
         mcp_requests.inc(endpoint='get_server_tools_by_name', status='error')
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
+            detail="Server not found"
         )
     except Exception as e:
         mcp_requests.inc(endpoint='get_server_tools_by_name', status='error')
         logger.error(f"Failed to get tools for {server_name}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get tools: {str(e)}"
+            detail="Failed to get tools"
         )
 
 
@@ -516,9 +517,6 @@ async def execute_tool(
     Executes a tool on the specified server with given arguments.
     Includes timeout and monitoring.
     """
-    import time
-    import uuid
-    
     # Validate inputs
     server_id = validate_server_id(server_id)
     tool_name = validate_tool_name(tool_name)
@@ -606,8 +604,6 @@ async def check_server_health(
     
     Performs health check on server and returns status.
     """
-    import time
-    
     try:
         # Validate server ID
         server_id = validate_server_id(server_id)
@@ -688,14 +684,14 @@ async def get_server_stats(
         mcp_requests.inc(endpoint='get_server_stats', status='error')
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
+            detail="Server not found"
         )
     except Exception as e:
         mcp_requests.inc(endpoint='get_server_stats', status='error')
         logger.error(f"Failed to get stats for {server_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get server stats: {str(e)}"
+            detail="Failed to get server stats"
         )
 
 
@@ -742,7 +738,7 @@ async def get_execution_history(
         logger.error(f"Failed to get execution history: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get execution history: {str(e)}"
+            detail="Failed to get execution history"
         )
 
 

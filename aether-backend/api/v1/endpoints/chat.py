@@ -39,6 +39,33 @@ MAX_MESSAGE_LENGTH = 50000  # 50K characters
 MAX_IMAGE_B64_SIZE = 10 * 1024 * 1024  # 10MB base64 (≈7.5MB actual image)
 
 
+def _validate_session_id(session_id: str) -> str:
+    """
+    Validate and sanitize session ID.
+    
+    Args:
+        session_id: Raw session ID string
+        
+    Returns:
+        Validated and sanitized session ID
+        
+    Raises:
+        ValueError: If validation fails
+    """
+    if not session_id or not session_id.strip():
+        raise ValueError("Session ID cannot be empty")
+    
+    session_id = session_id.strip()
+    if len(session_id) > 255:
+        raise ValueError("Session ID too long")
+    
+    # Allow alphanumeric, hyphens, underscores only
+    if not all(c.isalnum() or c in '-_' for c in session_id):
+        raise ValueError("Session ID contains invalid characters")
+    
+    return session_id
+
+
 class ChatRequest(BaseModel):
     """Chat request payload."""
     message: str = Field(..., description="User message text", min_length=1, max_length=MAX_MESSAGE_LENGTH)
@@ -56,16 +83,7 @@ class ChatRequest(BaseModel):
     @validator('session_id')
     def validate_session_id(cls, v):
         """Validate session ID format."""
-        if not v or not v.strip():
-            raise ValueError("Session ID cannot be empty")
-        # Sanitize session_id to prevent injection
-        v = v.strip()
-        if len(v) > 255:
-            raise ValueError("Session ID too long")
-        # Allow alphanumeric, hyphens, underscores only
-        if not all(c.isalnum() or c in '-_' for c in v):
-            raise ValueError("Session ID contains invalid characters")
-        return v
+        return _validate_session_id(v)
     
     @validator('image_b64')
     def validate_image_b64(cls, v):
@@ -137,7 +155,7 @@ async def send_chat_message(
         logger.error(f"Chat message error: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to process chat message: {str(e)}"
+            detail="Failed to process chat message"
         )
 
 
@@ -152,6 +170,7 @@ async def send_chat_message(
 )
 async def stream_chat_message(
     request: ChatRequest,
+    http_request: Request,
     runtime: RuntimeEngine = Depends(get_runtime_engine),
     _context: dict = Depends(setup_request_context)
 ) -> StreamingResponse:
@@ -160,6 +179,7 @@ async def stream_chat_message(
     
     Returns Server-Sent Events (SSE) stream.
     Payload validated via Pydantic ChatRequest model.
+    Handles client disconnect cleanup.
     """
     try:
         message = request.message
@@ -169,7 +189,7 @@ async def stream_chat_message(
         request_id = str(uuid.uuid4())
         
         async def event_stream():
-            """Generate SSE stream."""
+            """Generate SSE stream with disconnect detection."""
             try:
                 async for chunk in runtime.stream_chat(
                     client_id=session_id,
@@ -177,15 +197,27 @@ async def stream_chat_message(
                     image_b64=image_b64,
                     request_id=request_id
                 ):
+                    # Check for client disconnect
+                    if await http_request.is_disconnected():
+                        logger.info(f"Client disconnected for request {request_id}")
+                        await runtime.stop_generation(request_id)
+                        break
+                    
                     # Send as JSON lines
                     yield f"data: {json.dumps(chunk)}\n\n"
                 
-                # Send done event
-                yield f"data: {json.dumps({'type': 'done', 'request_id': request_id})}\n\n"
+                # Send done event if still connected
+                if not await http_request.is_disconnected():
+                    yield f"data: {json.dumps({'type': 'done', 'request_id': request_id})}\n\n"
                 
+            except asyncio.CancelledError:
+                logger.info(f"Stream cancelled for request {request_id}")
+                await runtime.stop_generation(request_id)
+                raise
             except Exception as e:
                 logger.error(f"Streaming error: {e}", exc_info=True)
-                yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+                if not await http_request.is_disconnected():
+                    yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
         
         return StreamingResponse(
             event_stream(),
@@ -203,7 +235,7 @@ async def stream_chat_message(
         logger.error(f"Chat stream error: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to stream chat: {str(e)}"
+            detail="Failed to stream chat"
         )
 
 
@@ -227,25 +259,13 @@ async def get_chat_history(
     Note: In-memory history only. For persistent storage, use storage endpoints.
     """
     try:
-        # Validate session_id
-        if not session_id or not session_id.strip():
+        # Validate and sanitize session_id using shared function
+        try:
+            session_id = _validate_session_id(session_id)
+        except ValueError as e:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Session ID cannot be empty"
-            )
-        
-        # Sanitize session_id
-        session_id = session_id.strip()
-        if len(session_id) > 255:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Session ID too long"
-            )
-        
-        if not all(c.isalnum() or c in '-_' for c in session_id):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Session ID contains invalid characters"
+                detail=str(e)
             )
         
         # Retrieve history from runtime
@@ -261,6 +281,6 @@ async def get_chat_history(
         logger.error(f"History retrieval error: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve history: {str(e)}"
+            detail="Failed to retrieve history"
         )
 

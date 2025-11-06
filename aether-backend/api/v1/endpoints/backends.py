@@ -144,7 +144,7 @@ async def list_backends(
         logger.error(f"Failed to list backends: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Failed to list backends"
         )
 
 
@@ -323,7 +323,7 @@ async def get_backend_details(
         logger.error(f"Failed to get backend details: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Failed to get backend details"
         )
 
 
@@ -388,7 +388,7 @@ async def check_backend_health(
         return {
             "backend": backend_name,
             "healthy": False,
-            "error": str(e)
+            "error": "Health check failed"
         }
 
 
@@ -421,7 +421,7 @@ async def get_registry_info(
         logger.error(f"Failed to get registry info: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Failed to get registry info"
         )
 
 
@@ -451,7 +451,7 @@ async def check_all_backends_health(
                 health_results[name] = {
                     "backend": name,
                     "healthy": False,
-                    "error": str(e)
+                    "error": "Health check failed"
                 }
         
         # Count healthy backends
@@ -468,6 +468,6 @@ async def check_all_backends_health(
         logger.error(f"Bulk health check failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Bulk health check failed"
         )
 

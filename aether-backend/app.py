@@ -377,11 +377,16 @@ def create_app() -> FastAPI:
             logger.error(f"Error stopping MCP manager: {e}")
         
         try:
-            # Close database
-            from api.dependencies import _database_connection
-            if _database_connection:
-                await _database_connection.disconnect()
-                logger.info("✅ Database closed")
+            # Close database using dependency getter for consistency
+            from api.dependencies import get_database
+            try:
+                async for db in get_database():
+                    if db:
+                        await db.disconnect()
+                        logger.info("✅ Database closed")
+            except HTTPException:
+                # Database not initialized, nothing to close
+                pass
         except Exception as e:
             logger.error(f"Error closing database: {e}")
         

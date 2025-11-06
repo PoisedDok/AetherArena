@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: IPC 'chat:assistant-stream', 'chat:request-complete' (from ChatController.js) --- {ipc_stream_chunk, json}
- * Processing: Coordinate 7 submodules (SecuritySanitizer, MarkdownRenderer, MessageView, MessageState, SendController, StopController, StreamHandler), route IPC to StreamHandler, handle user input --- {5 jobs: JOB_DELEGATE_TO_MODULE, JOB_ROUTE_BY_TYPE, JOB_GENERATE_SESSION_ID, JOB_UPDATE_STATE, JOB_EMIT_EVENT}
- * Outgoing: streamHandler.processChunk() → StreamHandler.js, sendController.send() → Endpoint.js --- {method_calls + user_message, javascript_api + json}
+ * Incoming: IPC 'chat:assistant-stream', 'chat:request-complete' (from ChatController.js) --- {stream_types.ipc_stream_chunk, json}
+ * Processing: Coordinate 7 submodules (SecuritySanitizer, MarkdownRenderer, MessageView, MessageState, SendController, StopController, StreamHandler), route IPC to StreamHandler, handle user input --- {8 jobs: JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GENERATE_SESSION_ID, JOB_GET_STATE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_UPDATE_STATE}
+ * Outgoing: streamHandler.processChunk() → StreamHandler.js, sendController.send() → Endpoint.js --- {message_types.user_message | method_call, json}
  * 
  * 
  * @module renderer/chat/modules/messaging/MessageManager
@@ -190,17 +190,19 @@ class MessageManager {
     }
 
     // Listen for assistant streams
-    const onAssistantStream = (_, data) => {
+    // CRITICAL: Make async and await processChunk to prevent race conditions
+    const onAssistantStream = async (_, data) => {
       console.log('[MessageManager] Received assistant stream chunk');
-      this.streamHandler.processChunk(data);
+      await this.streamHandler.processChunk(data);
     };
 
     // Listen for stream completion
-    const onRequestComplete = (_, data) => {
+    // CRITICAL: Make async and await forceFinalize
+    const onRequestComplete = async (_, data) => {
       console.log('[MessageManager] Request complete:', data);
       this.setProcessing(false);
       this.setStopMode(false);
-      this.streamHandler.forceFinalize();
+      await this.streamHandler.forceFinalize();
     };
 
     this.ipcBridge.on('chat:assistant-stream', onAssistantStream);

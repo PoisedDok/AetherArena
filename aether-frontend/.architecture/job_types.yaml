@@ -271,6 +271,13 @@ persistence_jobs:
     output: "object (updated record)"
     errors: ["db_unavailable", "update_failed", "not_found"]
   
+  JOB_DELETE_FROM_DB:
+    category: "persistence"
+    description: "Delete database record"
+    input: "string (record id)"
+    output: "void | boolean (success)"
+    errors: ["db_unavailable", "delete_failed", "not_found"]
+  
   JOB_CACHE_LOCALLY:
     category: "persistence"
     description: "Store in local memory cache"

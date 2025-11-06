@@ -1,6 +1,6 @@
 metadata:
   version: 1.0.0
-  generated: '2025-11-06T00:39:23.400448'
+  generated: '2025-11-06T03:09:58.298588'
   source: Aether Backend API
   backend_version: 2.0.0
   backend_url: http://127.0.0.1:8765
@@ -770,10 +770,18 @@ categories:
       api_endpoint: /v1/files
       http_method: GET
       complexity: moderate
-      description: List all uploaded files
-      signature: 'files(x-request-id: string = None, x-user-id: string = None, x-session-id:
-        string = None)'
+      description: List all uploaded files with pagination
+      signature: 'files(limit: integer = None, offset: integer = None, x-request-id:
+        string = None, x-user-id: string = None, x-session-id: string = None)'
       parameters:
+      - name: limit
+        type: integer
+        required: false
+        description: Maximum files to return
+      - name: offset
+        type: integer
+        required: false
+        description: Number of files to skip
       - name: x-request-id
         type: string
         required: false
@@ -800,9 +808,7 @@ categories:
       api_endpoint: /v1/api/storage/chats
       http_method: GET
       complexity: moderate
-      description: "List all chats ordered by most recently updated.\n\nArgs:\n  \
-        \  skip: Number of chats to skip (offset)\n    limit: Maximum number of chats\
-        \ to return\n    \nReturns:\n    List of chat objects with message counts"
+      description: Validate pagination parameters.
       signature: 'storage_chats(skip: integer = None, limit: integer = None, x-request-id:
         string = None, x-user-id: string = None, x-session-id: string = None)'
       parameters:
@@ -1060,18 +1066,18 @@ categories:
       http_method: GET
       complexity: advanced
       description: "Get artifacts for a chat.\n\nArgs:\n    chat_id: Chat UUID\n \
-        \   type: Optional type filter (code, html, output, file, etc.)\n    limit:\
-        \ Maximum number of artifacts\n    offset: Number of artifacts to skip\n \
-        \   \nReturns:\n    List of artifact objects"
-      signature: 'storage_chats_artifacts(chat_id: string, type: string = None, limit:
-        integer = None, offset: integer = None, x-request-id: string = None, x-user-id:
-        string = None, x-session-id: string = None)'
+        \   artifact_type: Optional type filter (code, html, output, file, etc.)\n\
+        \    limit: Maximum number of artifacts\n    offset: Number of artifacts to\
+        \ skip\n    \nReturns:\n    List of artifact objects"
+      signature: 'storage_chats_artifacts(chat_id: string, artifact_type: string =
+        None, limit: integer = None, offset: integer = None, x-request-id: string
+        = None, x-user-id: string = None, x-session-id: string = None)'
       parameters:
       - name: chat_id
         type: string
         required: true
         description: ''
-      - name: type
+      - name: artifact_type
         type: string
         required: false
         description: ''

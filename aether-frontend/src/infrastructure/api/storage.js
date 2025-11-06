@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: Repositories (.loadChats/.saveMessage/.saveArtifact/.updateArtifactMessageId calls) --- {method_calls, javascript_api}
- * Processing: Wrap ApiClient with PostgreSQL-specific operations, construct baseURL from config (backend.baseUrl + endpoints.storageApi), CRUD for chats (loadChats/loadChat/createChat/updateChatTitle/deleteChat), CRUD for messages (loadMessages/saveMessage), CRUD for artifacts (loadArtifacts/saveArtifact/updateArtifactMessageId/deleteArtifact), traceability queries (getMessageArtifacts/getArtifactSource), health check, error logging wrapper --- {4 jobs: JOB_GET_STATE, JOB_HTTP_REQUEST, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB}
- * Outgoing: ApiClient HTTP requests to backend:8765/storage/*, return Promise<json> --- {database_types.*, json}
+ * Incoming: Repositories (.loadChats/.saveMessage/.saveArtifact/.updateArtifactMessageId calls) --- {method_call, javascript_api}
+ * Processing: Wrap ApiClient with PostgreSQL-specific operations, construct baseURL from config (backend.baseUrl + endpoints.storageApi), CRUD for chats (loadChats/loadChat/createChat/updateChatTitle/deleteChat), CRUD for messages (loadMessages/saveMessage), CRUD for artifacts (loadArtifacts/saveArtifact/updateArtifactMessageId/deleteArtifact), traceability queries (getMessageArtifacts/getArtifactSource), health check, error logging wrapper --- {8 jobs: JOB_DELETE_FROM_DB, JOB_DELEGATE_TO_MODULE, JOB_GET_STATE, JOB_HTTP_REQUEST, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_UPDATE_DB}
+ * Outgoing: ApiClient HTTP requests to backend:8765/storage/*, return Promise<json> --- {database_types.chat_record | database_types.message_record | database_types.artifact_record, json}
  * 
  * 
  * @module infrastructure/api/storage

@@ -99,7 +99,7 @@ async def capture_screenshot(
         logger.error(f"Screenshot failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Screenshot failed"
         )
 
 
@@ -135,7 +135,7 @@ async def analyze_screen(
         logger.error(f"Screen analysis failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Screen analysis failed"
         )
 
 
@@ -174,7 +174,7 @@ async def parse_document(
         logger.error(f"Document parsing failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Document parsing failed"
         )
 
 
@@ -211,7 +211,7 @@ async def multi_ocr_parse(
         logger.error(f"Multi-OCR parsing failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Multi-OCR parsing failed"
         )
 
 
@@ -254,7 +254,7 @@ async def batch_parse_documents(
         logger.error(f"Batch processing failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Batch processing failed"
         )
 
 
@@ -280,7 +280,7 @@ async def get_workflows(
         logger.error(f"Workflow retrieval failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Workflow retrieval failed"
         )
 
 
@@ -318,7 +318,7 @@ async def omni_health(
         logger.error(f"Health check failed: {e}", exc_info=True)
         return {
             "healthy": False,
-            "message": f"Health check failed: {str(e)}",
+            "message": "Health check failed",
             "capabilities": []
         }
 

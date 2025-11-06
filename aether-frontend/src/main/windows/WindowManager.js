@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: main/index.js (initialize, shutdown), IpcRouter (control actions, focus requests) --- {method_call, void}
- * Processing: Create/manage MainWindow (widget mode), ChatWindow, ArtifactsWindow, coordinate inter-window communication (sendToArtifacts with auto-create + queueing), handle file operations (exportArtifactFile via dialog.showSaveDialog, openFile via shell.openPath), forward control actions (controlChatWindow, controlArtifactsWindow), manage isQuitting flag (prevents hide-on-close), provide getters (getMainWindow, getChatWindow, getArtifactsWindow), orchestrate shutdown (setQuitting + destroy all) --- {8 jobs: JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GET_STATE, JOB_INITIALIZE, JOB_SEND_IPC, JOB_UPDATE_STATE, JOB_WRITE_FILE}
- * Outgoing: MainWindow, ChatWindow, ArtifactsWindow (BrowserWindow instances), file operations (dialog, shell) --- {electron_window | void, BrowserWindow | void}
+ * Incoming: main/index.js (initialize, shutdown), IpcRouter (control actions, focus requests) --- {method_call, javascript_api}
+ * Processing: Create/manage MainWindow (widget mode), ChatWindow, ArtifactsWindow, coordinate inter-window communication (sendToArtifacts with auto-create + queueing), handle file operations (exportArtifactFile via dialog.showSaveDialog, openFile via shell.openPath), forward control actions (controlChatWindow, controlArtifactsWindow), manage isQuitting flag (prevents hide-on-close), provide getters (getMainWindow, getChatWindow, getArtifactsWindow), orchestrate shutdown (setQuitting + destroy all) --- {7 jobs: JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_GET_STATE, JOB_INITIALIZE, JOB_SEND_IPC, JOB_UPDATE_STATE, JOB_WRITE_FILE}
+ * Outgoing: MainWindow, ChatWindow, ArtifactsWindow (BrowserWindow instances), file operations (dialog, shell) --- {object, javascript_api}
  * 
  * 
  * @module main/windows/WindowManager

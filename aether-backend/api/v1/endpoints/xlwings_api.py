@@ -107,7 +107,7 @@ async def create_workbook(
         logger.error(f"Workbook creation failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Workbook creation failed"
         )
 
 
@@ -139,7 +139,7 @@ async def save_workbook(
         logger.error(f"Workbook save failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Workbook save failed"
         )
 
 
@@ -170,7 +170,7 @@ async def get_workbook_info(
         logger.error(f"Get workbook info failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Get workbook info failed"
         )
 
 
@@ -202,7 +202,7 @@ async def close_workbook(
         logger.error(f"Close workbook failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Close workbook failed"
         )
 
 
@@ -238,7 +238,7 @@ async def create_sheet(
         logger.error(f"Sheet creation failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Sheet creation failed"
         )
 
 
@@ -279,7 +279,7 @@ async def write_data(
         logger.error(f"Write data failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Write data failed"
         )
 
 
@@ -314,7 +314,7 @@ async def read_data(
         logger.error(f"Read data failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Read data failed"
         )
 
 
@@ -356,7 +356,7 @@ async def create_chart(
         logger.error(f"Chart creation failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Chart creation failed"
         )
 
 
@@ -397,7 +397,7 @@ async def format_range(
         logger.error(f"Format range failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Format range failed"
         )
 
 
@@ -422,6 +422,6 @@ async def xlwings_health(
         logger.error(f"Health check failed: {e}", exc_info=True)
         return {
             "status": "error",
-            "error": str(e)
+            "error": "Health check failed"
         }
 

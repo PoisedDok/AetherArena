@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: MainOrchestrator.start() call, periodic setInterval timer --- {lifecycle_types.start_call, timer_event}
- * Processing: Poll GuruConnection.ws.readyState every 2s, detect state changes, emit EventBus events, update status DOM element --- {4 jobs: JOB_EMIT_EVENT, JOB_GET_STATE, JOB_UPDATE_STATE, JOB_UPDATE_STATE}
- * Outgoing: EventBus.emit() (CONNECTION.* events), DOM updates (#status-indicator text/color) --- {event_types.connection_status_changed, HTMLElement}
+ * Incoming: MainOrchestrator.start() call, periodic setInterval timer --- {method_call, javascript_api}
+ * Processing: Poll GuruConnection.ws.readyState every 2s, detect state changes, emit EventBus events, update status DOM element --- {8 jobs: JOB_DISPOSE, JOB_EMIT_EVENT, JOB_GET_STATE, JOB_INITIALIZE, JOB_START, JOB_STOP, JOB_UPDATE_DOM_ELEMENT, JOB_UPDATE_STATE}
+ * Outgoing: EventBus.emit() (CONNECTION.* events), DOM updates (#status-indicator text/color) --- {event_types.custom_event, dom_types.chat_entry_element}
  * 
  * @module application/main/ConnectionMonitor
  * 

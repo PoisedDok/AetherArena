@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: Application modules (Endpoint.js, ModelManager.js, ProfileManager.js, SettingsManager.js via .request/.get/.post methods) --- {http_request_options, object}
- * Processing: Execute HTTP request via fetch, apply circuit breaker/rate limiter gates, parse/stringify JSON, retry on failure with exponential backoff, run request/response interceptors, manage state --- {5 jobs: JOB_GET_STATE, JOB_HTTP_REQUEST, JOB_INITIALIZE, JOB_PARSE_JSON, JOB_STRINGIFY_JSON}
- * Outgoing: Backend REST API (http://localhost:8765/v1/*) --- {json | text, http_response}
+ * Incoming: Application modules (ApiService.js, Endpoint.js, ModelManager.js, ProfileManager.js, SettingsManager.js) --- {http_request_config, json}
+ * Processing: Initialize client, execute HTTP via fetch with timeout, stringify request body, parse response JSON, check rate limiter, update circuit breaker state, retry with exponential backoff --- {6 jobs: JOB_GET_STATE, JOB_HTTP_REQUEST, JOB_INITIALIZE, JOB_PARSE_JSON, JOB_STRINGIFY_JSON, JOB_UPDATE_STATE}
+ * Outgoing: Backend REST API (http://localhost:8765/v1/*) --- {http_response, json}
  * 
  * 
  * @module core/communication/ApiClient
@@ -170,6 +170,34 @@ class ApiClient {
       throw new TypeError('Interceptor must be a function');
     }
     this.responseInterceptors.push(interceptor);
+  }
+
+  /**
+   * Remove request interceptor
+   * @param {Function} interceptor - The interceptor to remove
+   * @returns {boolean} - True if removed, false if not found
+   */
+  removeRequestInterceptor(interceptor) {
+    const index = this.requestInterceptors.indexOf(interceptor);
+    if (index !== -1) {
+      this.requestInterceptors.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Remove response interceptor
+   * @param {Function} interceptor - The interceptor to remove
+   * @returns {boolean} - True if removed, false if not found
+   */
+  removeResponseInterceptor(interceptor) {
+    const index = this.responseInterceptors.indexOf(interceptor);
+    if (index !== -1) {
+      this.responseInterceptors.splice(index, 1);
+      return true;
+    }
+    return false;
   }
 
   /**

@@ -111,6 +111,6 @@ async def launch_terminal(
         logger.error(f"Failed to launch terminal: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to launch terminal: {str(e)}"
+            detail="Failed to launch terminal"
         )
 

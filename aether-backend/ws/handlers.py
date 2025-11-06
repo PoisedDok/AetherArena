@@ -98,14 +98,6 @@ class StreamRelay:
                     self._logger.debug(f"Client disconnected during stream {request_id}")
                     break
                 
-                # Check if task was cancelled
-                try:
-                    if asyncio.current_task().cancelled():
-                        self._logger.debug(f"Stream relay cancelled for {request_id}")
-                        break
-                except RuntimeError:
-                    break
-                
                 # Process event
                 if not isinstance(event, dict):
                     continue
@@ -495,10 +487,21 @@ class MessageHandler:
         self,
         payload: Dict[str, Any],
     ) -> None:
-        """Handle raw LMC message pass-through for advanced clients"""
+        """
+        Handle raw LMC message pass-through for advanced clients.
+        
+        Note: This is a low-level feature for advanced Open Interpreter clients
+        that send raw LMC (Language Model Communication) protocol messages.
+        """
         try:
-            if hasattr(self.runtime, '_interpreter') and self.runtime._interpreter:
-                await self.runtime._interpreter.input(payload)
-        except Exception:
-            pass
+            # Use public method if available instead of accessing private attributes
+            if hasattr(self.runtime, 'send_raw_input'):
+                await self.runtime.send_raw_input(payload)
+            elif hasattr(self.runtime, '_interpreter_manager'):
+                # Fallback: use manager's public interface
+                interpreter = self.runtime._interpreter_manager.get_interpreter()
+                if interpreter:
+                    await interpreter.input(payload)
+        except Exception as e:
+            self._logger.debug(f"LMC passthrough failed: {e}")
 

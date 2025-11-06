@@ -267,7 +267,7 @@ async def load_ocr_model(
         logger.error(f"Model loading failed for {request.backend}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Model loading failed: {str(e)}"
+            detail="Model loading failed"
         )
 
 
@@ -305,7 +305,7 @@ async def unload_ocr_model(
         logger.error(f"Model unloading failed for {backend}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Model unloading failed: {str(e)}"
+            detail="Model unloading failed"
         )
 
 
@@ -400,7 +400,7 @@ async def process_file(
         logger.error(f"File processing failed with {request.backend}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Processing failed: {str(e)}"
+            detail="Processing failed"
         )
 
 
@@ -513,7 +513,7 @@ async def process_upload(
         logger.error(f"Upload processing failed with {backend}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Processing failed: {str(e)}"
+            detail="Processing failed"
         )
 
 
@@ -548,7 +548,7 @@ async def get_formats(
         logger.error(f"Failed to get formats for {backend}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get formats: {str(e)}"
+            detail="Failed to get formats"
         )
 
 

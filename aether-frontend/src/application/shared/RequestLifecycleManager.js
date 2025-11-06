@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: Orchestrators (MainOrchestrator.js, ChatOrchestrator.js, ArtifactsOrchestrator.js) --- {method_calls, javascript_api}
- * Processing: Generate request IDs (req_timestamp_random format), track request state, manage timeouts, handle cancellation, collect statistics, maintain request history, cleanup resources --- {5 jobs: JOB_CLEAR_STATE, JOB_DISPOSE, JOB_GET_STATE, JOB_TRACK_ENTITY, JOB_UPDATE_STATE}
- * Outgoing: Request context callbacks (onComplete, onTimeout, onCancel) → caller orchestrator --- {frozen_object, javascript_api}
+ * Incoming: Orchestrators (MainOrchestrator.js, ChatOrchestrator.js, ArtifactsOrchestrator.js) --- {method_call, javascript_api}
+ * Processing: Generate request IDs (req_timestamp_random format), track request state, manage timeouts, handle cancellation, collect statistics, maintain request history, cleanup resources --- {6 jobs: JOB_CLEAR_STATE, JOB_DISPOSE, JOB_GET_STATE, JOB_INITIALIZE, JOB_TRACK_ENTITY, JOB_UPDATE_STATE}
+ * Outgoing: Request context callbacks (onComplete, onTimeout, onCancel) → caller orchestrator --- {object, javascript_api}
  * 
  * 
  * @module application/shared/RequestLifecycleManager

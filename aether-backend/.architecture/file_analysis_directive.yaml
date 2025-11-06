@@ -1,43 +1,315 @@
-# FILE ANALYSIS DIRECTIVE (BACKEND)
+# BACKEND FILE ANALYSIS DIRECTIVE - SECURITY & DEBUGGING ENHANCED
 # =============================================================================
-# Authoritative instructions for engineers to document every backend file.
-# Must be followed verbatim. References backend architecture YAML standards.
+# Authoritative instructions for analyzing Python/FastAPI backend code.
+# Focuses on async correctness, database integrity, WebSocket safety, security.
 # =============================================================================
 
-version: "1.0.0"
-purpose: "Standardise file-level documentation across backend codebase"
+version: "2.0.0"
+purpose: "Comprehensive backend analysis with async/database/security focus"
+scope: ["backend"]
+language: "Python 3.11+"
+framework: "FastAPI + asyncio + PostgreSQL + WebSocket"
 
 references:
   - "./data_flow_standard.yaml"
+  - "./job_types.yaml"
   - "./module_structure_standard.yaml"
   - "./security_compliance_standard.yaml"
 
-template:
-  description: "Three-line documentation template, no additions"
-  lines:
-    - "Incoming: <source refs> --- {<data_type>, <format>}"
-    - "Processing: <operations summary> --- {<N> jobs: <job_types>}"
-    - "Outgoing: <dest refs> --- {<data_type>, <format>}"
+# =============================================================================
+# ANALYSIS PHASES (Execute in order)
+# =============================================================================
 
-rules:
-  scope: ["backend"]
-  analysis:
-    - "Engineers MUST read full file via read_file tool (no partial reads) and THEN ONLY use edit tool to make changes."
-    - "Summaries MUST NOT include code; only behaviour."
-    - "Incoming/Outgoing sources are file paths, call sites, or modules."
-    - "Data types MUST be explicit (Dict, AsyncGenerator, etc.)."
-    - "Job types MUST map to categories in data_flow_standard.yaml (validation, transformation, routing, etc.)."
-    - "If section not applicable, use 'none'."
-    - "No markdown, bullets or explanatory prose beyond template lines."
-    - "Order job types alphabetically."
-  format:
-    - "Exactly three lines per file block."
-    - "No leading/trailing whitespace."
-    - "Sections separated by single space after colon."
-  compliance:
-    validation: "Must satisfy example_format in data_flow_standard.yaml"
-    rejection_policy: "Non-conforming submissions are rejected without review."
+phase_1_documentation:
+  template:
+    format: "Python docstring with @.architecture block"
+    lines:
+      - "Incoming: <source refs> --- {<data_type>, <format>}"
+      - "Processing: <operations> --- {<N> jobs: job_type_1, job_type_2, …}"
+      - "Outgoing: <dest refs> --- {<data_type>, <format>}"
+  
+  rules:
+    - "Read ENTIRE file first (no partial reads)"
+    - "Job types from job_types.yaml, ALPHABETICALLY sorted"
+    - "Sources: API routes, WebSocket, database, file system, queues"
+    - "Destinations: HTTP responses, WebSocket, database, IPC, file system"
+    - "Count jobs accurately - verify against actual code"
 
-tool_usage:
-  - "Use read_file for complete contents."
-  - "Token / time cost is authorised."
+phase_2_python_async_bugs:
+  critical_patterns:
+    async_correctness:
+      - "Route handlers with DB calls MUST be async and use await"
+      - "Sync blocking calls (time.sleep, requests.get) in async context"
+      - "Database sessions not awaited (session.execute without await)"
+      - "Multiple awaits that should use asyncio.gather()"
+      - "Async generators without proper cleanup (@asynccontextmanager)"
+      - "WebSocket handlers without try-finally for cleanup"
+    
+    database_issues:
+      - "SQL queries using f-strings (injection vulnerability)"
+      - "Database sessions not closed in finally block"
+      - "Transactions not committed/rolled back properly"
+      - "N+1 query problems (missing joins/eager loading)"
+      - "Connection pool exhaustion (not releasing connections)"
+      - "Missing indexes on frequently queried columns"
+      - "Concurrent writes without locks (race conditions)"
+    
+    websocket_dangers:
+      - "Stream generators not handling client disconnect"
+      - "Active tasks not cancelled on connection close"
+      - "Message queues growing unbounded"
+      - "Broadcast loops without error isolation"
+      - "Ping/pong not implemented (stale connections)"
+      - "Reconnection logic missing or broken"
+    
+    pydantic_validation:
+      - "Request models missing field validators"
+      - "Response models exposing sensitive fields"
+      - "Optional fields without defaults"
+      - "Union types without discriminator"
+      - "Validators not raising ValidationError properly"
+      - "Config missing extra='forbid' (accepts unknown fields)"
+
+phase_3_security_critical:
+  backend_specific:
+    authentication:
+      - "JWT tokens validated on every protected route"
+      - "Token expiry enforced"
+      - "Refresh token rotation implemented"
+      - "Session invalidation on logout"
+      - "Password hashing uses bcrypt/argon2 (not SHA)"
+      - "Rate limiting on auth endpoints"
+    
+    authorization:
+      - "Permission checks before sensitive operations"
+      - "User owns resource before modification"
+      - "Role-based access control enforced"
+      - "Scope validation on API keys"
+      - "Cross-tenant data leakage prevented"
+    
+    input_validation:
+      - "ALL user input validated via Pydantic"
+      - "File uploads checked for type/size/content"
+      - "Path traversal blocked (../../etc/passwd)"
+      - "Command injection patterns blocked"
+      - "SQL injection impossible (parameterized queries)"
+      - "XML/XXE attacks prevented"
+    
+    output_security:
+      - "Error messages don't leak stack traces to client"
+      - "Database errors sanitized"
+      - "PII redacted in logs"
+      - "CORS configured restrictively"
+      - "CSP headers set on HTML responses"
+    
+    dependency_security:
+      - "requirements.txt pinned versions"
+      - "Known vulnerabilities checked (safety, snyk)"
+      - "Unused dependencies removed"
+      - "Crypto libraries up to date"
+
+phase_4_data_integrity:
+  database_operations:
+    - "Foreign key constraints enforced"
+    - "Unique constraints on critical fields"
+    - "Check constraints validate data ranges"
+    - "Cascade deletes configured correctly"
+    - "Timestamps (created_at, updated_at) auto-managed"
+    - "Soft deletes use deleted_at, not hard deletes"
+  
+  transaction_safety:
+    - "Write operations in transactions"
+    - "Read-modify-write uses SELECT FOR UPDATE"
+    - "Retry logic for deadlocks/conflicts"
+    - "Idempotency keys for critical operations"
+    - "Rollback on partial failure"
+  
+  data_consistency:
+    - "Denormalized data updated atomically"
+    - "Cache invalidation on database writes"
+    - "Event ordering guaranteed (sequence numbers)"
+    - "Correlation IDs tracked end-to-end"
+    - "Artifact-message relationships maintained"
+
+phase_5_performance_reliability:
+  scalability:
+    - "Connection pooling configured (min/max sizes)"
+    - "Query timeout configured (prevent long-running queries)"
+    - "Request timeout configured (prevent hung requests)"
+    - "Background tasks for heavy operations"
+    - "Pagination on list endpoints"
+    - "Database indexes on WHERE/JOIN columns"
+  
+  error_handling:
+    - "Exception hierarchy matches error categories"
+    - "HTTPException with appropriate status codes"
+    - "Logging at correct levels (ERROR for failures)"
+    - "Retry logic for transient failures"
+    - "Circuit breaker for external services"
+    - "Graceful degradation when services unavailable"
+  
+  monitoring:
+    - "Metrics exported (Prometheus format preferred)"
+    - "Health check endpoint (/health)"
+    - "Distributed tracing headers propagated"
+    - "Slow queries logged (>100ms threshold)"
+    - "Error rates tracked per endpoint"
+
+# =============================================================================
+# PYTHON-SPECIFIC BUG PATTERNS
+# =============================================================================
+
+python_antipatterns:
+  critical:
+    - "Mutable default arguments (def func(items=[]))"
+    - "Catching Exception instead of specific types"
+    - "Using == None instead of is None"
+    - "Modifying list while iterating (for item in list: list.remove(item))"
+    - "Global state without thread safety"
+    - "Unclosed file handles (not using with statement)"
+    - "String concatenation in loops (use join)"
+    - "Dict.get() without default causing KeyError downstream"
+  
+  async_specific:
+    - "Creating tasks without awaiting or storing reference (lost tasks)"
+    - "Using threading.Lock in async code (deadlock)"
+    - "Blocking operations in async functions"
+    - "Not cancelling tasks on shutdown"
+    - "asyncio.run() called inside async context"
+
+# =============================================================================
+# FASTAPI-SPECIFIC PATTERNS
+# =============================================================================
+
+fastapi_best_practices:
+  route_handlers:
+    - "Dependencies injected via Depends()"
+    - "Path/query parameters validated via Pydantic"
+    - "Response models declared (response_model=)"
+    - "Status codes explicit (status_code=201 for creates)"
+    - "Background tasks for fire-and-forget operations"
+  
+  middleware:
+    - "Request ID middleware for tracing"
+    - "CORS middleware configured restrictively"
+    - "Rate limiting middleware on public routes"
+    - "Exception handler middleware for global errors"
+    - "Gzip compression for large responses"
+  
+  websocket:
+    - "Connection accepted before long operations"
+    - "Message validation via Pydantic"
+    - "Broadcast uses sets (not lists) for O(1) removal"
+    - "Cleanup on disconnect (websocket.close() in finally)"
+    - "Ping/pong keep-alive implemented"
+
+# =============================================================================
+# DATABASE-SPECIFIC PATTERNS (PostgreSQL + SQLAlchemy)
+# =============================================================================
+
+database_best_practices:
+  sqlalchemy:
+    - "Async engine (create_async_engine)"
+    - "Async sessions (AsyncSession)"
+    - "Relationship loading strategies defined (lazy/eager)"
+    - "Indexes on foreign keys"
+    - "expire_on_commit=False for async compatibility"
+  
+  query_optimization:
+    - "Use joins instead of N+1 queries"
+    - "Limit + offset for pagination"
+    - "Select only needed columns (not SELECT *)"
+    - "Index covering queries (include columns)"
+    - "Batch inserts (bulk_insert_mappings)"
+  
+  migrations:
+    - "Alembic migrations for schema changes"
+    - "Migrations tested in dev environment first"
+    - "Rollback migrations defined"
+    - "No data loss in down migrations"
+
+# =============================================================================
+# EXECUTION PROTOCOL
+# =============================================================================
+
+workflow:
+  step_1: "Read entire file (read_file tool)"
+  step_2: "Verify docstring @.architecture accuracy"
+  step_3: "Scan phase_2_python_async_bugs patterns"
+  step_4: "Check phase_3_security_critical vulnerabilities"
+  step_5: "Verify phase_4_data_integrity rules"
+  step_6: "Assess phase_5_performance_reliability"
+  step_7: "Fix bugs in CODE first, documentation second"
+  step_8: "Validate job_types compliance"
+  step_9: "Test fix if possible"
+  step_10: "Next file"
+
+priorities:
+  1: "CRITICAL: SQL injection, auth bypass, data loss"
+  2: "HIGH: Race conditions, unhandled exceptions, memory leaks"
+  3: "MEDIUM: Performance issues, missing validation"
+  4: "LOW: Documentation accuracy, code style"
+
+# =============================================================================
+# BUG CASE STUDIES FROM FRONTEND ANALYSIS
+# =============================================================================
+
+lessons_from_frontend:
+  case_1_persistence_stubs:
+    lesson: "Verify save operations actually persist to database"
+    check: "Repository methods must call DB and return result"
+  
+  case_2_async_race_conditions:
+    lesson: "ALL async operations must be awaited in critical paths"
+    check: "No fire-and-forget async calls in state-changing operations"
+  
+  case_3_immutability_violations:
+    lesson: "Don't mutate input parameters"
+    check: "Return new instances, not modified inputs"
+
+# =============================================================================
+# COMPLIANCE & REJECTION CRITERIA
+# =============================================================================
+
+rejection_criteria:
+  immediate_reject:
+    - "SQL injection vulnerability (f-string queries)"
+    - "Async route handler without await on DB operations"
+    - "WebSocket handler without cleanup on disconnect"
+    - "Authentication bypass possible"
+    - "Sensitive data in logs (passwords, tokens)"
+    - "Database sessions not closed (memory leak)"
+  
+  must_fix:
+    - "Missing input validation on user data"
+    - "Unhandled exceptions in route handlers"
+    - "Race condition in concurrent operations"
+    - "Job types don't match actual operations"
+    - "Missing CORS/CSP headers"
+
+tool_authorization:
+  - "Full file reads authorized"
+  - "Cross-file contract validation authorized"
+  - "Frontend storageAPI integration verification authorized"
+  - "Database schema inspection authorized"
+
+# =============================================================================
+# INTEGRATION POINTS WITH FRONTEND
+# =============================================================================
+
+frontend_backend_contract:
+  websocket:
+    - "Frontend expects JSON messages with 'id', 'chunk', 'done' fields"
+    - "Backend must restore frontend_id to id field before sending"
+    - "Pydantic validation in ws/protocols.py matches frontend expectations"
+  
+  ipc_via_storage:
+    - "Frontend calls storageAPI methods"
+    - "Backend receives via IPC handler"
+    - "Returns PostgreSQL data in expected format"
+    - "UUIDs for all entity IDs"
+  
+  session_ids:
+    - "Frontend generates deterministic IDs (chatId_sequence_type)"
+    - "Backend accepts frontend IDs, generates PostgreSQL UUIDs"
+    - "Correlation IDs maintained for traceability"

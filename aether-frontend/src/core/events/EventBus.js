@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: All modules (.emit() method calls with event names) --- {event_types.*, javascript_api}
- * Processing: Pub-sub pattern - maintain subscribers Map (eventName → handlers array), sort by priority, apply filters, run middleware, validate events, track history (max 100), call handlers with proper context --- {5 jobs: JOB_ROUTE_BY_TYPE, JOB_VALIDATE_SCHEMA, JOB_ROUTE_BY_TYPE, JOB_TRACK_ENTITY, JOB_SEND_IPC}
+ * Processing: Pub-sub pattern - maintain subscribers Map (eventName → handlers array), sort by priority, apply filters, run middleware, validate events, track history (max 100), call handlers with proper context --- {6 jobs: JOB_DISPOSE, JOB_GET_STATE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA}
  * Outgoing: Invoke subscriber handlers with (data, meta) --- {method_calls, javascript_api}
  * 
  * 
@@ -223,6 +223,15 @@ class EventBus {
   }
 
   /**
+   * Unregister event validator
+   * @param {string} eventName - Event name
+   * @returns {boolean} - True if removed, false if not found
+   */
+  unregisterValidator(eventName) {
+    return this.validators.delete(eventName);
+  }
+
+  /**
    * Add middleware
    * @param {Function} middleware - Middleware function
    */
@@ -231,6 +240,20 @@ class EventBus {
       throw new TypeError('Middleware must be a function');
     }
     this.middleware.push(middleware);
+  }
+
+  /**
+   * Remove middleware
+   * @param {Function} middleware - The middleware to remove
+   * @returns {boolean} - True if removed, false if not found
+   */
+  removeMiddleware(middleware) {
+    const index = this.middleware.indexOf(middleware);
+    if (index !== -1) {
+      this.middleware.splice(index, 1);
+      return true;
+    }
+    return false;
   }
 
   /**

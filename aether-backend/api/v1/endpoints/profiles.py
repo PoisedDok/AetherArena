@@ -5,7 +5,7 @@ Endpoints for Open Interpreter profile management.
 
 @.architecture
 Incoming: api/v1/router.py, Frontend (HTTP GET/POST) --- {HTTP requests to /v1/profiles, /v1/profiles/active, /v1/profiles/switch, /v1/profiles/{name}}
-Processing: get_profiles(), get_active_profile(), switch_profile(), get_profile_details() --- {3 jobs: file_discovery, metadata_extraction, profile_validation}
+Processing: get_profiles(), get_active_profile(), switch_profile(), get_profile_details() --- {4 jobs: file_discovery, metadata_extraction, path_validation, profile_validation}
 Outgoing: Local filesystem (profiles directory), Frontend (HTTP) --- {JSONResponse with profile list, metadata, and content previews}
 """
 
@@ -14,16 +14,72 @@ from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 
-from api.dependencies import setup_request_context
+from api.dependencies import get_settings, setup_request_context
+from config.settings import Settings
 from monitoring import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["profiles"])
 
-from typing import Dict, Any
+# Max profile file size for preview (1MB)
+MAX_PROFILE_SIZE = 1024 * 1024
 
-# Profiles directory
-PROFILES_DIR = Path("./profiles").resolve()
+
+def get_profiles_dir(settings: Settings = None) -> Path:
+    """
+    Get profiles directory path.
+    
+    Returns:
+        Path: Resolved profiles directory path
+    """
+    # Use configured path if available, otherwise fallback
+    profiles_path = Path("./profiles")
+    return profiles_path.resolve()
+
+
+def validate_profile_path(profile_name: str, profiles_dir: Path) -> Path:
+    """
+    Validate and sanitize profile name to prevent path traversal.
+    
+    Args:
+        profile_name: User-provided profile name
+        profiles_dir: Base profiles directory
+        
+    Returns:
+        Path: Validated profile path
+        
+    Raises:
+        HTTPException: If path validation fails
+    """
+    if not profile_name or not profile_name.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Profile name cannot be empty"
+        )
+    
+    # Remove leading/trailing whitespace
+    profile_name = profile_name.strip()
+    
+    # Block path traversal attempts
+    if ".." in profile_name or "/" in profile_name or "\\" in profile_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid profile name: path traversal not allowed"
+        )
+    
+    # Build and resolve full path
+    profile_path = (profiles_dir / profile_name).resolve()
+    
+    # Ensure resolved path is still within profiles directory
+    try:
+        profile_path.relative_to(profiles_dir)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid profile name: outside profiles directory"
+        )
+    
+    return profile_path
 
 
 # =============================================================================
@@ -36,6 +92,7 @@ PROFILES_DIR = Path("./profiles").resolve()
     description="List available Open Interpreter profiles"
 )
 async def get_profiles(
+    settings: Settings = Depends(get_settings),
     _context: dict = Depends(setup_request_context)
 ) -> JSONResponse:
     """
@@ -48,23 +105,26 @@ async def get_profiles(
         List of available profile names
     """
     try:
+        profiles_dir = get_profiles_dir(settings)
+        
         # Ensure profiles directory exists
-        PROFILES_DIR.mkdir(parents=True, exist_ok=True)
+        profiles_dir.mkdir(parents=True, exist_ok=True)
         
         # Find profile files
         profiles = []
         
         for ext in ["*.py", "*.yaml", "*.yml"]:
-            for profile_file in PROFILES_DIR.glob(ext):
+            for profile_file in profiles_dir.glob(ext):
                 # Skip __pycache__ and other hidden files
                 if profile_file.name.startswith("_") or profile_file.name.startswith("."):
                     continue
                 
+                stat = profile_file.stat()
                 profiles.append({
                     "name": profile_file.name,
                     "path": str(profile_file),
                     "type": profile_file.suffix[1:],  # Remove dot
-                    "size_bytes": profile_file.stat().st_size
+                    "size_bytes": stat.st_size
                 })
         
         # Sort by name
@@ -81,7 +141,7 @@ async def get_profiles(
         logger.error(f"Failed to list profiles: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list profiles: {str(e)}"
+            detail="Failed to list profiles"
         )
 
 
@@ -116,7 +176,7 @@ async def get_active_profile(
         logger.error(f"Failed to get active profile: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get active profile: {str(e)}"
+            detail="Failed to get active profile"
         )
 
 
@@ -152,7 +212,7 @@ async def switch_profile(
         logger.error(f"Failed to switch profile: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to switch profile: {str(e)}"
+            detail="Failed to switch profile"
         )
 
 
@@ -163,6 +223,7 @@ async def switch_profile(
 )
 async def get_profile_details(
     profile_name: str,
+    settings: Settings = Depends(get_settings),
     _context: dict = Depends(setup_request_context)
 ) -> JSONResponse:
     """
@@ -173,10 +234,16 @@ async def get_profile_details(
         
     Returns:
         Profile metadata and content preview
+        
+    Security:
+        - Path traversal protection
+        - File size limits
     """
     try:
-        # Find profile file
-        profile_path = PROFILES_DIR / profile_name
+        profiles_dir = get_profiles_dir(settings)
+        
+        # Validate and resolve profile path (prevents path traversal)
+        profile_path = validate_profile_path(profile_name, profiles_dir)
         
         if not profile_path.exists():
             raise HTTPException(
@@ -184,15 +251,30 @@ async def get_profile_details(
                 detail=f"Profile '{profile_name}' not found"
             )
         
+        # Check file size
+        stat = profile_path.stat()
+        if stat.st_size > MAX_PROFILE_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"Profile file too large (max {MAX_PROFILE_SIZE} bytes)"
+            )
+        
         # Read profile content (limit to first 1000 chars for preview)
-        content = profile_path.read_text(encoding="utf-8")
+        try:
+            content = profile_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Profile file is not valid UTF-8 text"
+            )
+        
         preview = content[:1000] if len(content) > 1000 else content
         
         return JSONResponse({
             "name": profile_name,
             "path": str(profile_path),
             "type": profile_path.suffix[1:],
-            "size_bytes": profile_path.stat().st_size,
+            "size_bytes": stat.st_size,
             "preview": preview,
             "truncated": len(content) > 1000
         })
@@ -203,6 +285,6 @@ async def get_profile_details(
         logger.error(f"Failed to get profile {profile_name}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get profile: {str(e)}"
+            detail="Failed to get profile"
         )
 

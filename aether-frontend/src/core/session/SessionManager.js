@@ -3,8 +3,8 @@
 /**
  * @.architecture
  * 
- * Incoming: Application modules (UIManager, MessageService, ArtifactService via method calls requesting IDs) --- {request_types.generate_id, method_call}
- * Processing: Generate deterministic sequential IDs with format chatId_sequence_type, maintain ChatSession state per chat, track parent-child relationships in linkMap, store metadata for all entities, emit lifecycle events --- {5 jobs: JOB_CLEAR_STATE, JOB_EMIT_EVENT, JOB_GENERATE_SESSION_ID, JOB_GET_STATE, JOB_TRACK_ENTITY}
+ * Incoming: Application modules (UIManager, MessageService, ArtifactService via method calls requesting IDs) --- {method_call, javascript_api}
+ * Processing: Generate deterministic sequential IDs with format chatId_sequence_type, maintain ChatSession state per chat, track parent-child relationships in linkMap, store metadata for all entities, emit lifecycle events --- {7 jobs: JOB_CLEAR_STATE, JOB_EMIT_EVENT, JOB_GENERATE_SESSION_ID, JOB_GET_STATE, JOB_INITIALIZE, JOB_TRACK_ENTITY, JOB_UPDATE_STATE}
  * Outgoing: Return formatted ID strings (chatId_000001_UM pattern), emit session lifecycle events --- {session_types.session_id, string}
  * 
  * 

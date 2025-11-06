@@ -628,4 +628,23 @@ class RuntimeEngine:
             cleaned += await self._request_tracker.cleanup_stale_requests()
         
         return cleaned
+    
+    async def get_history(self, session_id: str) -> list:
+        """
+        Retrieve conversation history for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            List of conversation messages
+            
+        Note: Currently returns in-memory history from chat streamer.
+        For persistent storage, use database repositories.
+        """
+        if not self._chat_streamer:
+            return []
+        
+        # Return a copy to prevent external modification
+        return list(self._chat_streamer._conversation_history)
 

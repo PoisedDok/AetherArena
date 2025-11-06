@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: IPC events from Main Window, Chat Window, Artifacts Window (via ipcMain.on) --- {ipc_types.event, any}
- * Processing: Route messages between windows, validate source window, enrich metadata, delegate to WindowManager for lifecycle actions --- {5 jobs: JOB_DELEGATE_TO_MODULE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_SEND_IPC, JOB_VALIDATE_IPC_SOURCE}
+ * Processing: Route messages between windows, validate source window, enrich metadata, delegate to WindowManager for lifecycle actions --- {7 jobs: JOB_DELEGATE_TO_MODULE, JOB_DISPOSE, JOB_INITIALIZE, JOB_ROUTE_BY_TYPE, JOB_SEND_IPC, JOB_UPDATE_STATE, JOB_VALIDATE_IPC_SOURCE}
  * Outgoing: window.webContents.send() → Main/Chat/Artifacts Window renderers --- {ipc_types.message, any}
  * 
  * @module main/services/IpcRouter
@@ -363,12 +363,24 @@ class IpcRouter {
     });
 
     // File operations
-    this._registerRoute('artifacts:file-export', async (event, payload) => {
-      await this.windowManager.exportArtifactFile(payload);
+    this._registerRoute('artifacts:file-export', (event, payload) => {
+      // Execute async operation without blocking IPC handler
+      this.windowManager.exportArtifactFile(payload).catch((err) => {
+        this.logger.error('Failed to export artifact file', {
+          error: err.message,
+          stack: err.stack,
+        });
+      });
     });
 
-    this._registerRoute('artifacts:open-file', async (event, payload) => {
-      await this.windowManager.openFile(payload);
+    this._registerRoute('artifacts:open-file', (event, payload) => {
+      // Execute async operation without blocking IPC handler
+      this.windowManager.openFile(payload).catch((err) => {
+        this.logger.error('Failed to open file', {
+          error: err.message,
+          stack: err.stack,
+        });
+      });
     });
   }
 

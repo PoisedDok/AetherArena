@@ -108,7 +108,7 @@ async def list_models(
         logger.error(f"Failed to list models from {url}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Failed to list models: {str(e)}"
+            detail="Failed to list models"
         )
 
 
@@ -145,7 +145,7 @@ async def get_active_model(
         logger.error(f"Failed to get active model: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get active model: {str(e)}"
+            detail="Failed to get active model"
         )
 
 

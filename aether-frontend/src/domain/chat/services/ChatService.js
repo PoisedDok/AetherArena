@@ -1,9 +1,9 @@
 /**
  * @.architecture
  * 
- * Incoming: ChatOrchestrator.createChat(), SidebarManager.loadChats(), MessageManager.createChat() (method calls requesting chat operations) --- {request_types.create_chat | request_types.load_chat, method_call}
- * Processing: Validate via ChatValidator, create Chat model instances, persist to ChatRepository (PostgreSQL), query active/archived chats, update titles, mark archived, load messages via MessageRepository, apply metadata --- {5 jobs: JOB_GET_STATE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA}
- * Outgoing: ChatRepository.create/update/findAll() (persistence), MessageRepository.findByChatId() (query), return Chat model instances --- {chat_model, javascript_object}
+ * Incoming: ChatOrchestrator.createChat(), SidebarManager.loadChats(), MessageManager.createChat() (method calls requesting chat operations) --- {method_call, javascript_api}
+ * Processing: Validate via ChatValidator, create Chat model instances, persist to ChatRepository (PostgreSQL), query active/archived chats, update titles, mark archived, load messages via MessageRepository, apply metadata --- {8 jobs: JOB_DELEGATE_TO_MODULE, JOB_DELETE_FROM_DB, JOB_GET_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_UPDATE_DB, JOB_VALIDATE_SCHEMA}
+ * Outgoing: ChatRepository.create/update/findAll() (persistence), MessageRepository.findByChatId() (query), return Chat model instances --- {object, javascript_api}
  * 
  * 
  * @module domain/chat/services/ChatService

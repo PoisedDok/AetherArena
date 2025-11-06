@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: ArtifactService.finalizeArtifact/linkArtifact(), MessageService.registerMessage() (method calls with entity data) --- {message_data | artifact_data, javascript_object}
- * Processing: Maintain 7 indexes (messages/artifacts/correlationIndex/messageArtifactsIndex/artifactMessageIndex/chatMessagesIndex/chatArtifactsIndex Maps), register messages/artifacts with bidirectional linkage, track entities in indexes, query lineage trees, persist to localStorage with autoSave, clear indexes --- {6 jobs: JOB_CLEAR_STATE, JOB_GET_STATE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_TRACK_ENTITY, JOB_UPDATE_STATE}
- * Outgoing: localStorage (persist indexes), return linked entity data and lineage trees --- {linked_data | lineage_tree, javascript_object}
+ * Incoming: ArtifactService.finalizeArtifact/linkArtifact(), MessageService.registerMessage() (method calls with entity data) --- {object, javascript_api}
+ * Processing: Maintain 7 in-memory indexes (messages/artifacts/correlationIndex/messageArtifactsIndex/artifactMessageIndex/chatMessagesIndex/chatArtifactsIndex Maps), register messages/artifacts with bidirectional linkage, track entities in indexes, query lineage trees, persist to PostgreSQL via storageAPI with autoSave, clear indexes, batch operations --- {9 jobs: JOB_CLEAR_STATE, JOB_DELEGATE_TO_MODULE, JOB_GET_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_TRACK_ENTITY, JOB_UPDATE_STATE}
+ * Outgoing: storageAPI.saveTraceabilityData/loadTraceabilityData() (IPC to main → PostgreSQL), return linked entity data and lineage trees --- {object, javascript_api}
  * 
  * 
  * @module domain/artifacts/services/TraceabilityService
@@ -13,22 +13,54 @@
 
 class TraceabilityService {
   constructor(options = {}) {
-    this.storageKey = options.storageKey || 'aether_traceability';
+    this.storageAPI = options.storageAPI || null; // PostgreSQL via IPC
     this.logger = options.logger || this._createDefaultLogger();
     this.autoSave = options.autoSave !== false;
+    this.saveDebounceMs = options.saveDebounceMs || 1000; // Debounce saves
     
-    // Core indexes
+    // Core indexes (in-memory for performance)
     this.messages = new Map(); // messageId -> MessageData
     this.artifacts = new Map(); // artifactId -> ArtifactData
     
-    // Relationship indexes
+    // Relationship indexes (in-memory for fast lookups)
     this.correlationIndex = new Map(); // correlationId -> { requestMessageId, responseMessageId }
     this.messageArtifactsIndex = new Map(); // messageId -> Set<artifactId>
     this.artifactMessageIndex = new Map(); // artifactId -> messageId
     this.chatMessagesIndex = new Map(); // chatId -> Set<messageId>
     this.chatArtifactsIndex = new Map(); // chatId -> Set<artifactId>
     
+    // Save debouncing
+    this._saveTimeout = null;
+    this._pendingSave = false;
+    
+    // Initialize storage API
+    this._initializeStorageAPI();
+    
+    // Load from PostgreSQL
     this._loadFromStorage();
+  }
+  
+  /**
+   * Initialize storage API (browser or Node.js environment)
+   * @private
+   */
+  _initializeStorageAPI() {
+    if (this.storageAPI) {
+      return; // Already provided
+    }
+
+    // Try window.storageAPI first (browser)
+    if (typeof window !== 'undefined' && window.storageAPI) {
+      this.storageAPI = window.storageAPI;
+      return;
+    }
+
+    // Try require (Node.js/Electron)
+    try {
+      this.storageAPI = require('../../../infrastructure/api/storage');
+    } catch (e) {
+      this.logger.warn('Storage API not available - traceability will be in-memory only:', e.message);
+    }
   }
 
   _createDefaultLogger() {
@@ -417,21 +449,108 @@ class TraceabilityService {
   }
 
   /**
-   * Save to storage (implementation depends on environment)
+   * Save to PostgreSQL with debouncing
+   * @private
    */
   _saveToStorage() {
-    // In-memory only for now
-    // TODO: Implement IndexedDB persistence
-    return;
+    if (!this.storageAPI) {
+      return; // Storage API not available
+    }
+
+    // Debounce saves to avoid excessive DB writes
+    if (this._saveTimeout) {
+      clearTimeout(this._saveTimeout);
+    }
+
+    this._pendingSave = true;
+    this._saveTimeout = setTimeout(() => {
+      this._performSave();
+    }, this.saveDebounceMs);
   }
 
   /**
-   * Load from storage
+   * Perform actual save to PostgreSQL
+   * @private
    */
-  _loadFromStorage() {
-    // In-memory only for now
-    // TODO: Implement IndexedDB persistence
-    return;
+  async _performSave() {
+    if (!this.storageAPI || !this._pendingSave) {
+      return;
+    }
+
+    this._pendingSave = false;
+
+    try {
+      // Serialize indexes to PostgreSQL-compatible format
+      const data = {
+        version: '2.0',
+        timestamp: Date.now(),
+        messages: Array.from(this.messages.entries()),
+        artifacts: Array.from(this.artifacts.entries()),
+        correlationIndex: Array.from(this.correlationIndex.entries()),
+        messageArtifactsIndex: Array.from(this.messageArtifactsIndex.entries()).map(([k, v]) => [k, Array.from(v)]),
+        artifactMessageIndex: Array.from(this.artifactMessageIndex.entries()),
+        chatMessagesIndex: Array.from(this.chatMessagesIndex.entries()).map(([k, v]) => [k, Array.from(v)]),
+        chatArtifactsIndex: Array.from(this.chatArtifactsIndex.entries()).map(([k, v]) => [k, Array.from(v)])
+      };
+
+      // Save via storageAPI (IPC → backend → PostgreSQL)
+      if (typeof this.storageAPI.saveTraceabilityData === 'function') {
+        await this.storageAPI.saveTraceabilityData(data);
+        this.logger.debug('Traceability data saved to PostgreSQL');
+      } else {
+        this.logger.warn('storageAPI.saveTraceabilityData not available');
+      }
+    } catch (error) {
+      this.logger.error('Failed to save traceability data to PostgreSQL:', error);
+    }
+  }
+
+  /**
+   * Load from PostgreSQL
+   * @private
+   */
+  async _loadFromStorage() {
+    if (!this.storageAPI) {
+      return; // Storage API not available
+    }
+
+    try {
+      // Load via storageAPI (IPC → backend → PostgreSQL)
+      if (typeof this.storageAPI.loadTraceabilityData !== 'function') {
+        this.logger.warn('storageAPI.loadTraceabilityData not available');
+        return;
+      }
+
+      const data = await this.storageAPI.loadTraceabilityData();
+      
+      if (!data) {
+        return; // No saved data
+      }
+
+      // Restore Maps from PostgreSQL data
+      this.messages = new Map(data.messages || []);
+      this.artifacts = new Map(data.artifacts || []);
+      this.correlationIndex = new Map(data.correlationIndex || []);
+      this.messageArtifactsIndex = new Map((data.messageArtifactsIndex || []).map(([k, v]) => [k, new Set(v)]));
+      this.artifactMessageIndex = new Map(data.artifactMessageIndex || []);
+      this.chatMessagesIndex = new Map((data.chatMessagesIndex || []).map(([k, v]) => [k, new Set(v)]));
+      this.chatArtifactsIndex = new Map((data.chatArtifactsIndex || []).map(([k, v]) => [k, new Set(v)]));
+
+      this.logger.info(`Loaded traceability data from PostgreSQL: ${this.messages.size} messages, ${this.artifacts.size} artifacts`);
+    } catch (error) {
+      this.logger.error('Failed to load traceability data from PostgreSQL:', error);
+    }
+  }
+
+  /**
+   * Force immediate save (bypasses debouncing)
+   */
+  async forceSave() {
+    if (this._saveTimeout) {
+      clearTimeout(this._saveTimeout);
+      this._saveTimeout = null;
+    }
+    await this._performSave();
   }
 }
 

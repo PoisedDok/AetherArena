@@ -1,9 +1,9 @@
 /**
  * @.architecture
  * 
- * Incoming: ChatService.createChat/loadChat/updateChat() (method calls with Chat models) --- {chat_model, javascript_object}
- * Processing: Initialize storageAPI (window.storageAPI or require), transform Chat models to PostgreSQL rows, call storageAPI methods (load/save/update/delete) via IPC, transform PostgreSQL rows back to Chat model instances via Chat.fromPostgresRow(), update chat properties, validate chat data --- {6 jobs: JOB_GET_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_UPDATE_STATE}
- * Outgoing: storageAPI.loadChats/saveChat/updateChat() (IPC to main process → PostgreSQL), return Chat model instances --- {chat_model | persistence_result, javascript_object}
+ * Incoming: ChatService.createChat/loadChat/updateChat() (method calls with Chat models) --- {object, javascript_api}
+ * Processing: Initialize storageAPI (window.storageAPI or require), transform Chat models to PostgreSQL rows, call storageAPI methods (load/save/update/delete) via IPC, transform PostgreSQL rows back to Chat model instances via Chat.fromPostgresRow(), update chat properties --- {8 jobs: JOB_DELEGATE_TO_MODULE, JOB_DELETE_FROM_DB, JOB_GET_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_SEND_IPC, JOB_UPDATE_DB}
+ * Outgoing: storageAPI.loadChats/saveChat/updateChat() (IPC to main process → PostgreSQL), return Chat model instances --- {database_types.chat_record, json}
  * 
  * 
  * @module domain/chat/repositories/ChatRepository

@@ -77,7 +77,7 @@ async def list_skills(
         logger.error(f"Failed to list skills: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list skills: {str(e)}"
+            detail="Failed to list skills"
         )
 
 
@@ -163,7 +163,7 @@ def {skill_name}():
         logger.error(f"Failed to create skill: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create skill: {str(e)}"
+            detail="Failed to create skill"
         )
 
 
@@ -241,6 +241,6 @@ async def import_skill(
         logger.error(f"Failed to import skill: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to import skill: {str(e)}"
+            detail="Failed to import skill"
         )
 

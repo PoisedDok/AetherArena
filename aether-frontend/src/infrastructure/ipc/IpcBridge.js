@@ -4,7 +4,7 @@
  * @.architecture
  * 
  * Incoming: Renderer modules (UIManager.js, MessageManager.js, ChatController.js via .send/.on/.once methods), Main process (via window.aether.ipc from preload scripts) --- {method_calls | ipc_message, javascript_api}
- * Processing: Wraps window.aether.ipc, queues messages pre-initialization, tracks listeners for cleanup, flush queue, remove listeners, gather statistics --- {5 jobs: JOB_CLEAR_STATE, JOB_DISPOSE, JOB_GET_STATE, JOB_SEND_IPC, JOB_TRACK_ENTITY}
+ * Processing: Wraps window.aether.ipc, queues messages pre-initialization, tracks listeners for cleanup, flush queue, remove listeners, gather statistics --- {7 jobs: JOB_CLEAR_STATE, JOB_DISPOSE, JOB_GET_STATE, JOB_INITIALIZE, JOB_SEND_IPC, JOB_TRACK_ENTITY, JOB_UPDATE_STATE}
  * Outgoing: window.aether.ipc.send() → Main process (via preload contextBridge), Renderer callbacks (via wrapped .on/.once handlers) --- {ipc_message, any}
  * 
  * 
@@ -124,9 +124,17 @@ class IpcBridge {
           console.log(`[IpcBridge:${this.context}] Received (once):`, channel, args);
         }
         handler(...args);
+        // Remove from tracking after execution
+        this.removeListener(channel, wrappedHandler);
       };
       
       this.ipc.once(channel, wrappedHandler);
+      
+      // Track listener for cleanup
+      if (!this.listeners.has(channel)) {
+        this.listeners.set(channel, []);
+      }
+      this.listeners.get(channel).push(wrappedHandler);
       
       // Return unsubscribe function
       return () => this.removeListener(channel, wrappedHandler);

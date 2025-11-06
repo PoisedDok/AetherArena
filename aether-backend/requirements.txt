@@ -42,6 +42,9 @@ slowapi==0.1.9
 websockets==12.0
 python-socketio==5.11.0
 
+# Async File I/O
+aiofiles==23.2.1
+
 # Data Validation
 email-validator==2.1.0
 

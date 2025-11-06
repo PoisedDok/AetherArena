@@ -1,42 +1,248 @@
-# FILE ANALYSIS DIRECTIVE
+# FILE ANALYSIS DIRECTIVE - SECURITY & DEBUGGING ENHANCED
 # =============================================================================
-# Authoritative instructions for engineers to document every frontend file.
-# Must be followed verbatim. See data_types.yaml, job_types.yaml, data_flow_standard.yaml.
+# Authoritative instructions for engineers to analyze, document, and debug files.
+# Focuses on security, correctness, data integrity, and architectural consistency.
 # =============================================================================
 
-version: "1.0.0"
-purpose: "Standardise file-level documentation across frontend codebase--both js and html and other files"
+version: "2.0.0"
+purpose: "Comprehensive file-level analysis for frontend/backend with security + debugging focus"
+scope: ["frontend", "backend"]
 
 references:
-  - "./data_types.yaml"
-  - "./job_types.yaml"
-  - "./data_flow_standard.yaml"
+  frontend:
+    - "./.architecture/data_types.yaml"
+    - "./.architecture/job_types.yaml"
+    - "./.architecture/data_flow_standard.yaml"
+  backend:
+    - "../aether-backend/.architecture/data_flow_standard.yaml"  # If exists
+    - "../aether-backend/.architecture/job_types.yaml"
 
-template:
-  description: "Three-line documentation template, no additions"
-  lines:
-    - "Incoming: <source refs> --- {<data_type ref>, <format>}"
-    - "Processing: <actions summary> --- {<N> jobs: JOB_X, JOB_Y, …}"
-    - "Outgoing: <dest refs> --- {<data_type ref>, <format>}"
+# =============================================================================
+# ANALYSIS PHASES (Execute in order)
+# =============================================================================
 
-rules:
-  scope: ["frontend"]
-  analysis:
-    - "Engineers MUST read full file via read_file tool (no partial reads) and THEN ONLY use edit tool to make changes."
-    - "Summaries MUST NOT include code; only behaviour."
-    - "Incoming/Outgoing sources are file names, IPC channels or modules."
-    - "Data types MUST reference keys from data_types.yaml."
-    - "Job codes MUST reference keys from job_types.yaml, listed alphabetically."
-    - "If section not applicable, use 'none'."
-    - "No markdown, bullets or explanatory prose beyond template lines."
-  format:
-    - "Exactly three lines per file block."
-    - "No leading/trailing whitespace."
-    - "Sections separated by single space after colon."
-  compliance:
-    validation: "Must satisfy file_documentation_template in data_flow_standard.yaml"
-    rejection_policy: "Non-conforming submissions are rejected without review."
+phase_1_documentation:
+  template:
+    lines:
+      - "Incoming: <source refs> --- {<data_type ref>, <format>}"
+      - "Processing: <operations summary> --- {<N> jobs: JOB_X, JOB_Y, …}"
+      - "Outgoing: <dest refs> --- {<data_type ref>, <format>}"
+  
+  rules:
+    - "Read ENTIRE file first (no partial reads)"
+    - "Data types MUST reference registry (data_types.yaml)"
+    - "Jobs MUST reference registry (job_types.yaml), ALPHABETICALLY sorted"
+    - "Sources/destinations: file paths, IPC channels, API endpoints, WebSocket"
+    - "No code snippets in docs - behavior only"
+    - "Count jobs accurately - no duplicates, no false claims"
 
-tool_usage:
-  - "Use read_file for complete contents."
-  - "Token / time cost is authorised."
+phase_2_bug_detection:
+  critical_patterns:
+    race_conditions:
+      - "Async functions calling other async functions WITHOUT await"
+      - "Concurrent access to shared state without locks/guards"
+      - "Finalization/cleanup called without completion guarantee"
+      - "Promise chains without proper error boundaries"
+      - "Event handlers modifying state during iteration"
+    
+    data_integrity:
+      - "Mutating input parameters (violates immutability)"
+      - "Missing return values after persistence (lost DB-generated IDs)"
+      - "Stubbed persistence methods (data loss on restart)"
+      - "Cache invalidation missing after state changes"
+      - "Timezone-naive timestamp comparisons"
+    
+    memory_leaks:
+      - "Event listeners not cleaned up in dispose()"
+      - "Intervals/timeouts not cleared"
+      - "Maps/Sets growing unbounded without pruning"
+      - "Circular references in closures"
+      - "DOM references held after removal"
+    
+    security_vulnerabilities:
+      - "User input not validated before use"
+      - "SQL/command injection patterns not blocked"
+      - "XSS vectors (innerHTML without sanitization)"
+      - "Prototype pollution (Object.prototype access)"
+      - "Dangerous protocols (javascript:, data:, file:) not blocked"
+      - "Missing CSRF tokens on state-changing operations"
+      - "Hardcoded secrets/keys in source"
+    
+    state_corruption:
+      - "Multiple code paths updating same state without coordination"
+      - "State reset during async operation"
+      - "Missing null/undefined checks before property access"
+      - "Array/object mutations during iteration"
+      - "ID generation not deterministic/traceable"
+
+phase_3_correctness_verification:
+  async_await:
+    - "ALL async functions in call chain must be awaited"
+    - "Promise.all() for parallel operations, NOT sequential awaits"
+    - "try-catch-finally for cleanup guarantees"
+    - "Never mix callbacks with async/await"
+    - "Top-level async must handle unhandled rejections"
+  
+  error_handling:
+    - "Every persistence call wrapped in try-catch"
+    - "Errors logged with context (file, operation, data)"
+    - "User-facing errors sanitized (no stack traces to client)"
+    - "Fallback behavior defined for all failure modes"
+    - "Partial failure recovery (don't fail entire operation)"
+  
+  validation:
+    - "Type checks at boundaries (API, IPC, user input)"
+    - "Schema validation for complex objects"
+    - "Range/length constraints enforced"
+    - "Dangerous content patterns blocked"
+    - "Validation errors provide field context"
+  
+  immutability:
+    - "Repository save() returns NEW instance, not mutated input"
+    - "Domain models use .clone() for updates"
+    - "Frozen constants (Object.freeze) for registries"
+    - "No direct property mutation on passed objects"
+
+phase_4_architecture_consistency:
+  data_flow:
+    - "Persistence uses PostgreSQL via storageAPI (not localStorage)"
+    - "Frontend → IPC → Main Process → Backend → Database"
+    - "Session IDs deterministic (chatId_sequence_type format)"
+    - "Traceability maintained through correlation IDs"
+    - "Artifact-message linking after DB persistence"
+  
+  separation_of_concerns:
+    - "Repositories handle persistence ONLY"
+    - "Services contain business logic"
+    - "Controllers orchestrate services"
+    - "Models are pure data + validation"
+    - "No business logic in views/renderers"
+  
+  security_layers:
+    - "Input validation → Sanitization → Business logic"
+    - "CSP enforced at browser + HTTP header levels"
+    - "IPC channels whitelisted and validated"
+    - "Renderer process sandboxed (no nodeIntegration)"
+    - "Preload scripts expose minimal API via contextBridge"
+
+phase_5_debugging_skills:
+  principles:
+    - "Fail fast, fail clear - assert invariants early"
+    - "Debug utilities must not mutate state or cause side-effects"
+  logging_and_tracing:
+    - "Structured logs with correlation IDs across frontend/backend boundaries"
+    - "Sanitize logs to exclude PII and secrets"
+    - "Trace spans propagate through IPC, HTTP, WebSocket, and async contexts"
+  interactive_debugging:
+    - "Frontend: React/Vue DevTools, performance timeline, accessibility inspector"
+    - "Backend: pdb/ipdb only in non-production, environment-gated"
+    - "No debugger statements shipped in production bundles"
+  test_driven_debugging:
+    - "Reproduce bug via failing test before fix (TDD)"
+    - "Snapshot tests for UI rendering regressions"
+    - "Contract tests for IPC/API boundaries"
+  performance_profiling:
+    - "Chrome DevTools/Flamegraphs for UI; cProfile/py-spy for backend"
+    - "Benchmark critical paths before and after optimization"
+  security_tracing:
+    - "Trace authentication/authorization context end-to-end"
+    - "Verify no privilege or capability leakage under debug flows"
+
+# =============================================================================
+# EXECUTION PROTOCOL
+# =============================================================================
+
+workflow:
+  step_1: "Read entire file (read_file tool)"
+  step_2: "Verify @.architecture documentation accuracy"
+  step_3: "Scan for phase_2_bug_detection patterns"
+  step_4: "Verify phase_3_correctness_verification rules"
+  step_5: "Check phase_4_architecture_consistency"
+  step_6: "Fix bugs in CODE first, documentation second"
+  step_7: "Validate job_types registry compliance"
+  step_8: "Next file"
+
+priorities:
+  1: "CRITICAL bugs (race conditions, data loss, security)"
+  2: "Data integrity issues (missing awaits, state corruption)"
+  3: "Memory leaks and resource cleanup"
+  4: "Documentation accuracy"
+  5: "Code style and conventions"
+
+output_format:
+  bug_report:
+    - "FILE: <path>"
+    - "BUG: <category> - <one-line description>"
+    - "IMPACT: <severity> - <consequences>"
+    - "FIX: <code changes made>"
+    - "VERIFIED: <test/validation performed>"
+
+# =============================================================================
+# BACKEND-SPECIFIC PATTERNS (Python/FastAPI)
+# =============================================================================
+
+backend_patterns:
+  critical_checks:
+    - "Async route handlers with database calls use await"
+    - "Pydantic models validate all inputs"
+    - "SQL queries parameterized (no f-strings)"
+    - "WebSocket handlers have cancellation logic"
+    - "Stream generators cleanup on client disconnect"
+    - "Database sessions closed in finally blocks"
+    - "CORS configured restrictively"
+    - "Rate limiting on all public endpoints"
+  
+  python_specific:
+    - "Type hints on all function signatures"
+    - "Exception hierarchy matches error types"
+    - "Context managers for resource lifecycle"
+    - "Generators for streaming responses"
+    - "No mutable default arguments"
+
+# =============================================================================
+# COMPLIANCE & REJECTION CRITERIA
+# =============================================================================
+
+rejection_criteria:
+  immediate_reject:
+    - "Async function called without await in critical path"
+    - "User input used in SQL/command without validation"
+    - "Sensitive data logged (passwords, tokens, PII)"
+    - "Persistence method stubbed (returns without saving)"
+    - "Race condition in stream/message handlers"
+    - "Job types don't match actual code behavior"
+  
+  must_fix:
+    - "Documentation claims jobs not performed"
+    - "Memory leak in disposal/cleanup"
+    - "Missing error handling on persistence"
+    - "State mutation during async operations"
+
+tool_authorization:
+  - "Full file reads authorized for analysis"
+  - "Cross-file tracing authorized for debugging"
+  - "Backend file access authorized when validating contracts"
+  - "Token cost justified by bug severity"
+
+# =============================================================================
+# EXAMPLES OF ACTUAL BUGS FIXED
+# =============================================================================
+
+bug_case_studies:
+  case_1_traceability_service:
+    issue: "Persistence methods stubbed - data loss on refresh"
+    detection: "Methods returned without calling storageAPI"
+    fix: "Implemented PostgreSQL persistence via IPC with debouncing"
+    lesson: "Always verify persistence actually persists"
+  
+  case_2_stream_handler_race:
+    issue: "_finalizeStream() not awaited - state corruption"
+    detection: "processChunk() called _finalizeStream() without await"
+    fix: "Made processChunk async, added finalization guard, proper await chain"
+    lesson: "ALL async calls in critical paths MUST be awaited"
+  
+  case_3_message_repository_mutation:
+    issue: "Mutating input message object (immutability violation)"
+    detection: "save() modified message.id directly"
+    fix: "Return message.clone() with new properties"
+    lesson: "Repository methods should not mutate inputs"

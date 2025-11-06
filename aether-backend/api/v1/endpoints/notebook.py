@@ -109,7 +109,7 @@ async def add_sys_path(
         logger.error(f"Failed to add sys path: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Failed to add sys path"
         )
 
 
@@ -131,7 +131,7 @@ async def list_sys_path(
         logger.error(f"Failed to list sys.path: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Failed to list sys.path"
         )
 
 
@@ -173,7 +173,7 @@ async def import_module(
         logger.error(f"Import failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Import failed"
         )
 
 
@@ -211,7 +211,7 @@ async def import_from_path(
         logger.error(f"Import from path failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Import from path failed"
         )
 
 
@@ -251,7 +251,7 @@ async def list_packages(
         logger.error(f"Package listing failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Package listing failed"
         )
 
 
@@ -287,7 +287,7 @@ async def search_modules(
         logger.error(f"Module search failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Module search failed"
         )
 
 
@@ -319,7 +319,7 @@ async def get_module_info(
         logger.error(f"Module info failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Module info failed"
         )
 
 
@@ -356,7 +356,7 @@ async def notebook_health(
         logger.error(f"Health check failed: {e}", exc_info=True)
         return {
             "healthy": False,
-            "message": f"Health check failed: {str(e)}",
+            "message": "Health check failed",
             "capabilities": []
         }
 

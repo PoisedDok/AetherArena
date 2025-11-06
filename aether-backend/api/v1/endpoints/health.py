@@ -12,6 +12,7 @@ Outgoing: monitoring/health.py, api/dependencies.py, Frontend (HTTP) --- {health
 import time
 import platform
 import sys
+import psutil
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
@@ -163,7 +164,7 @@ async def detailed_health_check(
                 ComponentHealth(
                     component="system",
                     status=HealthStatus.UNHEALTHY,
-                    message=f"Health check error: {str(e)}"
+                    message="Health check error"
                 )
             ]
         )
@@ -195,6 +196,14 @@ async def check_component_health(
     Raises:
         HTTPException: If component not found or check fails
     """
+    # Validate component_name to prevent injection
+    allowed_components = {'runtime', 'database', 'mcp', 'integrations', 'system'}
+    if component_name not in allowed_components:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid component name. Allowed: {', '.join(allowed_components)}"
+        )
+    
     try:
         checker = get_health_checker()
         
@@ -226,7 +235,7 @@ async def check_component_health(
         logger.error(f"Component health check failed for {component_name}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to check component health: {str(e)}"
+            detail="Failed to check component health"
         )
 
 
@@ -310,8 +319,6 @@ async def status_check(
     Maintained for backward compatibility with old frontend.
     """
     try:
-        import psutil
-        
         # Get system info
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
@@ -355,7 +362,7 @@ async def status_check(
         logger.error(f"Status check failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get status: {str(e)}"
+            detail="Failed to get status"
         )
 
 

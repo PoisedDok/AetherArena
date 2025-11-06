@@ -89,7 +89,7 @@ async def list_tts_engines(
         logger.error(f"Failed to list TTS engines: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list engines: {str(e)}"
+            detail="Failed to list engines"
         )
 
 
@@ -166,7 +166,7 @@ async def synthesize_speech(
         logger.error(f"Synthesis failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Synthesis failed: {str(e)}"
+            detail="Synthesis failed"
         )
 
 
@@ -242,7 +242,7 @@ async def stream_speech(
         logger.error(f"Streaming failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Streaming failed: {str(e)}"
+            detail="Streaming failed"
         )
 
 
@@ -330,7 +330,7 @@ async def initialize_engine(
         logger.error(f"Engine initialization failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Initialization failed: {str(e)}"
+            detail="Initialization failed"
         )
 
 

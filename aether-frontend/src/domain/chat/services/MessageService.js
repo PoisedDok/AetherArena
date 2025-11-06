@@ -1,9 +1,9 @@
 /**
  * @.architecture
  * 
- * Incoming: ChatOrchestrator/MessageManager method calls (factory methods), StreamHandler/persistence layer calls (save/load operations) --- {method_calls with content/options, string | object}
- * Processing: Validate content via MessageValidator, create Message models via factory methods (createUser/createAssistant/createSystem), apply metadata (attachments/llmModel/llmProvider/tokensUsed), set relationships (parentMessageId/correlationId), persist via MessageRepository, query via MessageRepository, generate correlation IDs --- {5 jobs: JOB_GET_STATE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_UPDATE_STATE, JOB_VALIDATE_SCHEMA}
- * Outgoing: MessageRepository.save/saveBatch/findByChatId/findByRole/findByCorrelationId/findRecent/findWithArtifacts/getStatistics (persistence calls), return Message model instances --- {message_model, Message}
+ * Incoming: ChatOrchestrator/MessageManager method calls (factory methods), StreamHandler/persistence layer calls (save/load operations) --- {method_call, javascript_api}
+ * Processing: Validate content via MessageValidator, create Message models via factory methods (createUser/createAssistant/createSystem), apply metadata (attachments/llmModel/llmProvider/tokensUsed), set relationships (parentMessageId/correlationId), persist via MessageRepository, query via MessageRepository, generate correlation IDs --- {6 jobs: JOB_DELEGATE_TO_MODULE, JOB_GET_STATE, JOB_INITIALIZE, JOB_LOAD_FROM_DB, JOB_SAVE_TO_DB, JOB_VALIDATE_SCHEMA}
+ * Outgoing: MessageRepository.save/saveBatch/findByChatId/findByRole/findByCorrelationId/findRecent/findWithArtifacts/getStatistics (persistence calls), return Message model instances --- {object, javascript_api}
  * 
  * 
  * @module domain/chat/services/MessageService

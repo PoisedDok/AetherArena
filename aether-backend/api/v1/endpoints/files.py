@@ -11,9 +11,10 @@ Outgoing: data/storage/local.py, Frontend (HTTP) --- {file storage operations, F
 
 import time
 import uuid
+import aiofiles
 from pathlib import Path
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException, status
+from typing import Dict, Any, Optional, List
+from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException, status, Query
 from fastapi.responses import JSONResponse
 
 from api.dependencies import get_settings, setup_request_context
@@ -96,7 +97,15 @@ async def upload_file(
         storage_path = settings.storage.base_path / f"{file_id}{file_ext}"
         storage_path.parent.mkdir(parents=True, exist_ok=True)
         
-        storage_path.write_bytes(content)
+        # Use async file I/O to avoid blocking
+        try:
+            async with aiofiles.open(storage_path, 'wb') as f:
+                await f.write(content)
+        except Exception as write_error:
+            # Cleanup partial file if write fails
+            if storage_path.exists():
+                storage_path.unlink()
+            raise RuntimeError(f"Failed to write file: {write_error}")
         
         file_operations.inc(operation='upload', status='success')
         logger.info(f"Uploaded file: {safe_filename} ({size_mb:.2f}MB) -> {file_id}")
@@ -117,7 +126,7 @@ async def upload_file(
         logger.error(f"File upload failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"File upload failed: {str(e)}"
+            detail="File upload failed"
         )
 
 
@@ -199,7 +208,7 @@ async def process_file(
         logger.error(f"File processing failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"File processing failed: {str(e)}"
+            detail="File processing failed"
         )
 
 
@@ -210,46 +219,75 @@ async def process_file(
 @router.get(
     "/files",
     summary="List files",
-    description="List all uploaded files"
+    description="List all uploaded files with pagination"
 )
 async def list_files(
+    limit: int = Query(default=100, ge=1, le=1000, description="Maximum files to return"),
+    offset: int = Query(default=0, ge=0, description="Number of files to skip"),
     settings: Settings = Depends(get_settings),
     _context: dict = Depends(setup_request_context)
 ) -> JSONResponse:
     """
-    List all uploaded files.
+    List all uploaded files with pagination.
     
     Returns list of files in storage with metadata.
+    Includes pagination to prevent DoS with large file lists.
     """
     try:
-        files = []
+        files: List[Dict[str, Any]] = []
         
-        # List files in storage
+        # List files in storage with security filtering
         if settings.storage.base_path.exists():
+            all_files = []
             for file_path in settings.storage.base_path.glob("*"):
-                if file_path.is_file():
-                    stat = file_path.stat()
-                    # Extract file_id from filename (before extension)
-                    file_id_from_name = file_path.stem
-                    files.append({
-                        "file_id": file_id_from_name,
-                        "filename": file_path.name,
-                        "size_bytes": stat.st_size,
-                        "created_at": stat.st_ctime
-                        # Don't expose full path for security
-                    })
+                # Security: Only include regular files, skip hidden files and directories
+                if file_path.is_file() and not file_path.name.startswith('.'):
+                    try:
+                        stat = file_path.stat()
+                        # Extract file_id from filename (before extension)
+                        file_id_from_name = file_path.stem
+                        
+                        # Validate UUID format to prevent exposing non-UUID files
+                        try:
+                            uuid.UUID(file_id_from_name)
+                        except ValueError:
+                            logger.warning(f"Skipping non-UUID file: {file_path.name}")
+                            continue
+                        
+                        all_files.append({
+                            "file_id": file_id_from_name,
+                            "filename": file_path.name,
+                            "size_bytes": stat.st_size,
+                            "created_at": stat.st_ctime
+                            # Don't expose full path for security
+                        })
+                    except Exception as e:
+                        logger.warning(f"Error reading file {file_path.name}: {e}")
+                        continue
+            
+            # Sort by creation time (newest first)
+            all_files.sort(key=lambda x: x['created_at'], reverse=True)
+            
+            # Apply pagination
+            total_count = len(all_files)
+            files = all_files[offset:offset + limit]
+        else:
+            total_count = 0
         
-        logger.info(f"Listed {len(files)} files")
+        logger.info(f"Listed {len(files)} files (offset={offset}, limit={limit}, total={total_count})")
         
         return JSONResponse({
             "files": files,
-            "count": len(files)
+            "count": len(files),
+            "total": total_count,
+            "offset": offset,
+            "limit": limit
         })
         
     except Exception as e:
         logger.error(f"File listing failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"File listing failed: {str(e)}"
+            detail="File listing failed"
         )
 

@@ -94,7 +94,7 @@ async def get_application_settings(
         logger.error(f"Failed to get settings: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve settings: {str(e)}"
+            detail="Failed to retrieve settings"
         )
 
 
@@ -208,7 +208,7 @@ async def update_application_settings(
         logger.error(f"Failed to update settings: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update settings: {str(e)}"
+            detail="Failed to update settings"
         )
 
 
@@ -243,6 +243,6 @@ async def reload_application_settings(
         logger.error(f"Failed to reload settings: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to reload settings: {str(e)}"
+            detail="Failed to reload settings"
         )
 

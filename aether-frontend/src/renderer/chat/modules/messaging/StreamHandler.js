@@ -3,9 +3,9 @@
 /**
  * @.architecture
  * 
- * Incoming: MessageManager.processChunk() (IPC chunk data) --- {ipc_stream_chunk, json}
- * Processing: Deduplicate chunks, detect new streams, parse <think> tags, accumulate text, update DOM, persist to PostgreSQL, link artifacts to message, generate session IDs, emit events --- {9 jobs: JOB_ACCUMULATE_TEXT, JOB_DEDUPLICATE_CHUNK, JOB_EMIT_EVENT, JOB_GENERATE_SESSION_ID, JOB_GET_STATE, JOB_SAVE_TO_DB, JOB_TRACK_ENTITY, JOB_UPDATE_DOM_ELEMENT, JOB_UPDATE_STATE}
- * Outgoing: messageView.updateMessage() → MessageView.js (DOM), messageState.saveMessage() → MessageState.js (PostgreSQL) --- {dom_types.chat_entry_element | database_types.message_record, HTMLElement | json}
+ * Incoming: MessageManager.processChunk() (IPC chunk data) --- {stream_types.ipc_stream_chunk, json}
+ * Processing: Deduplicate chunks, detect new streams, parse <think> tags, accumulate text, update DOM, persist to PostgreSQL, link artifacts to message, generate session IDs, emit events --- {14 jobs: JOB_ACCUMULATE_TEXT, JOB_DEDUPLICATE_CHUNK, JOB_DELEGATE_TO_MODULE, JOB_DETECT_NEW_STREAM, JOB_DISPOSE, JOB_EMIT_EVENT, JOB_FINALIZE_STREAM, JOB_GENERATE_SESSION_ID, JOB_GET_STATE, JOB_PARSE_THINK_TAGS, JOB_SAVE_TO_DB, JOB_TRACK_ENTITY, JOB_UPDATE_DOM_ELEMENT, JOB_UPDATE_STATE}
+ * Outgoing: messageView.updateMessage() → MessageView.js (DOM), messageState.saveMessage() → MessageState.js (PostgreSQL) --- {dom_types.chat_entry_element | database_types.message_record, json}
  * 
  * 
  * @module renderer/chat/modules/messaging/StreamHandler
@@ -33,6 +33,10 @@ class StreamHandler {
 
     // Tracking for artifact linking
     this.persistedMessageIds = new Map(); // requestId -> messageId
+    
+    // CRITICAL: Finalization guard to prevent race conditions
+    this._isFinalizingStream = false;
+    this._pendingFinalization = null;
 
     console.log('[StreamHandler] Constructed');
   }
@@ -51,9 +55,9 @@ class StreamHandler {
    * @param {string} data.chunk - Text chunk
    * @param {boolean} [data.done] - Whether stream is complete
    * @param {string} [data.type] - Chunk type
-   * @returns {boolean} Whether chunk was processed
+   * @returns {Promise<boolean>} Whether chunk was processed
    */
-  processChunk(data) {
+  async processChunk(data) {
     if (!data || !data.chunk) {
       return false;
     }
@@ -66,7 +70,7 @@ class StreamHandler {
     // Check for request ID change (new response)
     if (data.id && data.id !== this.currentRequestId) {
       console.log(`[StreamHandler] New request detected: ${this.currentRequestId} → ${data.id}`);
-      this._resetForNewRequest(data.id);
+      await this._resetForNewRequest(data.id);
     }
 
     // Process chunk text
@@ -95,9 +99,9 @@ class StreamHandler {
       }
     }
 
-    // Handle stream completion
+    // Handle stream completion - CRITICAL: Await to prevent race conditions
     if (data.done) {
-      this._finalizeStream();
+      await this._finalizeStream();
     }
 
     return true;
@@ -193,13 +197,16 @@ class StreamHandler {
 
   /**
    * Reset state for new request
+   * CRITICAL: Awaits previous finalization to prevent race conditions
    * @private
    * @param {string} requestId - New request ID
    */
-  _resetForNewRequest(requestId) {
-    // Finalize previous stream if any
+  async _resetForNewRequest(requestId) {
+    // CRITICAL: Wait for previous stream finalization to complete
+    // This prevents state corruption from overlapping finalizations
     if (this.currentRequestId && this.currentMessageId) {
-      this._finalizeStream();
+      console.log(`[StreamHandler] Awaiting previous stream finalization before reset...`);
+      await this._finalizeStream();
     }
 
     // Reset state
@@ -227,9 +234,19 @@ class StreamHandler {
 
   /**
    * Finalize stream and persist message
+   * CRITICAL: Guards against concurrent finalization calls
    * @private
    */
   async _finalizeStream() {
+    // CRITICAL: Prevent concurrent finalization
+    if (this._isFinalizingStream) {
+      console.log('[StreamHandler] Finalization already in progress, waiting...');
+      if (this._pendingFinalization) {
+        await this._pendingFinalization;
+      }
+      return;
+    }
+
     console.log('[StreamHandler] Finalizing stream...');
 
     if (!this.currentMessageId) {
@@ -237,11 +254,14 @@ class StreamHandler {
       return;
     }
 
-    // CRITICAL FIX: Allow empty accumulatedText
-    // Assistant messages can be empty when only artifacts are produced
-    // We still need to persist for artifact linking
+    // Set finalization guard and create promise for other callers to wait on
+    this._isFinalizingStream = true;
+    this._pendingFinalization = (async () => {
+      // CRITICAL FIX: Allow empty accumulatedText
+      // Assistant messages can be empty when only artifacts are produced
+      // We still need to persist for artifact linking
 
-    try {
+      try {
       // Persist message to PostgreSQL
       if (this.messageState) {
         const savedMessage = await this.messageState.saveMessage({
@@ -289,9 +309,17 @@ class StreamHandler {
       }
 
       console.log(`[StreamHandler] Stream finalized: ${this.currentMessageId}`);
-    } catch (error) {
-      console.error('[StreamHandler] Finalization failed:', error);
-    }
+      } catch (error) {
+        console.error('[StreamHandler] Finalization failed:', error);
+      } finally {
+        // CRITICAL: Clear finalization guard
+        this._isFinalizingStream = false;
+        this._pendingFinalization = null;
+      }
+    })();
+
+    // Wait for finalization to complete
+    await this._pendingFinalization;
   }
 
   /**

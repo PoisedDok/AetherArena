@@ -18,6 +18,7 @@ Outgoing: api/v1/endpoints/*.py, app.py --- {Settings instance, RuntimeEngine in
 from typing import AsyncGenerator, Optional
 from fastapi import Depends, HTTPException, Header, Request
 from functools import lru_cache
+import uuid
 
 from config.settings import Settings, get_settings as load_settings
 from core.runtime.engine import RuntimeEngine
@@ -191,8 +192,6 @@ async def setup_request_context(
     Returns:
         dict: Request context information
     """
-    import uuid
-    
     # Generate request ID if not provided
     request_id = x_request_id or str(uuid.uuid4())
     
