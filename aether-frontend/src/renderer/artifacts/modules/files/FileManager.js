@@ -34,10 +34,10 @@ const CONFIG = freeze({
     LOADING: 'loading-state',
   }),
   CATEGORIES: freeze({
-    CODE: { label: 'Code', icon: '📝', key: 'code_written' },
-    OUTPUT: { label: 'Output', icon: '📊', key: 'execution_output' },
-    CONSOLE: { label: 'Console', icon: '⚡', key: 'execution_console' },
-    HTML: { label: 'HTML', icon: '🌐', key: 'html_output' },
+    CODE: { label: 'Code', icon: '', key: 'code_written' },
+    OUTPUT: { label: 'Output', icon: '', key: 'execution_output' },
+    CONSOLE: { label: 'Console', icon: '', key: 'execution_console' },
+    HTML: { label: 'HTML', icon: '', key: 'html_output' },
   }),
   FILTERS: freeze(['all', 'code', 'output', 'linked']),
 });
@@ -446,7 +446,7 @@ class FileManager {
       case 'execution_output': return CONFIG.CATEGORIES.OUTPUT.icon;
       case 'execution_console': return CONFIG.CATEGORIES.CONSOLE.icon;
       case 'html_output': return CONFIG.CATEGORIES.HTML.icon;
-      default: return '📄';
+      default: return '';
     }
   }
 
@@ -512,7 +512,8 @@ class FileManager {
     this.eventBus.emit(EventTypes.ARTIFACTS.FILE_SELECTED, { artifact });
 
     if (this.controller && typeof this.controller.loadArtifact === 'function') {
-      this.controller.loadArtifact(artifact);
+      // User manually clicked - always switch to appropriate tab
+      this.controller.loadArtifact(artifact, { autoSwitch: true });
     }
   }
 

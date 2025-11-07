@@ -440,15 +440,16 @@ async def get_artifacts(
         
         return [
             ArtifactResponse(
-                id=str(art.id),
-                chat_id=str(art.chat_id),
-                message_id=str(art.message_id) if art.message_id else None,
-                artifact_id=art.artifact_id,
+                id=art.id,
+                chat_id=art.chat_id,
+                message_id=art.message_id if art.message_id else None,
                 type=art.type,
-                filename=art.filename,
-                content=art.content,
+                title=art.filename or f"{art.type}_{art.id}",  # Map filename to title
+                content=art.content or "",
                 language=art.language,
+                file_path=None,  # Database doesn't have file_path
                 created_at=art.created_at,
+                updated_at=art.created_at,  # Use created_at as fallback for updated_at
                 metadata=art.metadata
             )
             for art in artifacts
@@ -508,15 +509,16 @@ async def create_artifact(
         logger.info(f"Created {artifact.type} artifact {new_artifact.id} in chat {chat_id}")
         
         return ArtifactResponse(
-            id=str(new_artifact.id),
-            chat_id=str(new_artifact.chat_id),
-            message_id=str(new_artifact.message_id) if new_artifact.message_id else None,
-            artifact_id=new_artifact.artifact_id,
+            id=new_artifact.id,
+            chat_id=new_artifact.chat_id,
+            message_id=new_artifact.message_id if new_artifact.message_id else None,
             type=new_artifact.type,
-            filename=new_artifact.filename,
-            content=new_artifact.content,
+            title=new_artifact.filename or f"{new_artifact.type}_{new_artifact.id}",  # Map filename to title
+            content=new_artifact.content or "",
             language=new_artifact.language,
+            file_path=None,  # Database doesn't have file_path
             created_at=new_artifact.created_at,
+            updated_at=new_artifact.created_at,  # Use created_at as fallback for updated_at
             metadata=new_artifact.metadata
         )
         

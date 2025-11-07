@@ -78,7 +78,12 @@ class StreamHandler {
 
     if (processed.visible) {
       // Append to accumulated text
+      const prevLength = this.accumulatedText.length;
       this.accumulatedText += processed.visible;
+      
+      // 🐛 SUPER DEBUGGER: Log accumulation
+      console.log(`[StreamHandler] 🐛 ACCUMULATING: prev=${prevLength} + new=${processed.visible.length} = total=${this.accumulatedText.length}`);
+      console.log(`[StreamHandler] 🐛 ACCUMULATED TEXT: "${this.accumulatedText.substring(0, 300)}${this.accumulatedText.length > 300 ? '...' : ''}"`);
 
       // Update message view
       if (this.messageView && this.currentMessageId) {
@@ -116,6 +121,11 @@ class StreamHandler {
   _processChunkText(chunk) {
     const result = { visible: '', thinking: '' };
 
+    // 🐛 SUPER DEBUGGER: Log raw chunk data
+    if (chunk && chunk.length > 0) {
+      console.log(`[StreamHandler] 🐛 RAW CHUNK: "${chunk.substring(0, 200)}${chunk.length > 200 ? '...' : ''}" (${chunk.length} chars)`);
+    }
+
     let remaining = chunk;
     let currentPos = 0;
 
@@ -126,12 +136,16 @@ class StreamHandler {
         
         if (closeIdx !== -1) {
           // Found closing tag
-          result.thinking += remaining.substring(currentPos, closeIdx);
+          const thinkContent = remaining.substring(currentPos, closeIdx);
+          result.thinking += thinkContent;
           this.isInThinkingTag = false;
           currentPos = closeIdx + '</think>'.length;
+          console.log(`[StreamHandler] 🐛 THINKING END: "${thinkContent.substring(0, 100)}${thinkContent.length > 100 ? '...' : ''}"`);
         } else {
           // No closing tag yet - all remaining is thinking
-          result.thinking += remaining.substring(currentPos);
+          const thinkContent = remaining.substring(currentPos);
+          result.thinking += thinkContent;
+          console.log(`[StreamHandler] 🐛 THINKING CONTINUE: "${thinkContent.substring(0, 100)}${thinkContent.length > 100 ? '...' : ''}"`);
           break;
         }
       } else {
@@ -140,15 +154,25 @@ class StreamHandler {
         
         if (openIdx !== -1) {
           // Found opening tag
-          result.visible += remaining.substring(currentPos, openIdx);
+          const visibleContent = remaining.substring(currentPos, openIdx);
+          result.visible += visibleContent;
           this.isInThinkingTag = true;
           currentPos = openIdx + '<think>'.length;
+          console.log(`[StreamHandler] 🐛 VISIBLE BEFORE THINK: "${visibleContent}"`);
+          console.log(`[StreamHandler] 🐛 THINKING START`);
         } else {
           // No opening tag - all remaining is visible
-          result.visible += remaining.substring(currentPos);
+          const visibleContent = remaining.substring(currentPos);
+          result.visible += visibleContent;
+          console.log(`[StreamHandler] 🐛 VISIBLE CONTENT: "${visibleContent}"`);
           break;
         }
       }
+    }
+
+    // 🐛 SUPER DEBUGGER: Log final result
+    if (result.visible || result.thinking) {
+      console.log(`[StreamHandler] 🐛 PROCESSED RESULT: visible="${result.visible.substring(0, 100)}${result.visible.length > 100 ? '...' : ''}" thinking="${result.thinking.substring(0, 50)}${result.thinking.length > 50 ? '...' : ''}"`);
     }
 
     return result;

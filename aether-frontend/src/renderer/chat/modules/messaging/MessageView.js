@@ -215,8 +215,20 @@ class MessageView {
     const textElement = entry.querySelector('.chat-text');
 
     if (textElement) {
+      // 🐛 SUPER DEBUGGER: Log incoming content before rendering
+      const contentLen = content ? content.length : 0;
+      console.log(`[MessageView] 🐛 RENDERING: "${content?.substring(0, 200)}${contentLen > 200 ? '...' : ''}" (${contentLen} chars) for role=${role}`);
+      
       const contentHTML = this._renderContent(content, role);
+      
+      // 🐛 SUPER DEBUGGER: Log rendered HTML
+      console.log(`[MessageView] 🐛 RENDERED HTML: "${contentHTML?.substring(0, 200)}${contentHTML?.length > 200 ? '...' : ''}" (${contentHTML?.length || 0} chars)`);
+      
       textElement.innerHTML = contentHTML;
+      
+      // 🐛 SUPER DEBUGGER: Log actual DOM content
+      const actualDOM = textElement.innerHTML;
+      console.log(`[MessageView] 🐛 DOM CONTENT: "${actualDOM?.substring(0, 200)}${actualDOM?.length > 200 ? '...' : ''}" (${actualDOM?.length || 0} chars)`);
       
       // Throttled logging for streaming updates
       const now = Date.now();
@@ -231,7 +243,6 @@ class MessageView {
       
       // Log only if enough time has passed
       if (now - throttle.lastLog >= throttle.interval) {
-        const contentLen = content ? content.length : 0;
         console.log(`[MessageView] 📝 Streaming update: ${messageId.slice(0,8)} | ${throttle.updateCount} updates | ${contentLen} chars`);
         throttle.lastLog = now;
         throttle.updateCount = 0;

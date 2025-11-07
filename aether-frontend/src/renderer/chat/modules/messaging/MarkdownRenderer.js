@@ -95,25 +95,40 @@ class MarkdownRenderer {
     const sanitize = options.sanitize !== false;
     const profile = options.profile || 'markdown';
 
+    // 🐛 SUPER DEBUGGER: Log incoming markdown
+    console.log(`[MarkdownRenderer] 🐛 INPUT: "${markdown.substring(0, 200)}${markdown.length > 200 ? '...' : ''}" (${markdown.length} chars)`);
+
     let html;
 
     if (this.fallbackMode) {
       // Use simple fallback renderer
       html = this._renderSimple(markdown);
+      console.log(`[MarkdownRenderer] 🐛 FALLBACK HTML: "${html?.substring(0, 200)}${html?.length > 200 ? '...' : ''}" (${html?.length || 0} chars)`);
     } else {
       try {
         // Use marked.js
         html = this.marked.parse(markdown);
+        console.log(`[MarkdownRenderer] 🐛 MARKED HTML: "${html?.substring(0, 200)}${html?.length > 200 ? '...' : ''}" (${html?.length || 0} chars)`);
       } catch (error) {
         console.error('[MarkdownRenderer] marked.js rendering failed:', error);
         html = this._renderSimple(markdown);
+        console.log(`[MarkdownRenderer] 🐛 FALLBACK AFTER ERROR HTML: "${html?.substring(0, 200)}${html?.length > 200 ? '...' : ''}" (${html?.length || 0} chars)`);
       }
     }
 
     // Sanitize output
     if (sanitize && html) {
+      const unsanitized = html;
       html = this.securitySanitizer.sanitizeHTML(html, { profile });
+      console.log(`[MarkdownRenderer] 🐛 SANITIZED: "${html?.substring(0, 200)}${html?.length > 200 ? '...' : ''}" (${html?.length || 0} chars)`);
+      
+      // Check if sanitization dramatically changed content
+      if (Math.abs(html.length - unsanitized.length) > 50) {
+        console.warn(`[MarkdownRenderer] ⚠️ SANITIZATION CHANGED CONTENT SIGNIFICANTLY: ${unsanitized.length} → ${html.length} chars`);
+      }
     }
+
+    console.log(`[MarkdownRenderer] 🐛 FINAL OUTPUT: "${html?.substring(0, 200)}${html?.length > 200 ? '...' : ''}" (${html?.length || 0} chars)`);
 
     return html;
   }

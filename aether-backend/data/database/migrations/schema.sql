@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS artifacts (
     artifact_id VARCHAR(100),
     
     -- Content fields
-    type VARCHAR(20) NOT NULL CHECK (type IN ('code', 'html', 'output', 'file', 'text', 'markdown', 'json')),
+    type VARCHAR(20) NOT NULL CHECK (type IN ('code', 'html', 'output', 'file', 'text', 'markdown', 'json', 'console')),
     filename VARCHAR(255),
     content TEXT,
     language VARCHAR(50),

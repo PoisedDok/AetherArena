@@ -174,11 +174,15 @@ class ArtifactsController {
   /**
    * Load artifact into viewer
    * @param {Object} artifact - Artifact data
+   * @param {Object} options - Loading options
+   * @param {boolean} options.autoSwitch - Whether to auto-switch tabs (true for manual clicks, false for streaming)
    */
-  loadArtifact(artifact) {
+  loadArtifact(artifact, options = {}) {
     if (!artifact || !artifact.id) {
       throw new Error('[ArtifactsController] Invalid artifact');
     }
+
+    const { autoSwitch = false } = options;
 
     this.artifacts.set(artifact.id, artifact);
     this.currentArtifact = artifact;
@@ -193,7 +197,10 @@ class ArtifactsController {
     const isExecutionOutput = artifact.role === 'computer' || artifact.type === 'output' || artifact.type === 'console';
     
     if (isCodeArtifact && !isExecutionOutput) {
-      this.switchTab('code');
+      // Code artifacts: load into code viewer
+      if (autoSwitch) {
+        this.switchTab('code');
+      }
       if (this.modules.codeViewer) {
         this.modules.codeViewer.loadCode(
           artifact.content, 
@@ -201,8 +208,23 @@ class ArtifactsController {
           artifact.filename || 'untitled'
         );
       }
+    } else if (isExecutionOutput) {
+      // Execution outputs: load into output viewer
+      if (this.modules.outputViewer) {
+        const format = artifact.format || 'text';
+        this.modules.outputViewer.loadOutput(artifact.content, format);
+      }
+      // Auto-switch to output tab if:
+      // 1. User manually clicked (autoSwitch=true), OR
+      // 2. This is final HTML result (computer + code + html) during streaming
+      if (autoSwitch || (artifact.role === 'computer' && artifact.type === 'code' && artifact.format === 'html')) {
+        this.switchTab('output');
+      }
     } else {
-      this.switchTab('output');
+      // Fallback for other artifact types
+      if (autoSwitch) {
+        this.switchTab('output');
+      }
       if (this.modules.outputViewer) {
         const format = artifact.format || 'text';
         this.modules.outputViewer.loadOutput(artifact.content, format);
@@ -683,9 +705,26 @@ class ArtifactsController {
           console.log(`[ArtifactsController] 📝 Streaming: ${artifact.chunkCount} chunks, ${artifact.content.length} chars`);
           throttle.lastLog = now;
         }
+        
+        // Progressive loading: Update viewer during streaming for better UX
+        // Only update code viewer (not output) to show streaming
+        if (artifact.role === 'assistant' && artifact.type === 'code') {
+          // Switch to code tab on first chunk
+          if (artifact.chunkCount === 1) {
+            this.switchTab('code');
+          }
+          // Update code viewer with streaming content
+          if (this.modules.codeViewer) {
+            this.modules.codeViewer.loadCode(
+              artifact.content,
+              artifact.language || artifact.format || 'text',
+              artifact.filename || 'streaming...'
+            );
+          }
+        }
       }
       
-      // Only load artifact when stream completes, not on every chunk
+      // Finalize when stream completes
       if (data.end) {
         console.log(`[ArtifactsController] ✅ Stream complete: ${artifact.chunkCount} chunks, ${artifact.content.length} chars, role=${role}, type=${type}`);
         this._logThrottle.delete(artifactId);

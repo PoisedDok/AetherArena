@@ -109,28 +109,28 @@ class HtmlRenderer extends BaseRenderer {
 
     // Create complete HTML document
     const iframeDoc = `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-      body {
-        margin: 0;
-        padding: 16px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        font-size: 14px;
-        line-height: 1.6;
-        color: #333;
-        background: white;
-      }
-      * {
-        box-sizing: border-box;
-      }
-    </style>
-  </head>
-  <body>
-    ${sanitizedHtml}
-  </body>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body {
+              margin: 0;
+              padding: 16px;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+              font-size: 14px;
+              line-height: 1.6;
+              color: #333;
+              background: white;
+            }
+            * {
+              box-sizing: border-box;
+            }
+          </style>
+        </head>
+        <body>
+          ${sanitizedHtml}
+        </body>
 </html>`;
 
     // Create iframe with srcdoc (works better with sandbox than doc.write)

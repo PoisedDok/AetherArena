@@ -1,17 +1,50 @@
-# Aether Desktop
+# 🌟 AetherArena
 
-A sophisticated AI-powered desktop application built with clean architecture, featuring a Python backend orchestrating multiple specialized AI services and an Electron frontend providing an intuitive user interface.
+<div align="center">
+
+![AetherArena](https://img.shields.io/badge/AetherArena-AI--Desktop-blue?style=for-the-badge&logo=electron&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Testing%20%26%20Debugging-orange?style=for-the-badge)
+
+**AetherArena: Clean Architecture AI Desktop Application by AetherInc**
+
+*Part of the AetherInc ecosystem • Python backend orchestrating 7+ AI services • Enterprise-grade security & privacy-first design*
+
+[🚀 Quick Start](#-quick-start) • [📚 Documentation](#-documentation) • [🤝 Contributing](#-contributing)
+
+</div>
+
+---
+
+## ⚠️ Current Status
+
+> **🧪 TESTING & DEBUGGING PHASE**
+>
+> AetherArena is currently in active testing and debugging stage. We're working diligently to ensure stability, performance, and security before the final production release. The application is functional but may contain bugs or incomplete features.
+>
+> **🎯 Production Release**: Expected soon with full stability and feature completeness.
+
+
 
 ## 🚀 Overview
 
-Aether Desktop is a production-ready AI desktop application that combines:
-- **Neural Visualizer**: 3D visualization of AI processes
-- **Conversational AI**: Streaming chat interface with multiple AI models
-- **Code Execution**: Real-time artifact generation and execution
-- **Voice Integration**: Speech-to-text and text-to-speech capabilities
-- **Document Processing**: Advanced OCR and document analysis
-- **Web Search**: Privacy-respecting search aggregation
-- **Excel Automation**: Live spreadsheet manipulation
+AetherArena is a flagship product in the AetherInc ecosystem, orchestrating a comprehensive suite of privacy-first AI services:
+
+<div align="center">
+
+| 🎨 **Neural Visualizer** | 💬 **Conversational AI** | ⚡ **Code Execution** |
+|:---:|:---:|:---:|
+| 3D visualization of AI processes | Streaming chat with multiple models | Real-time artifact generation |
+
+| 🎤 **Voice Integration** | 📄 **Document Processing** | 🔍 **Web Search** |
+|:---:|:---:|:---:|
+| Speech-to-text & text-to-speech | Advanced OCR & analysis | Privacy-respecting aggregation |
+
+| 📊 **Excel Automation** | 🔧 **Multi-Service** | 🛡️ **Security First** |
+|:---:|:---:|:---:|
+| Live spreadsheet manipulation | 7+ AI services orchestration | Enterprise-grade security |
+
+</div>
 
 ## 🏗️ Architecture
 
@@ -40,14 +73,14 @@ Aether Desktop/
 ```
 
 ### Backend Services
-The backend orchestrates multiple AI services:
-- **Open Interpreter**: Code execution and AI orchestration
-- **Perplexica**: AI-powered web search with multiple engines
-- **Docling**: Advanced document parsing with OCR
-- **XLWings**: Excel automation server
-- **OmniParser**: Vision-based UI parsing
-- **SearxNG**: Privacy-respecting metasearch engine
-- **RealtimeTTS**: Real-time text-to-speech synthesis
+The backend orchestrates AetherInc's comprehensive AI service ecosystem:
+- **🤖 GURU AI Paralegal**: Legal-focused AI assistant with document analysis capabilities
+- **🔍 Privacy-First Search**: Multiple search engines with privacy protection
+- **📄 Document Intelligence**: Advanced OCR and document processing
+- **📊 Excel Automation**: Live spreadsheet manipulation
+- **👁️ Vision Processing**: UI parsing and visual analysis
+- **🔒 Secure Orchestration**: Privacy-preserving AI service integration
+- **🎤 Real-time TTS**: Text-to-speech synthesis capabilities
 
 ## 🛠️ Technology Stack
 
@@ -268,7 +301,9 @@ This is a complete rebuild following a 14-phase migration plan from legacy codeb
 
 ## 📄 License
 
-See individual service directories for their respective licenses. Main application code is ISC licensed.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+Individual AI services and third-party components maintain their respective licenses. The main AetherArena application code is MIT licensed.
 
 ## 🔗 Links
 
@@ -280,4 +315,42 @@ See individual service directories for their respective licenses. Main applicati
 
 ---
 
-**Aether Desktop** - Clean Architecture AI Desktop Application
+## 🏢 About AetherInc
+
+AetherArena is developed by **AetherInc Limited**, a Scotland-registered company founded by Krish Dokania. AetherInc specializes in privacy-first AI solutions, creating revolutionary AI companions that solve real-world tasks through natural conversation.
+
+**Company Details:**
+- **Founded**: By Krish Dokania
+- **Registered**: Scotland, UK (Company Registration: SCXXXXXX)
+- **Mission**: Transform how people interact with AI through privacy-first solutions
+- **Website**: [aetherinc.xyz](https://aetherinc.xyz)
+- **Social**: [Twitter](https://twitter.com/aetherinc) • [LinkedIn](https://linkedin.com/company/aetherinc) • [GitHub](https://github.com/aetherinc)
+
+**Product Portfolio:**
+- **🤖 GURU AI Paralegal**: Privacy-first legal AI assistant for document review, drafting, and case analysis
+- **🖥️ AetherArena**: Clean architecture AI desktop application
+- **⚖️ Legal Pilot**: Specialized AI solutions for law firms
+- **📊 ROI Calculator**: Business value assessment tool
+- **🔧 AI Consulting**: Enterprise AI implementation services
+
+**Business Model:**
+- **Pricing**: Subscription-based with tiered offerings
+- **Target Markets**: Law firms, enterprises, AI enthusiasts
+- **Development**: Documentation and advanced features in development
+- **Support**: Direct consultation and pilot programs available
+
+---
+
+<div align="center">
+
+## 🌟 AetherArena - Clean Architecture AI Desktop Application
+
+**Built with ❤️ by AetherInc using Python, Electron, and cutting-edge AI technologies**
+
+---
+
+*Made with passion for the AI community • Currently in testing phase • Production release coming soon*
+
+[⬆️ Back to Top](#-aetherarena)
+
+</div>

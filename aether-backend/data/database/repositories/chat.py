@@ -14,10 +14,11 @@ Provides CRUD operations for:
 All operations use async/await and proper transaction management.
 """
 
-import json
 import logging
 from typing import Any, Dict, List, Optional
 from uuid import UUID
+
+import psycopg.types.json
 
 from ..connection import DatabaseConnection
 from ..models.chat import Artifact, Chat, Message
@@ -369,8 +370,9 @@ class ChatRepository:
             if not await cursor.fetchone():
                 raise ValueError(f"Chat {chat_id} not found")
             
-            # Serialize metadata to JSON
-            metadata_json = json.dumps(metadata) if metadata else None
+            # psycopg3 requires explicit Json wrapper for dict -> JSONB conversion
+            # Wrap metadata with psycopg.types.json.Json() if it's a dict
+            metadata_json = psycopg.types.json.Json(metadata) if metadata else None
             
             # Insert artifact
             cursor = await conn.execute(

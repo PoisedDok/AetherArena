@@ -169,6 +169,11 @@ try {
     getArtifactSource: (artifactId) => storageClient.getArtifactSource(artifactId),
     getLLMMetadata: (messageId) => storageClient.getLLMMetadata(messageId),
     
+    // Trail state operations
+    saveTrailState: (chatId, trailData) => storageClient.saveTrailState(chatId, trailData),
+    loadTrailState: (chatId) => storageClient.loadTrailState(chatId),
+    deleteTrailState: (chatId) => storageClient.deleteTrailState(chatId),
+    
     // Health check
     healthCheck: () => storageClient.healthCheck(),
     testConnection: () => storageClient.testConnection(),

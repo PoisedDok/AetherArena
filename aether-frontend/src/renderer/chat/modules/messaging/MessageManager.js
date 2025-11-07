@@ -327,6 +327,9 @@ class MessageManager {
 
       // Content delta
       if (content) {
+        // 🐛 SUPER DEBUGGER: Log raw WebSocket content
+        console.log(`[MessageManager] 🐛 WEBSOCKET CONTENT: "${content.substring(0, 200)}${content.length > 200 ? '...' : ''}" (${content.length} chars) for id=${id}`);
+        
         this.streamHandler.processChunk({
           id,
           chunk: content
