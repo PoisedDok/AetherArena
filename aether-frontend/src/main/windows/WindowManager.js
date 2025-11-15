@@ -245,8 +245,11 @@ class WindowManager {
     const success = this.artifactsWindow.send(channel, ...args);
     
     // Show window if message was sent/queued successfully
-    if (success && !this.artifactsWindow.getWindow().isVisible()) {
-      this.artifactsWindow.show();
+    if (success && this.artifactsWindow.exists()) {
+      const window = this.artifactsWindow.getWindow();
+      if (window && !window.isVisible()) {
+        this.artifactsWindow.show();
+      }
     }
     
     return success;

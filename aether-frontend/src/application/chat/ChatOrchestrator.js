@@ -584,13 +584,13 @@ class ChatOrchestrator {
       });
       
       this.eventBus.on('backend:stream-complete', (data) => {
-        if (this.requestLifecycle.isActive(data.requestId)) {
+        if (this.requestLifecycle && this.requestLifecycle.isActive(data.requestId)) {
           this.requestLifecycle.completeRequest(data.requestId, data);
         }
       });
       
       this.eventBus.on('backend:stream-error', (data) => {
-        if (this.requestLifecycle.isActive(data.requestId)) {
+        if (this.requestLifecycle && this.requestLifecycle.isActive(data.requestId)) {
           this.requestLifecycle.failRequest(data.requestId, data.error);
         }
       });

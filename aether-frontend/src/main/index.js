@@ -113,7 +113,7 @@ async function initialize() {
           url: backendService.url,
         });
       } else {
-      await spawnBackend();
+        await spawnBackend();
       }
     } else {
       logger.info('Backend spawning disabled, expecting external backend');

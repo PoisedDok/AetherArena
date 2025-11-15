@@ -492,13 +492,13 @@ class MainOrchestrator {
     
     // Backend events
     this.eventBus.on('backend:message-complete', (data) => {
-      if (this.requestLifecycle.isActive(data.requestId)) {
+      if (this.requestLifecycle && this.requestLifecycle.isActive(data.requestId)) {
         this.requestLifecycle.completeRequest(data.requestId, data);
       }
     });
     
     this.eventBus.on('backend:message-error', (data) => {
-      if (this.requestLifecycle.isActive(data.requestId)) {
+      if (this.requestLifecycle && this.requestLifecycle.isActive(data.requestId)) {
         this.requestLifecycle.failRequest(data.requestId, data.error);
       }
     });

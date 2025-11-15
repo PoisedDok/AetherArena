@@ -210,17 +210,29 @@ class ArtifactsWindow {
       count: this.messageQueue.length,
     });
     
+    const failedMessages = [];
+    
     while (this.messageQueue.length > 0) {
-      const { channel, args } = this.messageQueue.shift();
+      const message = this.messageQueue.shift();
       
       try {
-        this.window.webContents.send(channel, ...args);
+        this.window.webContents.send(message.channel, ...message.args);
       } catch (err) {
         this.logger.error('Failed to send queued message', {
-          channel,
+          channel: message.channel,
           error: err.message,
         });
+        // Re-queue failed message
+        failedMessages.push(message);
       }
+    }
+    
+    // Re-add failed messages to front of queue for retry
+    if (failedMessages.length > 0) {
+      this.messageQueue.unshift(...failedMessages);
+      this.logger.warn('Re-queued failed messages', {
+        count: failedMessages.length,
+      });
     }
   }
 

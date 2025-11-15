@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1>Testing Trail Persistence Issue</h1>
+<p><strong>ISSUE:</strong> Trails show in UI but querySelectorAll finds 0</p>
+
+<h2>Current Implementation:</h2>
+<pre>
+_getChatContent() returns:
+  container.querySelector('#chat-content') || 
+  container.querySelector('.chat-content') ||
+  container;
+
+Trail creation: chatContent.appendChild(trail)
+Trail saving: chatContent.querySelectorAll('.artifact-execution-trail-container')
+</pre>
+
+<h2>Possible Causes:</h2>
+<ol>
+<li>Chat content DOM structure changes between creation and save</li>
+<li>Trails are cleared when switching messages</li>
+<li>querySelector returns different elements at different times</li>
+</ol>
+
+<h2>SOLUTION:</h2>
+<p>✅ Trails ARE already persisting - database code is correct</p>
+<p>❌ Issue: Trails never GET SAVED because query finds 0 elements</p>
+<p>🔧 Fix: Ensure trails aren't cleared before save, or save immediately on finalization</p>
+</body>
+</html>

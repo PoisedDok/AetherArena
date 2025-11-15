@@ -13,7 +13,7 @@ Processing: create_app(), startup_event(), shutdown_event(), websocket_endpoint(
 Outgoing: main.py, Frontend (HTTP/WebSocket) --- {FastAPI application instance, HTTP responses, WebSocket messages}
 """
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import asyncio
@@ -377,16 +377,11 @@ def create_app() -> FastAPI:
             logger.error(f"Error stopping MCP manager: {e}")
         
         try:
-            # Close database using dependency getter for consistency
-            from api.dependencies import get_database
-            try:
-                async for db in get_database():
-                    if db:
-                        await db.disconnect()
-                        logger.info("✅ Database closed")
-            except HTTPException:
-                # Database not initialized, nothing to close
-                pass
+            # Close database connection directly
+            from api.dependencies import _database_connection
+            if _database_connection is not None:
+                await _database_connection.disconnect()
+                logger.info("✅ Database closed")
         except Exception as e:
             logger.error(f"Error closing database: {e}")
         

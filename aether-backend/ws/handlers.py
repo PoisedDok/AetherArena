@@ -268,8 +268,8 @@ class MessageHandler:
         self.stream_relay = StreamRelay(runtime)
         self._logger = logging.getLogger(f"{__name__}.MessageHandler")
         
-        # Track active stream tasks for cancellation
-        self._stream_tasks: Dict[str, asyncio.Task] = {}
+        # Track active stream tasks for cancellation with client metadata
+        self._stream_tasks: Dict[str, Dict[str, Any]] = {}  # {request_id: {task, client_id}}
         self._tasks_lock = asyncio.Lock()
     
     async def handle_json(
@@ -375,16 +375,18 @@ class MessageHandler:
             client_id: Client identifier
         """
         async with self._tasks_lock:
-            # Cancel all tasks for this client
+            # Cancel only tasks belonging to this client (filter by client_id)
             tasks_to_cancel = [
-                (request_id, task)
-                for request_id, task in self._stream_tasks.items()
+                (request_id, task_info["task"])
+                for request_id, task_info in self._stream_tasks.items()
+                if task_info.get("client_id") == client_id
             ]
             
             for request_id, task in tasks_to_cancel:
                 try:
                     task.cancel()
                     self._stream_tasks.pop(request_id, None)
+                    self._logger.debug(f"Cancelled task {request_id} for client {client_id}")
                 except Exception:
                     pass
     
@@ -437,8 +439,8 @@ class MessageHandler:
         async with self._tasks_lock:
             if request_id in self._stream_tasks:
                 try:
-                    task = self._stream_tasks[request_id]
-                    task.cancel()
+                    task_info = self._stream_tasks[request_id]
+                    task_info["task"].cancel()
                     del self._stream_tasks[request_id]
                     self._logger.debug(f"Cancelled stream task for {request_id}")
                 except Exception as e:
@@ -531,16 +533,20 @@ class MessageHandler:
             )
         )
         
-        # Track task for cancellation
+        # Track task for cancellation with client metadata
         async with self._tasks_lock:
             # Cancel existing task with same ID
             if request_id in self._stream_tasks:
                 try:
-                    self._stream_tasks[request_id].cancel()
+                    self._stream_tasks[request_id]["task"].cancel()
                 except Exception:
                     pass
             
-            self._stream_tasks[request_id] = stream_task
+            # Store task with client_id for proper cleanup
+            self._stream_tasks[request_id] = {
+                "task": stream_task,
+                "client_id": client_id
+            }
     
     async def _handle_lmc_passthrough(
         self,

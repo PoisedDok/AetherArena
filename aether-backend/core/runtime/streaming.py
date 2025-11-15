@@ -339,14 +339,22 @@ class ChatStreamer:
                             
                             try:
                                 chunk = json.loads(data)
-                            except Exception:
+                            except Exception as e:
+                                logger.debug(f"Failed to parse SSE chunk: {e}")
                                 continue
                             
-                            delta = (
-                                chunk.get("choices", [{}])[0]
-                                .get("delta", {})
-                                .get("content")
-                            )
+                            # CRITICAL BUG FIX: Safe extraction with bounds checking
+                            # Prevent IndexError when API returns empty choices array
+                            choices = chunk.get("choices", [])
+                            if not choices:
+                                logger.debug(f"Received chunk with empty choices array: {chunk}")
+                                continue
+                            
+                            # Safely extract delta content from first choice
+                            first_choice = choices[0] if isinstance(choices, list) else {}
+                            delta_obj = first_choice.get("delta", {})
+                            delta = delta_obj.get("content") if isinstance(delta_obj, dict) else None
+                            
                             if delta:
                                 yield {
                                     "role": "assistant",

@@ -327,9 +327,10 @@ class DatabaseConnection:
                     result["healthy"] = True
                     
                     # Get pool statistics
+                    stats = self._pool.get_stats()
                     result["pool_stats"] = {
-                        "size": self._pool.get_stats().get("pool_size", 0),
-                        "available": self._pool.get_stats().get("pool_available", 0),
+                        "size": stats.get("pool_size", 0),
+                        "available": stats.get("pool_available", 0),
                     }
                     
                     # Get table counts

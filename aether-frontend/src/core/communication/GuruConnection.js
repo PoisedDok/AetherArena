@@ -45,14 +45,17 @@ class GuruConnection extends EventEmitter {
     
     // Prevent EventEmitter from throwing on unhandled 'error' events
     // This is a production-safe default - errors are logged but don't crash
-    this.on('error', (error) => {
-      if (this.listenerCount('error') === 1) {
+    this._defaultErrorHandler = (error) => {
+      // Check if there are other error listeners besides this default one
+      const otherListeners = this.listenerCount('error') - 1;
+      if (otherListeners === 0) {
         // Only this default listener exists - log error silently
         if (this.enableLogging) {
           console.warn('[GuruConnection] Unhandled error event:', error);
         }
       }
-    });
+    };
+    this.on('error', this._defaultErrorHandler);
     
     if (this.url) {
       this.connect();
@@ -219,6 +222,13 @@ class GuruConnection extends EventEmitter {
     this.isDestroyed = true;
     this.close(1000, 'Dispose');
     this.messageQueue = [];
+    
+    // Remove default error handler before removing all listeners
+    if (this._defaultErrorHandler) {
+      this.removeListener('error', this._defaultErrorHandler);
+      this._defaultErrorHandler = null;
+    }
+    
     this.removeAllListeners();
 
     if (this.enableLogging) {

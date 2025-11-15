@@ -255,7 +255,11 @@ class ChatRenderer {
       console.log('[ChatRenderer] Message sent');
     });
     
-    // Note: MESSAGE_ERROR doesn't exist in EventTypes, using STREAM_ERROR
+    // Listen for both message and stream errors
+    this.eventBus.on(EventTypes.CHAT.MESSAGE_ERROR, (data) => {
+      console.error('[ChatRenderer] Chat message error:', data.error);
+    });
+    
     this.eventBus.on(EventTypes.CHAT.STREAM_ERROR, (data) => {
       console.error('[ChatRenderer] Chat stream error:', data.error);
     });

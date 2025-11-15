@@ -420,18 +420,25 @@ class RuntimeEngine:
                             interpreter.llm.reset()
                         logger.debug(f"Reset LLM state for client {client_id}")
             
+            # Clear HTTP fallback conversation history (critical for chat isolation)
+            if self._chat_streamer:
+                if hasattr(self._chat_streamer, '_conversation_history'):
+                    history_count = len(self._chat_streamer._conversation_history)
+                    self._chat_streamer._conversation_history.clear()
+                    logger.info(f"✅ Cleared {history_count} HTTP fallback messages for client {client_id}")
+            
             # Reset HTTP client state (clears connection pool and any cached state)
             if self._config_manager:
                 await self._config_manager.reset_client()
                 logger.info(f"✅ Reset HTTP client for client {client_id}")
             
-            # Clear any active requests for this client
+            # Clear any active requests for this client (use client-specific filter)
             if self._request_tracker:
-                # Cancel any pending requests
-                active_requests = self._request_tracker.get_active_requests()
-                for request_id in list(active_requests.keys()):
+                # Cancel only requests belonging to this client
+                client_requests = self._request_tracker.get_requests_by_client(client_id)
+                for request_id in list(client_requests.keys()):
                     await self._request_tracker.cancel_request(request_id)
-                logger.debug(f"Cancelled {len(active_requests)} active requests for client {client_id}")
+                logger.debug(f"Cancelled {len(client_requests)} active requests for client {client_id}")
             
             logger.info(f"✅ Context reset complete for client {client_id} - clean slate established")
             

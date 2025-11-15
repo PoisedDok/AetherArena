@@ -60,6 +60,11 @@ class MessageManager {
       updateCount: 0
     };
 
+    // CRITICAL: Sequential message processing queue
+    // Prevents race conditions when WebSocket messages arrive rapidly
+    this._messageQueue = [];
+    this._isProcessingQueue = false;
+
     console.log('[MessageManager] Constructed');
   }
 
@@ -250,19 +255,72 @@ class MessageManager {
     }
 
     // Listen for WebSocket messages from GuruConnection
+    // CRITICAL: Queue messages for sequential processing to prevent race conditions
     this.endpoint.connection.on('message', (payload) => {
-      this._handleWebSocketMessage(payload);
+      this._enqueueMessage(payload);
     });
 
     console.log('[MessageManager] WebSocket listeners enabled (direct connection)');
   }
 
   /**
-   * Handle incoming WebSocket message
+   * Enqueue message for sequential processing
+   * CRITICAL: Prevents race conditions from rapid message arrival
    * @private
    * @param {Object} payload - WebSocket message payload
    */
-  _handleWebSocketMessage(payload) {
+  _enqueueMessage(payload) {
+    this._messageQueue.push(payload);
+    
+    // CRITICAL FIX: Only start processor if NOT already running
+    // If already running, the active processor will drain the queue
+    if (!this._isProcessingQueue) {
+      this._processMessageQueue();
+    }
+  }
+
+  /**
+   * Process message queue sequentially
+   * CRITICAL: Ensures only one message is processed at a time and drains queue completely
+   * @private
+   */
+  async _processMessageQueue() {
+    // Prevent concurrent processors
+    if (this._isProcessingQueue) {
+      return;
+    }
+
+    this._isProcessingQueue = true;
+
+    try {
+      // CRITICAL: Keep looping until queue is COMPLETELY empty
+      // This handles messages added during processing
+      while (this._messageQueue.length > 0) {
+        const payload = this._messageQueue.shift();
+        await this._handleWebSocketMessage(payload);
+        // Loop continues automatically if new messages were added
+      }
+    } catch (error) {
+      console.error('[MessageManager] Error processing message queue:', error);
+    } finally {
+      this._isProcessingQueue = false;
+      
+      // CRITICAL: Double-check for race condition
+      // If messages arrived between the while-check and flag-clear
+      if (this._messageQueue.length > 0) {
+        // Restart processor immediately (no setTimeout delay)
+        this._processMessageQueue();
+      }
+    }
+  }
+
+  /**
+   * Handle incoming WebSocket message
+   * CRITICAL: This function processes chunks sequentially to prevent race conditions
+   * @private
+   * @param {Object} payload - WebSocket message payload
+   */
+  async _handleWebSocketMessage(payload) {
     try {
       if (!payload || typeof payload !== 'object') {
         return;
@@ -304,7 +362,7 @@ class MessageManager {
       // Start marker
       if (start) {
         console.log(`[MessageManager] Stream started: ${id}`);
-        this.streamHandler.processChunk({
+        await this.streamHandler.processChunk({
           id,
           chunk: '',
           start: true
@@ -315,7 +373,7 @@ class MessageManager {
       // End marker
       if (end) {
         console.log(`[MessageManager] Stream ended: ${id}`);
-        this.streamHandler.processChunk({
+        await this.streamHandler.processChunk({
           id,
           chunk: '',
           done: true
@@ -330,7 +388,10 @@ class MessageManager {
         // 🐛 SUPER DEBUGGER: Log raw WebSocket content
         console.log(`[MessageManager] 🐛 WEBSOCKET CONTENT: "${content.substring(0, 200)}${content.length > 200 ? '...' : ''}" (${content.length} chars) for id=${id}`);
         
-        this.streamHandler.processChunk({
+        // CRITICAL FIX: Await processChunk to prevent race conditions
+        // Without await, rapid chunks can arrive faster than processing completes,
+        // causing chunks to be skipped or processed out of order
+        await this.streamHandler.processChunk({
           id,
           chunk: content
         });
@@ -346,7 +407,7 @@ class MessageManager {
       console.log(`[MessageManager] Request complete: ${id}`);
       this.setProcessing(false);
       this.setStopMode(false);
-      this.streamHandler.forceFinalize();
+      await this.streamHandler.forceFinalize();
       
       // Finalize trail when ALL artifacts complete
       if (this.trailContainerManager && this.trailContainerManager.activeTrailContainer) {
@@ -362,7 +423,7 @@ class MessageManager {
       console.log(`[MessageManager] Request stopped: ${id}`);
       this.setProcessing(false);
       this.setStopMode(false);
-      this.streamHandler.forceFinalize();
+      await this.streamHandler.forceFinalize();
       
       // Finalize trail on stop as well
       if (this.trailContainerManager && this.trailContainerManager.activeTrailContainer) {
@@ -903,6 +964,10 @@ class MessageManager {
       }
     }
     this._ipcListeners = [];
+
+    // Clear message queue
+    this._messageQueue = [];
+    this._isProcessingQueue = false;
 
     // Dispose modules
     if (this.streamHandler) this.streamHandler.dispose();

@@ -28,7 +28,7 @@ from api.v1.schemas.chat import (
 from core.runtime.engine import RuntimeEngine
 from monitoring import get_logger
 from security.sanitization import sanitize_text, SizeExceededError, ValidationError
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 import base64
 
 logger = get_logger(__name__)
@@ -73,19 +73,22 @@ class ChatRequest(BaseModel):
     history: List[Dict[str, Any]] = Field(default_factory=list, description="Optional conversation history")
     image_b64: Optional[str] = Field(None, description="Optional base64 encoded image")
     
-    @validator('message')
+    @field_validator('message')
+    @classmethod
     def validate_message(cls, v):
         """Sanitize message text."""
         if not v or not v.strip():
             raise ValueError("Message cannot be empty")
         return sanitize_text(v, max_length=MAX_MESSAGE_LENGTH, allow_html=False)
     
-    @validator('session_id')
+    @field_validator('session_id')
+    @classmethod
     def validate_session_id(cls, v):
         """Validate session ID format."""
         return _validate_session_id(v)
     
-    @validator('image_b64')
+    @field_validator('image_b64')
+    @classmethod
     def validate_image_b64(cls, v):
         """Validate base64 image."""
         if v is None:

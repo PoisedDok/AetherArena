@@ -20,7 +20,7 @@ All messages follow JSON format with role/type/content structure.
 
 from enum import Enum
 from typing import Any, Dict, Optional, Literal
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 # Import sanitization for message content
 try:
@@ -91,7 +91,8 @@ class ClientMessage(BaseMessage):
     content: str
     image: Optional[str] = None  # Base64 encoded image
     
-    @validator('content')
+    @field_validator('content')
+    @classmethod
     def content_not_empty(cls, v):
         if not v or not v.strip():
             raise ValueError('Content cannot be empty')

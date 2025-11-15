@@ -27,8 +27,8 @@ class StreamHandler {
     this.thinkingText = '';
     this.isInThinkingTag = false;
 
-    // Deduplication
-    this._seenChunkKeys = new Set();
+    // Deduplication - CRITICAL: Use simple content comparison instead of hash keys
+    this._lastChunkContent = '';
     this._lastChunkTimestamp = 0;
 
     // Tracking for artifact linking
@@ -62,15 +62,16 @@ class StreamHandler {
       return false;
     }
 
-    // Deduplicate chunks
-    if (!this._shouldProcessChunk(data)) {
-      return false;
-    }
-
-    // Check for request ID change (new response)
+    // CRITICAL: Check for request ID change FIRST (before deduplication)
+    // This ensures _seenChunkKeys is cleared for new requests before checking duplicates
     if (data.id && data.id !== this.currentRequestId) {
       console.log(`[StreamHandler] New request detected: ${this.currentRequestId} → ${data.id}`);
       await this._resetForNewRequest(data.id);
+    }
+
+    // Deduplicate chunks (after request ID change detection)
+    if (!this._shouldProcessChunk(data)) {
+      return false;
     }
 
     // Process chunk text
@@ -180,48 +181,37 @@ class StreamHandler {
 
   /**
    * Check if chunk should be processed (deduplication)
-   * OPTIMIZED: Prevents duplicate processing with minimal false positives
+   * CRITICAL FIX: Use full content hash to prevent false positives
+   * Previous logic caused false deduplication when chunks had similar prefixes/suffixes
    * @private
    * @param {Object} data - Chunk data
    * @returns {boolean}
    */
   _shouldProcessChunk(data) {
-    // Generate chunk key for deduplication using hash-like key
-    // Include first 30 chars, last 20 chars, and length for better uniqueness
+    // CRITICAL: Use FULL content for deduplication key
+    // Previous prefix/suffix approach caused false positives with similar content
     const content = data.chunk || '';
-    const prefix = content.substring(0, 30);
-    const suffix = content.length > 50 ? content.substring(content.length - 20) : '';
-    const chunkKey = `${data.id || 'unknown'}_${prefix}_${suffix}_${content.length}`;
+    const chunkKey = `${data.id || 'unknown'}_${content}_${Date.now()}`;
 
     // Check timing first (prevent rapid duplicates within 50ms)
     const now = Date.now();
     const timeDiff = now - this._lastChunkTimestamp;
     
-    // If chunk received within 50ms and we've seen the EXACT same key, skip silently
+    // CRITICAL: Only deduplicate if EXACT same content arrives within 50ms
     // This handles legitimate WebSocket message duplication at network layer
-    if (timeDiff < 50 && this._seenChunkKeys.has(chunkKey)) {
+    // Use simple Map with content as key for exact matching
+    if (!this._lastChunkContent) {
+      this._lastChunkContent = '';
+    }
+    
+    if (timeDiff < 50 && this._lastChunkContent === content) {
+      console.log(`[StreamHandler] 🔇 Deduplicated chunk within 50ms (${content.length} chars)`);
       return false;
     }
 
-    // Check if already processed (outside rapid timing window)
-    if (this._seenChunkKeys.has(chunkKey)) {
-      // Only log warning if duplicate is far outside timing window (> 500ms)
-      // This indicates a logic error, not network duplication
-      if (timeDiff >= 500) {
-        console.warn('[StreamHandler] Unexpected duplicate chunk detected (potential logic error)');
-      }
-      return false;
-    }
-
-    // Mark as seen
-    this._seenChunkKeys.add(chunkKey);
+    // Update last seen
+    this._lastChunkContent = content;
     this._lastChunkTimestamp = now;
-
-    // Clean up old seen chunks (keep last 500 for memory efficiency)
-    if (this._seenChunkKeys.size > 500) {
-      const keysArray = Array.from(this._seenChunkKeys);
-      this._seenChunkKeys = new Set(keysArray.slice(-250));
-    }
 
     return true;
   }
@@ -248,7 +238,8 @@ class StreamHandler {
     this.isInThinkingTag = false;
 
     // Clear deduplication for new request
-    this._seenChunkKeys.clear();
+    this._lastChunkContent = '';
+    this._lastChunkTimestamp = 0;
 
     // Create new message in view
     if (this.messageView) {
