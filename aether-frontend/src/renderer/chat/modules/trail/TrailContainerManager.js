@@ -273,6 +273,18 @@ class TrailContainerManager {
     
     this.renderer.finalizeTrail(this.activeTrailContainer);
     
+    // CRITICAL FIX: Mark trail as finalized so new trails are created for next execution
+    this.activeTrailContainer.dataset.finalized = 'true';
+    
+    // CRITICAL FIX: Save trail state immediately after finalization
+    // This ensures trails persist even if user refreshes before switching chats
+    if (this._currentChatId) {
+      // Use setTimeout to avoid blocking UI, but don't wait too long
+      setTimeout(() => {
+        this.saveTrailState(this._currentChatId);
+      }, 100);
+    }
+    
     this._emit('artifacts:trail:finalized', { 
       trail: this.activeTrailContainer 
     });

@@ -460,7 +460,9 @@ class StreamHandler {
     this.accumulatedText = '';
     this.thinkingText = '';
     this.isInThinkingTag = false;
-    this._seenChunkKeys.clear();
+    // CRITICAL FIX: Use correct deduplication state variable
+    this._lastChunkContent = '';
+    this._lastChunkTimestamp = 0;
   }
 
   /**

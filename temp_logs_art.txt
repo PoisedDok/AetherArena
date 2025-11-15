@@ -1,75 +1,75 @@
-VM5:13847 [ArtifactsPreload] highlight.js loaded with 21 languages
-VM5:13862 [ArtifactsPreload] marked loaded successfully
-VM5:13912 [ArtifactsPreload] DOMPurify sanitizer loaded
-VM5:14102 [ArtifactsPreload] Artifacts window API exposed successfully Object
-artifacts.js:14616 🚀 Artifacts Renderer: Starting...
-artifacts.js:14627 ✅ Artifacts Renderer: Preload API available
-artifacts.js:14628 📦 Aether versions: Object
-artifacts.js:189 📦 DependencyContainer loaded
-artifacts.js:479 📦 EventBus loaded
-artifacts.js:732 📦 EventTypes loaded with 14 event categories
-artifacts.js:1515 📦 GuruConnection loaded
-artifacts.js:1861 📦 RateLimiter loaded
-artifacts.js:2235 📦 ApiClient loaded
-artifacts.js:2539 📦 Endpoint loaded
-artifacts.js:14610 📦 ArtifactsController loaded
-artifacts.js:13416 📦 StorageAPI loaded
-artifacts.js:14714 ✅ Artifacts renderer script loaded
-artifacts.js:14639 🏗️  Bootstrapping artifacts application...
-artifacts.js:13910 🎯 ArtifactsController: Initializing...
-artifacts.js:14166 📦 ArtifactsController: Initializing core...
-artifacts.js:14182 ✅ ArtifactsController: Core initialized
-artifacts.js:14189 📦 ArtifactsController: Registering services...
-artifacts.js:14190 ✅ ArtifactsController: Services registered
-artifacts.js:14197 📦 ArtifactsController: Initializing modules...
-artifacts.js:2846 📦 ArtifactsWindow loaded
-artifacts.js:3099 📦 TabManager loaded
-artifacts.js:3938 📦 CodeViewer loaded
-artifacts.js:4295 📦 BaseRenderer loaded
-artifacts.js:4571 📦 HtmlRenderer loaded
-artifacts.js:4689 📦 MarkdownRenderer loaded
-artifacts.js:4843 📦 JsonRenderer loaded
-artifacts.js:4992 📦 MediaRenderer loaded
-artifacts.js:5392 📦 OutputViewer loaded
-artifacts.js:5645 📦 SafeCodeExecutor loaded
-artifacts.js:6276 📦 FileManager loaded
-artifacts.js:6555 📦 ArtifactSessionManager loaded
-artifacts.js:6302 [ArtifactSessionManager] Initialized
-artifacts.js:2623 🪟 ArtifactsWindow: Initializing...
-artifacts.js:2756 [ArtifactsWindow] DOM structure created
-artifacts.js:2840 [ArtifactsWindow] Global CSS loaded from artifacts.css using theme variables
-artifacts.js:2775 [ArtifactsWindow] Event listeners setup
-artifacts.js:2632 ✅ ArtifactsWindow: Initialized
-artifacts.js:2901 📑 TabManager: Initializing...
-artifacts.js:3067 [TabManager] Created tab: code
-artifacts.js:3067 [TabManager] Created tab: output
-artifacts.js:3067 [TabManager] Created tab: files
-artifacts.js:3043 [TabManager] Tabs created
-artifacts.js:2914 ✅ TabManager: Initialized
-artifacts.js:3214 💻 CodeViewer: Initializing...
-artifacts.js:3467 [CodeViewer] DOM structure created
-artifacts.js:3932 [CodeViewer] Styles injected
-artifacts.js:3620 ✅ [CodeViewer] Highlight.js loaded from window
-VM5:1872 WARN: Could not find the language 'text', did you forget to load/include a language module?
-VM5:1872 WARN: Falling back to no-highlight mode for this block. <code class=​"language-text">​</code>​
-artifacts.js:3366 [CodeViewer] Active tab: code-tab-1-1763238864901
-artifacts.js:3300 [CodeViewer] Created tab: code-tab-1-1763238864901
-artifacts.js:3228 ✅ CodeViewer: Initialized
-artifacts.js:4520 ⚠️ [HtmlRenderer] DOMPurify not available, using basic sanitization
-_loadSanitizer @ artifacts.js:4520
-artifacts.js:5165 [OutputViewer] Renderers initialized
-artifacts.js:5059 📊 OutputViewer: Initializing...
-artifacts.js:5212 [OutputViewer] DOM structure created
-artifacts.js:5386 [OutputViewer] Styles injected
-artifacts.js:5071 ✅ OutputViewer: Initialized
-artifacts.js:5710 📁 FileManager: Initializing...
-artifacts.js:5725 ✅ FileManager: Initialized
-artifacts.js:14249 ✅ ArtifactsController: Modules initialized
-artifacts.js:14256 📦 ArtifactsController: Setting up event listeners...
-artifacts.js:14257 ✅ ArtifactsController: Event listeners setup
-artifacts.js:14264 📦 ArtifactsController: Setting up IPC listeners...
-artifacts.js:14303 ✅ ArtifactsController: IPC listeners setup
-artifacts.js:14310 📦 ArtifactsController: Initializing global state...
+artifacts-preload.js:72 [ArtifactsPreload] highlight.js loaded with 21 languages
+artifacts-preload.js:93 [ArtifactsPreload] marked loaded successfully
+artifacts-preload.js:152 [ArtifactsPreload] DOMPurify sanitizer loaded
+artifacts-preload.js:383 [ArtifactsPreload] Artifacts window API exposed successfully Object
+renderer.js:13 🚀 Artifacts Renderer: Starting...
+renderer.js:26 ✅ Artifacts Renderer: Preload API available
+renderer.js:27 📦 Aether versions: Object
+Container.js:228 📦 DependencyContainer loaded
+EventBus.js:358 📦 EventBus loaded
+EventTypes.js:296 📦 EventTypes loaded with 14 event categories
+GuruConnection.js:517 📦 GuruConnection loaded
+RateLimiter.js:427 📦 RateLimiter loaded
+ApiClient.js:490 📦 ApiClient loaded
+Endpoint.js:383 📦 Endpoint loaded
+ArtifactsController.js:965 📦 ArtifactsController loaded
+storage.js:538 📦 StorageAPI loaded
+renderer.js:130 ✅ Artifacts renderer script loaded
+renderer.js:41 🏗️  Bootstrapping artifacts application...
+ArtifactsController.js:71 🎯 ArtifactsController: Initializing...
+ArtifactsController.js:410 📦 ArtifactsController: Initializing core...
+ArtifactsController.js:432 ✅ ArtifactsController: Core initialized
+ArtifactsController.js:440 📦 ArtifactsController: Registering services...
+ArtifactsController.js:445 ✅ ArtifactsController: Services registered
+ArtifactsController.js:453 📦 ArtifactsController: Initializing modules...
+ArtifactsWindow.js:413 📦 ArtifactsWindow loaded
+TabManager.js:334 📦 TabManager loaded
+CodeViewer.js:1009 📦 CodeViewer loaded
+BaseRenderer.js:423 📦 BaseRenderer loaded
+HtmlRenderer.js:284 📦 HtmlRenderer loaded
+MarkdownRenderer.js:150 📦 MarkdownRenderer loaded
+JsonRenderer.js:180 📦 JsonRenderer loaded
+MediaRenderer.js:180 📦 MediaRenderer loaded
+OutputViewer.js:517 📦 OutputViewer loaded
+SafeCodeExecutor.js:285 📦 SafeCodeExecutor loaded
+FileManager.js:749 📦 FileManager loaded
+ArtifactSessionManager.js:370 📦 ArtifactSessionManager loaded
+ArtifactSessionManager.js:35 [ArtifactSessionManager] Initialized
+ArtifactsWindow.js:103 🪟 ArtifactsWindow: Initializing...
+ArtifactsWindow.js:285 [ArtifactsWindow] DOM structure created
+ArtifactsWindow.js:404 [ArtifactsWindow] Global CSS loaded from artifacts.css using theme variables
+ArtifactsWindow.js:309 [ArtifactsWindow] Event listeners setup
+ArtifactsWindow.js:121 ✅ ArtifactsWindow: Initialized
+TabManager.js:74 📑 TabManager: Initializing...
+TabManager.js:297 [TabManager] Created tab: code
+TabManager.js:297 [TabManager] Created tab: output
+TabManager.js:297 [TabManager] Created tab: files
+TabManager.js:260 [TabManager] Tabs created
+TabManager.js:97 ✅ TabManager: Initialized
+CodeViewer.js:107 💻 CodeViewer: Initializing...
+CodeViewer.js:457 [CodeViewer] DOM structure created
+CodeViewer.js:1000 [CodeViewer] Styles injected
+CodeViewer.js:654 ✅ [CodeViewer] Highlight.js loaded from window
+core.js:986 WARN: Could not find the language 'text', did you forget to load/include a language module?
+core.js:986 WARN: Falling back to no-highlight mode for this block. <code class=​"language-text">​</code>​
+CodeViewer.js:325 [CodeViewer] Active tab: code-tab-1-1763239696727
+CodeViewer.js:233 [CodeViewer] Created tab: code-tab-1-1763239696727
+CodeViewer.js:134 ✅ CodeViewer: Initialized
+HtmlRenderer.js:226 ⚠️ [HtmlRenderer] DOMPurify not available, using basic sanitization
+_loadSanitizer @ HtmlRenderer.js:226
+OutputViewer.js:233 [OutputViewer] Renderers initialized
+OutputViewer.js:88 📊 OutputViewer: Initializing...
+OutputViewer.js:301 [OutputViewer] DOM structure created
+OutputViewer.js:508 [OutputViewer] Styles injected
+OutputViewer.js:109 ✅ OutputViewer: Initialized
+FileManager.js:79 📁 FileManager: Initializing...
+FileManager.js:100 ✅ FileManager: Initialized
+ArtifactsController.js:516 ✅ ArtifactsController: Modules initialized
+ArtifactsController.js:524 📦 ArtifactsController: Setting up event listeners...
+ArtifactsController.js:528 ✅ ArtifactsController: Event listeners setup
+ArtifactsController.js:536 📦 ArtifactsController: Setting up IPC listeners...
+ArtifactsController.js:585 ✅ ArtifactsController: IPC listeners setup
+ArtifactsController.js:593 📦 ArtifactsController: Initializing global state...
 VM4 sandbox_bundle:2 Electron Security Warning (Insecure Content-Security-Policy) This renderer process has either no Content Security
   Policy set or a policy with "unsafe-eval" enabled. This exposes users of
   this app to unnecessary security risks.
@@ -79,443 +79,195 @@ https://electronjs.org/docs/tutorial/security.
 This warning will not show up
 once the app is packaged.
 warnAboutInsecureCSP @ VM4 sandbox_bundle:2
-artifacts.js:2671 [ArtifactsWindow] Window shown
-artifacts.js:14564 [ArtifactsController] Ensure visible
+ArtifactsWindow.js:172 [ArtifactsWindow] Window shown
+ArtifactsController.js:910 [ArtifactsController] Ensure visible
 VM9:15 The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element.
 (anonymous) @ VM9:15
-DevTools failed to load source map: Could not load content for data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsiLi4vLi4vc3JjL3ByZWxvYWQvaXBjL2NoYW5uZWxzLmpzIiwgIi4uLy4uL3NyYy9wcmVsb2FkL2lwYy9wYXlsb2FkLXNjaGVtYXMuanMiLCAiLi4vLi4vc3JjL3ByZWxvYWQvY29tbW9uL3JhdGUtbGltaXRlci5qcyIsICIuLi8uLi9zcmMvcHJlbG9hZC9jb21tb24vc2l6ZS12YWxpZGF0b3IuanMiLCAiLi4vLi4vc3JjL3ByZWxvYWQvY29tbW9uL2JyaWRnZS1mYWN0b3J5LmpzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9oaWdobGlnaHQuanMvbGliL2NvcmUuanMiLCAiLi4vLi4vbm9kZV9tb2R1bGVzL2hpZ2hsaWdodC5qcy9saWIvbGFuZ3VhZ2VzL2phdmFzY3JpcHQuanMiLCAiLi4vLi4vbm9kZV9tb2R1bGVzL2hpZ2hsaWdodC5qcy9saWIvbGFuZ3VhZ2VzL3R5cGVzY3JpcHQuanMiLCAiLi4vLi4vbm9kZV9tb2R1bGVzL2hpZ2hsaWdodC5qcy9saWIvbGFuZ3VhZ2VzL3B5dGhvbi5qcyIsICIuLi8uLi9ub2RlX21vZHVsZXMvaGlnaGxpZ2h0LmpzL2xpYi9sYW5ndWFnZXMvamF2YS5qcyIsICIuLi8uLi9ub2RlX21vZHVsZXMvaGlnaGxpZ2h0LmpzL2xpYi9sYW5ndWFnZXMvYy5qcyIsICIuLi8uLi9ub2RlX21vZHVsZXMvaGlnaGxpZ2h0LmpzL2xpYi9sYW5ndWFnZXMvY3BwLmpzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9oaWdobGlnaHQuanMvbGliL2xhbmd1YWdlcy9jc2hhcnAuanMiLCAiLi4vLi4vbm9kZV9tb2R1bGVzL2hpZ2hsaWdodC5qcy9saWIvbGFuZ3VhZ2VzL2dvLmpzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9oaWdobGlnaHQuanMvbGliL2xhbmd1YWdlcy9ydXN0LmpzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9oaWdobGlnaHQuanMvbGliL2xhbmd1YWdlcy9ydWJ5LmpzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9oaWdobGlnaHQuanMvbGliL2xhbmd1YWdlcy9waHAuanMiLCAiLi4vLi4vbm9kZV9tb2R1bGVzL2hpZ2hsaWdodC5qcy9saWIvbGFuZ3VhZ2VzL3N3aWZ0LmpzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9oaWdobGlnaHQuanMvbGliL2xhbmd1YWdlcy9rb3RsaW4uanMiLCAiLi4vLi4vbm9kZV9tb2R1bGVzL2hpZ2hsaWdodC5qcy9saWIvbGFuZ3VhZ2VzL2Jhc2guanMiLCAiLi4vLi4vbm9kZV9tb2R1bGVzL2hpZ2hsaWdodC5qcy9saWIvbGFuZ3VhZ2VzL3NoZWxsLmpzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9oaWdobGlnaHQuanMvbGliL2xhbmd1YWdlcy9zcWwuanMiLCAiLi4vLi4vbm9kZV9tb2R1bGVzL2hpZ2hsaWdodC5qcy9saWIvbGFuZ3VhZ2VzL2pzb24uanMiLCAiLi4vLi4vbm9kZV9tb2R1bGVzL2hpZ2hsaWdodC5qcy9saWIvbGFuZ3VhZ2VzL3lhbWwuanMiLCAiLi4vLi4vbm9kZV9tb2R1bGVzL2hpZ2hsaWdodC5qcy9saWIvbGFuZ3VhZ2VzL3htbC5qcyIsICIuLi8uLi9ub2RlX21vZHVsZXMvaGlnaGxpZ2h0LmpzL2xpYi9sYW5ndWFnZXMvY3NzLmpzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9oaWdobGlnaHQuanMvbGliL2xhbmd1YWdlcy9tYXJrZG93bi5qcyIsICIuLi8uLi9ub2RlX21vZHVsZXMvbWFya2VkL3NyYy9kZWZhdWx0cy50cyIsICIuLi8uLi9ub2RlX21vZHVsZXMvbWFya2VkL3NyYy9ydWxlcy50cyIsICIuLi8uLi9ub2RlX21vZHVsZXMvbWFya2VkL3NyYy9oZWxwZXJzLnRzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9tYXJrZWQvc3JjL1Rva2VuaXplci50cyIsICIuLi8uLi9ub2RlX21vZHVsZXMvbWFya2VkL3NyYy9MZXhlci50cyIsICIuLi8uLi9ub2RlX21vZHVsZXMvbWFya2VkL3NyYy9SZW5kZXJlci50cyIsICIuLi8uLi9ub2RlX21vZHVsZXMvbWFya2VkL3NyYy9UZXh0UmVuZGVyZXIudHMiLCAiLi4vLi4vbm9kZV9tb2R1bGVzL21hcmtlZC9zcmMvUGFyc2VyLnRzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9tYXJrZWQvc3JjL0hvb2tzLnRzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9tYXJrZWQvc3JjL0luc3RhbmNlLnRzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9tYXJrZWQvc3JjL21hcmtlZC50cyIsICIuLi8uLi9ub2RlX21vZHVsZXMvZG9tcHVyaWZ5L3NyYy91dGlscy50cyIsICIuLi8uLi9ub2RlX21vZHVsZXMvZG9tcHVyaWZ5L3NyYy90YWdzLnRzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9kb21wdXJpZnkvc3JjL2F0dHJzLnRzIiwgIi4uLy4uL25vZGVfbW9kdWxlcy9kb21wdXJpZnkvc3JjL3JlZ2V4cC50cyIsICIuLi8uLi9ub2RlX21vZHVsZXMvZG9tcHVyaWZ5L3NyYy9wdXJpZnkudHMiLCAiLi4vLi4vc3JjL3ByZWxvYWQvYXJ0aWZhY3RzLXByZWxvYWQuanMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbIid1c2Ugc3RyaWN0JztcblxuLyoqXG4gKiBALmFyY2hpdGVjdHVyZVxuICogXG4gKiBJbmNvbWluZzogYnJpZGdlLWZhY3RvcnkgKGdldENoYW5uZWxDb25maWcsIGNhblNlbmQsIGNhblJlY2VpdmUpIC0tLSB7bWV0aG9kX2NhbGwsIHN0cmluZ31cbiAqIFByb2Nlc3Npbmc6IERlZmluZSBmcm96ZW4gY2hhbm5lbCB3aGl0ZWxpc3QgcGVyIHdpbmRvdyAobWFpbldpbmRvdzogc2VuZCAxNiBjaGFubmVscywgcmVjZWl2ZSA3IGNoYW5uZWxzOyBjaGF0V2luZG93OiBzZW5kIDE3IGNoYW5uZWxzLCByZWNlaXZlIDcgY2hhbm5lbHM7IGFydGlmYWN0c1dpbmRvdzogc2VuZCA2IGNoYW5uZWxzLCByZWNlaXZlIDkgY2hhbm5lbHMpLCBub3JtYWxpemUgY29udGV4dCBuYW1lcyAobWFpbiBcdTIxOTIgbWFpbldpbmRvdywgY2hhdCBcdTIxOTIgY2hhdFdpbmRvdywgYXJ0aWZhY3RzIFx1MjE5MiBhcnRpZmFjdHNXaW5kb3cpLCBwcm92aWRlIGNoYW5uZWwgdmFsaWRhdGlvbiAoY2FuU2VuZCwgY2FuUmVjZWl2ZSwgdmFsaWRhdGVDaGFubmVsKSwgZnJvemVuIHJlZ2lzdHJ5IHByZXZlbnRzIHJ1bnRpbWUgbW9kaWZpY2F0aW9uIC0tLSB7MiBqb2JzOiBKT0JfR0VUX1NUQVRFLCBKT0JfVkFMSURBVEVfU0NIRU1BfVxuICogT3V0Z29pbmc6IENoYW5uZWwgY29uZmlnIHtuYW1lLCBzZW5kLCByZWNlaXZlfSwgdmFsaWRhdGlvbiByZXN1bHRzIC0tLSB7Y2hhbm5lbF9jb25maWcgfCBib29sZWFuLCBqYXZhc2NyaXB0X29iamVjdF9mcm96ZW4gfCBib29sZWFufVxuICogXG4gKiBcbiAqIEBtb2R1bGUgcHJlbG9hZC9pcGMvY2hhbm5lbHNcbiAqIFxuICogSVBDIENoYW5uZWwgUmVnaXN0cnlcbiAqID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1cbiAqIERlZmluZXMgd2hpdGVsaXN0ZWQgSVBDIGNoYW5uZWxzIGZvciBlYWNoIHdpbmRvdyBjb250ZXh0LlxuICogQWxsIGNoYW5uZWwgYXJyYXlzIGFyZSBmcm96ZW4gdG8gcHJldmVudCBydW50aW1lIG1vZGlmaWNhdGlvbi5cbiAqIFxuICogU2VjdXJpdHk6XG4gKiAtIE9ubHkgbGlzdGVkIGNoYW5uZWxzIGNhbiBiZSB1c2VkIGZvciBJUEMgY29tbXVuaWNhdGlvblxuICogLSBTZXBhcmF0ZSBzZW5kL3JlY2VpdmUgY2hhbm5lbHMgcGVyIHdpbmRvd1xuICogLSBObyBkeW5hbWljIGNoYW5uZWwgcmVnaXN0cmF0aW9uIGF0IHJ1bnRpbWVcbiAqIFxuICogQG1vZHVsZSBwcmVsb2FkL2lwYy9jaGFubmVsc1xuICovXG5cbmNvbnN0IHsgZnJlZXplIH0gPSBPYmplY3Q7XG5cbi8qKlxuICogTWFpbiBXaW5kb3cgSVBDIENoYW5uZWxzXG4gKiBQcmltYXJ5IFVJIGFuZCB3aWRnZXQgbW9kZSB3aW5kb3dcbiAqL1xuY29uc3QgbWFpbldpbmRvdyA9IGZy
-DevTools failed to load source map: Could not load content for data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsiLi4vLi4vc3JjL2NvcmUvZGkvQ29udGFpbmVyLmpzIiwgIi4uLy4uL3NyYy9jb3JlL2V2ZW50cy9FdmVudEJ1cy5qcyIsICIuLi8uLi9zcmMvY29yZS9ldmVudHMvRXZlbnRUeXBlcy5qcyIsICIuLi8uLi9ub2RlX21vZHVsZXMvZXZlbnRzL2V2ZW50cy5qcyIsICIuLi8uLi9zcmMvY29yZS9jb21tdW5pY2F0aW9uL0d1cnVDb25uZWN0aW9uLmpzIiwgIi4uLy4uL3NyYy9jb3JlL3NlY3VyaXR5L1JhdGVMaW1pdGVyLmpzIiwgIi4uLy4uL3NyYy9jb3JlL2NvbW11bmljYXRpb24vQXBpQ2xpZW50LmpzIiwgIi4uLy4uL3NyYy9jb3JlL2NvbW11bmljYXRpb24vRW5kcG9pbnQuanMiLCAiLi4vLi4vc3JjL3JlbmRlcmVyL2FydGlmYWN0cy9tb2R1bGVzL3dpbmRvdy9BcnRpZmFjdHNXaW5kb3cuanMiLCAiLi4vLi4vc3JjL3JlbmRlcmVyL2FydGlmYWN0cy9tb2R1bGVzL3RhYnMvVGFiTWFuYWdlci5qcyIsICIuLi8uLi9zcmMvcmVuZGVyZXIvYXJ0aWZhY3RzL21vZHVsZXMvY29kZS9Db2RlVmlld2VyLmpzIiwgIi4uLy4uL3NyYy9yZW5kZXJlci9hcnRpZmFjdHMvbW9kdWxlcy9vdXRwdXQvcmVuZGVyZXJzL0Jhc2VSZW5kZXJlci5qcyIsICIuLi8uLi9zcmMvcmVuZGVyZXIvYXJ0aWZhY3RzL21vZHVsZXMvb3V0cHV0L3JlbmRlcmVycy9IdG1sUmVuZGVyZXIuanMiLCAiLi4vLi4vc3JjL3JlbmRlcmVyL2FydGlmYWN0cy9tb2R1bGVzL291dHB1dC9yZW5kZXJlcnMvTWFya2Rvd25SZW5kZXJlci5qcyIsICIuLi8uLi9zcmMvcmVuZGVyZXIvYXJ0aWZhY3RzL21vZHVsZXMvb3V0cHV0L3JlbmRlcmVycy9Kc29uUmVuZGVyZXIuanMiLCAiLi4vLi4vc3JjL3JlbmRlcmVyL2FydGlmYWN0cy9tb2R1bGVzL291dHB1dC9yZW5kZXJlcnMvTWVkaWFSZW5kZXJlci5qcyIsICIuLi8uLi9zcmMvcmVuZGVyZXIvYXJ0aWZhY3RzL21vZHVsZXMvb3V0cHV0L091dHB1dFZpZXdlci5qcyIsICIuLi8uLi9zcmMvcmVuZGVyZXIvYXJ0aWZhY3RzL21vZHVsZXMvZXhlY3V0aW9uL1NhZmVDb2RlRXhlY3V0b3IuanMiLCAiLi4vLi4vc3JjL3JlbmRlcmVyL2FydGlmYWN0cy9tb2R1bGVzL2ZpbGVzL0ZpbGVNYW5hZ2VyLmpzIiwgIi4uLy4uL3NyYy9kb21haW4vYXJ0aWZhY3RzL3NlcnZpY2VzL0FydGlmYWN0U2Vzc2lvbk1hbmFnZXIuanMiLCAiLi4vLi4vc3JjL2NvcmUvY29uZmlnL2RlZmF1bHRzLmpzIiwgIi4uLy4uL3NyYy9jb3JlL2NvbmZpZy92YWxpZGF0b3JzLmpzIiwgIi4uLy4uL3NyYy9jb3JlL2NvbmZpZy9lbnYtbG9hZGVyLmpzIiwgIi4uLy4uL3NyYy9jb3JlL2NvbmZpZy9yZXNvbHZlcnMuanMiLCAiLi4vLi4vbm9kZV9tb2R1bGVzL2RvdGVudi9wYWNrYWdlLmpzb24iLCAiLi4vLi4vbm9kZV9tb2R1bGVzL2RvdGVudi9saWIvbWFpbi5qcyIsICIuLi8uLi9zcmMvY29yZS9jb25maWcvaW5kZXguanMiLCAiLi4vLi4vc3JjL2NvcmUvdXRpbHMvbG9nZ2VyLmpzIiwgIi4uLy4uL3NyYy9tYWluL3NlY3VyaXR5L0V4dGVybmFsTGlua0hhbmRsZXIuanMiLCAiLi4vLi4vc3JjL21haW4vc2VjdXJpdHkvUGVybWlzc2lvbkhhbmRsZXIuanMiLCAiLi4vLi4vc3JjL21haW4vdXRpbHMvZGlzcGxheS11dGlscy5qcyIsICIuLi8uLi9zcmMvbWFpbi93aW5kb3dzL01haW5XaW5kb3cuanMiLCAiLi4vLi4vc3JjL21haW4vd2luZG93cy9DaGF0V2luZG93LmpzIiwgIi4uLy4uL3NyYy9tYWluL3dpbmRvd3MvQXJ0aWZhY3RzV2luZG93LmpzIiwgIi4uLy4uL3NyYy9tYWluL3dpbmRvd3MvV2luZG93TWFuYWdlci5qcyIsICIuLi8uLi9zcmMvbWFpbi9zZXJ2aWNlcy9JcGNSb3V0ZXIuanMiLCAiLi4vLi4vc3JjL21haW4vc2VydmljZXMvU2hvcnRjdXRNYW5hZ2VyLmpzIiwgIi4uLy4uL3NyYy9tYWluL3NlcnZpY2VzL1NlcnZpY2VMYXVuY2hlci5qcyIsICIuLi8uLi9zcmMvbWFpbi9zZXJ2aWNlcy9Qb3J0TWFuYWdlci5qcyIsICIuLi8uLi9zcmMvY29yZS9zZWN1cml0eS9Dc3BNYW5hZ2VyLmpzIiwgIi4uLy4uL3NyYy9tYWluL3NlY3VyaXR5L1NlY3VyaXR5TWFuYWdlci5qcyIsICIuLi8uLi9zcmMvbWFpbi9zZXJ2aWNlcy9TeXN0ZW1Nb25pdG9yLmpzIiwgIi4uLy4uL3NyYy9tYWluL2luZGV4LmpzIiwgIi4uLy4uL3NyYy9jb3JlL2NvbmZpZy9wb3J0LXJlc29sdmVyLmpzIiwgIi4uLy4uL3NyYy9jb3JlL2NvbmZpZy9yZW5kZXJlci1jb25maWcuanMiLCAiLi4vLi4vc3JjL2luZnJhc3RydWN0dXJlL2FwaS9zdG9yYWdlLmpzIiwgIi4uLy4uL3NyYy9kb21haW4vYXJ0aWZhY3RzL3NlcnZpY2VzL1RyYWNlYWJpbGl0eVNlcnZpY2UuanMiLCAiLi4vLi4vc3JjL3JlbmRlcmVyL2FydGlmYWN0cy9jb250cm9sbGVycy9BcnRpZmFjdHNDb250cm9sbGVyLmpzIiwgIi4uLy4uL3NyYy9yZW5kZXJlci9hcnRpZmFjdHMvcmVuZGVyZXIuanMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbIid1c2Ugc3RyaWN0JztcblxuLyoqXG4gKiBALmFyY2hpdGVjdHVyZVxuICogXG4gKiBJbmNvbWluZzogQm9vdHN0cmFwIHNjcmlwdHMgKC5yZWdpc3RlcigpIGNhbGxzKSwgbW9kdWxlcyAoLnJlc29sdmUoKSBjYWxscykgLS0tIHtyZXF1ZXN0X3R5cGVzLnJlZ2lzdGVyX3NlcnZpY2UgfCByZXF1ZXN0X3R5cGVzLnJlc29sdmVfc2VydmljZSwgbWV0aG9kX2NhbGx9XG4gKiBQcm9jZXNzaW5nOiBNYWludGFpbiBzZXJ2aWNlcyBNYXAgKG5hbWUgXHUyMTkyIGZhY3RvcnkgY29uZmlnKSwgbWFpbnRhaW4gc2luZ2xldG9ucyBjYWNoZSAobmFtZSBcdTIxOTIgaW5zdGFuY2UpLCByZXNvbHZlIGRlcGVuZGVuY2llcyByZWN1cnNpdmVseSwgZGV0ZWN0IGNpcmN1bGFyIGRlcGVuZGVuY2llcyB2aWEgX2NyZWF0aW5nIFNldCwgdmFsaWRhdGUgaW5zdGFuY2VzLCBkaXNwb3NlIGluIHJldmVyc2Ugb3JkZXIgLS0tIHs2IGpvYnM6IEpPQl9JTklUSUFMSVpFLCBKT0JfR0VUX1NUQVRFLCBKT0JfR0VUX1NUQVRFLCBKT0JfR0VUX1NUQVRFLCBKT0JfQ0FDSEVfTE9DQUxMWSwgSk9CX0RJU1BPU0V9XG4gKiBPdXRnb2luZzogUmV0dXJuIHNlcnZpY2UgaW5zdGFuY2VzIChzaW5nbGV0b25zIG9yIHRyYW5zaWVudCkgLS0tIHtzZXJ2aWNlX2luc3RhbmNlLCBqYXZhc2NyaXB0X29iamVjdH1cbiAqIFxuICogXG4gKiBAbW9kdWxlIGNvcmUvZGkvQ29udGFpbmVyXG4gKi9cblxuY29uc3QgeyBmcmVlemUsIHNlYWwgfSA9IE9iamVjdDtcblxuY2xhc3MgRGVwZW5kZW5jeUNvbnRhaW5lciB7XG4gIGNvbnN0cnVjdG9yKG9wdGlvbnMgPSB7fSkge1xuICAgIHRoaXMuX3NlcnZpY2VzID0gbmV3IE1hcCgpO1xuICAgIHRoaXMuX3NpbmdsZXRvbnMgPSBuZXcgTWFwKCk7XG4gICAgdGhpcy5fY3JlYXRpbmcgPSBuZXcgU2V0KCk7XG4gICAgdGhpcy5fZGlzcG9zZWQgPSBmYWxzZTtcbiAgICB0aGlzLm5hbWUgPSBvcHRpb25zLm5hbWUgfHwgJ2RlZmF1bHQnO1xuICAgIHRoaXMuZW5hYmxlTG9nZ2luZyA9IG9wdGlvbnMuZW5hYmxlTG9nZ2luZyB8fCBmYWxzZTtcbiAgfVxuXG4gIC8qKlxuICAgKiBSZWdpc3RlciBhIHNlcnZpY2VcbiAgICogQHBhcmFtIHtzdHJpbmd9IG5hbWUgLSBTZXJ2aWNlIGlkZW50aWZpZXJcbiAgICogQHBhcmFtIHtGdW5jdGlvbn0gZmFjdG9yeSAtIEZhY3RvcnkgZnVuY3Rpb24gdG8gY3JlYXRlIHNlcnZpY2VcbiAgICogQHBhcmFtIHtPYmplY3R9IG9wdGlvbnMgLSBDb25maWd1cmF0
-artifacts.js:14313 [ArtifactsController] Backend health: {status: 'ok', timestamp: 1763238872.341192, uptime_seconds: 8.729268074035645}
-artifacts.js:14336 ✅ ArtifactsController: Global state initialized
-artifacts.js:13919 ✅ ArtifactsController: Initialization complete
-artifacts.js:14669 ✅ Artifacts application bootstrapped successfully
-artifacts.js:14670 📊 Controller stats: {initialized: true, backendConnected: true, currentTab: 'output', currentChatId: null, hasContent: false, …}
-artifacts.js:14528 [ArtifactsController] Switching to chat: 40d2874a-cec1-457a-ad73-4810bd839daa
-artifacts.js:6302 [ArtifactSessionManager] Switching session: undefined → 40d2874a
-artifacts.js:6301 [ArtifactSessionManager] Loading session: 40d2874a
-artifacts.js:6302 [ArtifactSessionManager] Loaded 6 artifacts for session 40d2874a
-artifacts.js:5902 [FileManager] Session switched event: {chatId: '40d2874a-cec1-457a-ad73-4810bd839daa', artifactCount: 6, groupCount: 0}
-artifacts.js:5772 [FileManager] Loaded from session manager: 6 artifacts
-artifacts.js:5886 [FileManager] Chat switched event: {chatId: '40d2874a-cec1-457a-ad73-4810bd839daa'}
-2artifacts.js:5772 [FileManager] Loaded from session manager: 6 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 6 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 6 artifacts, 6 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 6 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 6 artifacts, 6 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 6 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 6 artifacts, 6 groups
-artifacts.js:14537 [ArtifactsController] ✅ Chat switched: 40d2874a
-artifacts.js:1176 WebSocket connection to 'ws://localhost:8765/' failed: 
-connect @ artifacts.js:1176
-artifacts.js:1389 [GuruConnection] WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}
-_handleError @ artifacts.js:1389
-ws.onerror @ artifacts.js:1180
-artifacts.js:14528 [ArtifactsController] Switching to chat: 92ddac60-ebbd-43eb-9416-dccd1c49d07c
-artifacts.js:6302 [ArtifactSessionManager] Switching session: 40d2874a → 92ddac60
-artifacts.js:6301 [ArtifactSessionManager] Loading session: 92ddac60
-artifacts.js:6302 [ArtifactSessionManager] Loaded 0 artifacts for session 92ddac60
-artifacts.js:5902 [FileManager] Session switched event: {chatId: '92ddac60-ebbd-43eb-9416-dccd1c49d07c', artifactCount: 0, groupCount: 0}
-artifacts.js:5772 [FileManager] Loaded from session manager: 0 artifacts
-artifacts.js:5886 [FileManager] Chat switched event: {chatId: '92ddac60-ebbd-43eb-9416-dccd1c49d07c'}
-2artifacts.js:5772 [FileManager] Loaded from session manager: 0 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 0 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 0 artifacts, 0 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 0 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 0 artifacts, 0 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 0 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 0 artifacts, 0 groups
-artifacts.js:14537 [ArtifactsController] ✅ Chat switched: 92ddac60
-artifacts.js:14528 [ArtifactsController] Switching to chat: 92ddac60-ebbd-43eb-9416-dccd1c49d07c
-artifacts.js:5886 [FileManager] Chat switched event: {chatId: '92ddac60-ebbd-43eb-9416-dccd1c49d07c'}
-2artifacts.js:5772 [FileManager] Loaded from session manager: 0 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 0 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 0 artifacts, 0 groups
-artifacts.js:14537 [ArtifactsController] ✅ Chat switched: 92ddac60
-artifacts.js:5785 [FileManager] Loaded from storage API: 0 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 0 artifacts, 0 groups
-artifacts.js:14391 [ArtifactsController] Created artifact: id=2ce766ad-19e2-40b7-9474-7, role=assistant, type=code, format=python
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 1 chunks, 1 chars
-artifacts.js:13980 [ArtifactsController] Switched to tab: code
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 2 chunks, 9 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 3 chunks, 15 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 4 chunks, 22 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 5 chunks, 24 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 6 chunks, 35 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:1213 [GuruConnection] ✅ Sent ping 
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 7 chunks, 41 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 8 chunks, 44 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 9 chunks, 47 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 10 chunks, 51 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 11 chunks, 55 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 12 chunks, 58 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 12 chunks, 58 chars, role=assistant, type=code
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-2artifacts.js:5772 [FileManager] Loaded from session manager: 1 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 0 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 1 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 1 artifacts, 1 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 0 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 1 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 1 artifacts, 1 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: 14ef3d8d-956a-4751-9e34-5b7b9a8aeac5
-artifacts.js:14391 [ArtifactsController] Created artifact: id=2ce766ad-19e2-40b7-9474-7, role=computer, type=console, format=output
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 1 chunks, 106 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 2 chunks, 267 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 3 chunks, 386 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 4 chunks, 486 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 5 chunks, 580 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 6 chunks, 581 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 7 chunks, 680 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 8 chunks, 770 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 9 chunks, 907 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 10 chunks, 3129 chars
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 10 chunks, 3129 chars, role=computer, type=console
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 1 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 3 artifacts, 2 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 1 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 3 artifacts, 2 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: a71e1e0e-67d2-4c3b-8651-00cb77b8b644
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 13 chunks, 59 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 14 chunks, 67 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 15 chunks, 73 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 16 chunks, 80 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 17 chunks, 82 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 18 chunks, 84 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 19 chunks, 87 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 20 chunks, 91 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 21 chunks, 95 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 22 chunks, 105 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 23 chunks, 106 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 24 chunks, 113 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 25 chunks, 114 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 26 chunks, 120 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 27 chunks, 123 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 27 chunks, 123 chars, role=assistant, type=code
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 2 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 4 artifacts, 3 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 2 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 4 artifacts, 3 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: 73d99706-7b55-49d2-b5a9-9398f9bdb171
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 11 chunks, 3130 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 12 chunks, 3378 chars
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 12 chunks, 3378 chars, role=computer, type=console
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 3 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 5 artifacts, 4 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 3 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 5 artifacts, 4 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: ea851ab3-e6f3-4f9c-a142-316be65a4fdb
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 28 chunks, 124 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 29 chunks, 132 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 30 chunks, 138 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 31 chunks, 145 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 32 chunks, 147 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 33 chunks, 149 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 34 chunks, 152 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 35 chunks, 156 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 36 chunks, 160 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 37 chunks, 164 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 38 chunks, 167 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 39 chunks, 170 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 40 chunks, 179 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 41 chunks, 186 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 42 chunks, 196 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 43 chunks, 199 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 43 chunks, 199 chars, role=assistant, type=code
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 4 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 6 artifacts, 5 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 4 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 6 artifacts, 5 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: 8b67da0f-a357-42cd-881c-a6f0c0a30d68
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 13 chunks, 3379 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 14 chunks, 5419 chars
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 14 chunks, 5419 chars, role=computer, type=console
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 5 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 7 artifacts, 6 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 5 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 7 artifacts, 6 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: a98377f6-e22a-415a-9cb1-b256c749f542
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 44 chunks, 200 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 45 chunks, 208 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 46 chunks, 216 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 47 chunks, 221 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 48 chunks, 228 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 49 chunks, 230 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 50 chunks, 232 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 51 chunks, 235 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 52 chunks, 239 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 53 chunks, 243 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 54 chunks, 253 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 55 chunks, 254 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 56 chunks, 263 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 57 chunks, 270 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 58 chunks, 271 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 59 chunks, 284 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 60 chunks, 287 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 60 chunks, 287 chars, role=assistant, type=code
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 6 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 8 artifacts, 7 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 6 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 8 artifacts, 7 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: 816dbefa-afb6-4198-8b9f-3efae755448a
-artifacts.js:1213 [GuruConnection] ✅ Sent ping 
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 15 chunks, 5420 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 16 chunks, 7991 chars
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 16 chunks, 7991 chars, role=computer, type=console
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 7 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 9 artifacts, 8 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 7 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 9 artifacts, 8 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: 2ba367d3-8d28-4237-a411-e131bd5ac47b
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 61 chunks, 289 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 62 chunks, 297 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 63 chunks, 305 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 64 chunks, 310 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 65 chunks, 317 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 66 chunks, 319 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 67 chunks, 321 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 68 chunks, 324 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 69 chunks, 326 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 70 chunks, 330 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 71 chunks, 334 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 72 chunks, 343 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 73 chunks, 353 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 74 chunks, 354 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 75 chunks, 361 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 76 chunks, 362 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 77 chunks, 375 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 78 chunks, 379 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 78 chunks, 379 chars, role=assistant, type=code
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 8 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 10 artifacts, 9 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 8 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 10 artifacts, 9 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: 936dde89-6d46-4f45-9b7b-54afa8f11144
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 17 chunks, 7992 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 18 chunks, 10629 chars
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 18 chunks, 10629 chars, role=computer, type=console
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 9 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 11 artifacts, 10 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 9 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 11 artifacts, 10 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: 147da385-f50d-42f3-9f04-94116b5e4f0e
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 79 chunks, 380 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 80 chunks, 388 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 81 chunks, 394 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 82 chunks, 401 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 83 chunks, 403 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 84 chunks, 407 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 85 chunks, 411 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 86 chunks, 419 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 87 chunks, 428 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 88 chunks, 436 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 89 chunks, 441 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 90 chunks, 447 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 91 chunks, 451 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 92 chunks, 460 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 93 chunks, 466 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 94 chunks, 469 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 94 chunks, 469 chars, role=assistant, type=code
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 10 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 12 artifacts, 11 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 10 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 12 artifacts, 11 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: 9ce5b2b0-6daf-45fa-9ed2-2b68d48f154a
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 19 chunks, 10630 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 20 chunks, 12879 chars
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 20 chunks, 12879 chars, role=computer, type=console
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 11 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 13 artifacts, 12 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 11 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 13 artifacts, 12 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: 2273f145-acb2-4352-ad84-150f310ef711
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 95 chunks, 470 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 96 chunks, 478 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 97 chunks, 484 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 98 chunks, 491 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 99 chunks, 493 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 100 chunks, 496 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 101 chunks, 503 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 102 chunks, 507 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 103 chunks, 515 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 104 chunks, 527 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 105 chunks, 530 chars
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 105 chunks, 530 chars, role=assistant, type=code
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-VM5:2588 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 12 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 14 artifacts, 13 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 12 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 14 artifacts, 13 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: 295518d5-d273-42ef-a7fd-19f08e2b7f67
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 21 chunks, 12880 chars
-artifacts.js:14399 [ArtifactsController] 📝 Streaming: 22 chunks, 15030 chars
-artifacts.js:14416 [ArtifactsController] ✅ Stream complete: 22 chunks, 15030 chars, role=computer, type=console
-artifacts.js:6301 [ArtifactSessionManager] Added artifact 2ce766ad to session 92ddac60
-2artifacts.js:5772 [FileManager] Loaded from session manager: 2 artifacts
-artifacts.js:5785 [FileManager] Loaded from storage API: 13 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 15 artifacts, 14 groups
-artifacts.js:5785 [FileManager] Loaded from storage API: 13 artifacts
-artifacts.js:5798 [FileManager] Loaded from controller: 2 artifacts
-artifacts.js:5806 [FileManager] ✅ Loaded 15 artifacts, 14 groups
-artifacts.js:14466 [ArtifactsController] 💾 Persisted artifact 2ce766ad-19e2-40b7-9... → PostgreSQL ID: bdad37d1-9034-434b-b865-95db4ef1c84e
-3artifacts.js:1213 [GuruConnection] ✅ Sent ping 
-artifacts.js:14564 [ArtifactsController] Ensure visible
-2artifacts.js:1213 [GuruConnection] ✅ Sent ping 
+ArtifactsController.js:598 [ArtifactsController] Backend health: Object
+ArtifactsController.js:633 ✅ ArtifactsController: Global state initialized
+ArtifactsController.js:94 ✅ ArtifactsController: Initialization complete
+renderer.js:79 ✅ Artifacts application bootstrapped successfully
+renderer.js:80 📊 Controller stats: Object
+ArtifactsController.js:864 [ArtifactsController] Switching to chat: 92ddac60-ebbd-43eb-9416-dccd1c49d07c
+ArtifactSessionManager.js:35 [ArtifactSessionManager] Switching session: undefined → 92ddac60
+ArtifactSessionManager.js:34 [ArtifactSessionManager] Loading session: 92ddac60
+ArtifactSessionManager.js:35 [ArtifactSessionManager] Loaded 14 artifacts for session 92ddac60
+FileManager.js:335 [FileManager] Session switched event: {chatId: '92ddac60-ebbd-43eb-9416-dccd1c49d07c', artifactCount: 14, groupCount: 0}
+FileManager.js:162 [FileManager] Loaded from session manager: 14 artifacts
+FileManager.js:313 [FileManager] Chat switched event: {chatId: '92ddac60-ebbd-43eb-9416-dccd1c49d07c'}
+2FileManager.js:162 [FileManager] Loaded from session manager: 14 artifacts
+FileManager.js:178 [FileManager] Loaded from storage API: 14 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 14 artifacts, 14 groups
+FileManager.js:178 [FileManager] Loaded from storage API: 14 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 14 artifacts, 14 groups
+FileManager.js:178 [FileManager] Loaded from storage API: 14 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 14 artifacts, 14 groups
+ArtifactsController.js:878 [ArtifactsController] ✅ Chat switched: 92ddac60
+ArtifactsController.js:864 [ArtifactsController] Switching to chat: e92b9a96-575d-4fd9-a895-5bd45303c2b3
+ArtifactSessionManager.js:35 [ArtifactSessionManager] Switching session: 92ddac60 → e92b9a96
+ArtifactSessionManager.js:34 [ArtifactSessionManager] Loading session: e92b9a96
+ArtifactSessionManager.js:35 [ArtifactSessionManager] Loaded 0 artifacts for session e92b9a96
+FileManager.js:335 [FileManager] Session switched event: {chatId: 'e92b9a96-575d-4fd9-a895-5bd45303c2b3', artifactCount: 0, groupCount: 0}
+FileManager.js:162 [FileManager] Loaded from session manager: 0 artifacts
+FileManager.js:313 [FileManager] Chat switched event: {chatId: 'e92b9a96-575d-4fd9-a895-5bd45303c2b3'}
+2FileManager.js:162 [FileManager] Loaded from session manager: 0 artifacts
+FileManager.js:178 [FileManager] Loaded from storage API: 0 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 0 artifacts, 0 groups
+FileManager.js:178 [FileManager] Loaded from storage API: 0 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 0 artifacts, 0 groups
+ArtifactsController.js:878 [ArtifactsController] ✅ Chat switched: e92b9a96
+FileManager.js:178 [FileManager] Loaded from storage API: 0 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 0 artifacts, 0 groups
+GuruConnection.js:143 [GuruConnection] ✅ Sent ping 
+ArtifactsController.js:695 [ArtifactsController] Created artifact: id=99cea65f-1d1c-4eae-bea5-3, role=assistant, type=code, format=python
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 1 chunks, 1 chars
+ArtifactsController.js:171 [ArtifactsController] Switched to tab: code
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 2 chunks, 9 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 3 chunks, 15 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 4 chunks, 22 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 5 chunks, 24 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 6 chunks, 26 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 7 chunks, 29 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 8 chunks, 33 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 9 chunks, 37 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 10 chunks, 47 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 11 chunks, 51 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 12 chunks, 58 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 13 chunks, 61 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:729 [ArtifactsController] ✅ Stream complete: 13 chunks, 61 chars, role=assistant, type=code
+ArtifactSessionManager.js:34 [ArtifactSessionManager] Added artifact 99cea65f to session e92b9a96
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+2FileManager.js:162 [FileManager] Loaded from session manager: 1 artifacts
+FileManager.js:178 [FileManager] Loaded from storage API: 0 artifacts
+FileManager.js:194 [FileManager] Loaded from controller: 1 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 1 artifacts, 1 groups
+FileManager.js:178 [FileManager] Loaded from storage API: 0 artifacts
+FileManager.js:194 [FileManager] Loaded from controller: 1 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 1 artifacts, 1 groups
+ArtifactsController.js:791 [ArtifactsController] 💾 Persisted artifact 99cea65f-1d1c-4eae-b... → PostgreSQL ID: b9e1e792-17b9-4971-bd22-51a96d459ba3
+ArtifactsController.js:695 [ArtifactsController] Created artifact: id=99cea65f-1d1c-4eae-bea5-3, role=computer, type=console, format=active_line
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 1 chunks, 1 chars
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 2 chunks, 2275 chars
+ArtifactsController.js:729 [ArtifactsController] ✅ Stream complete: 2 chunks, 2275 chars, role=computer, type=console
+ArtifactSessionManager.js:34 [ArtifactSessionManager] Added artifact 99cea65f to session e92b9a96
+2FileManager.js:162 [FileManager] Loaded from session manager: 2 artifacts
+FileManager.js:178 [FileManager] Loaded from storage API: 1 artifacts
+FileManager.js:194 [FileManager] Loaded from controller: 2 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 3 artifacts, 2 groups
+FileManager.js:178 [FileManager] Loaded from storage API: 1 artifacts
+FileManager.js:194 [FileManager] Loaded from controller: 2 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 3 artifacts, 2 groups
+ArtifactsController.js:791 [ArtifactsController] 💾 Persisted artifact 99cea65f-1d1c-4eae-b... → PostgreSQL ID: 1f3321b8-34ad-4485-9067-586d3a7eeed8
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 14 chunks, 62 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 15 chunks, 70 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 16 chunks, 76 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 17 chunks, 83 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 18 chunks, 85 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 19 chunks, 87 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 20 chunks, 90 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 21 chunks, 94 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 22 chunks, 98 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 23 chunks, 108 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 24 chunks, 112 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 25 chunks, 119 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 26 chunks, 122 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:729 [ArtifactsController] ✅ Stream complete: 26 chunks, 122 chars, role=assistant, type=code
+ArtifactSessionManager.js:34 [ArtifactSessionManager] Added artifact 99cea65f to session e92b9a96
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+2FileManager.js:162 [FileManager] Loaded from session manager: 2 artifacts
+FileManager.js:178 [FileManager] Loaded from storage API: 2 artifacts
+FileManager.js:194 [FileManager] Loaded from controller: 2 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 4 artifacts, 3 groups
+FileManager.js:178 [FileManager] Loaded from storage API: 2 artifacts
+FileManager.js:194 [FileManager] Loaded from controller: 2 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 4 artifacts, 3 groups
+ArtifactsController.js:791 [ArtifactsController] 💾 Persisted artifact 99cea65f-1d1c-4eae-b... → PostgreSQL ID: 99870447-fff7-4515-82c5-593eedd2e0e9
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 3 chunks, 2276 chars
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 4 chunks, 4363 chars
+ArtifactsController.js:729 [ArtifactsController] ✅ Stream complete: 4 chunks, 4363 chars, role=computer, type=console
+ArtifactSessionManager.js:34 [ArtifactSessionManager] Added artifact 99cea65f to session e92b9a96
+2FileManager.js:162 [FileManager] Loaded from session manager: 2 artifacts
+FileManager.js:178 [FileManager] Loaded from storage API: 3 artifacts
+FileManager.js:194 [FileManager] Loaded from controller: 2 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 5 artifacts, 4 groups
+FileManager.js:178 [FileManager] Loaded from storage API: 3 artifacts
+FileManager.js:194 [FileManager] Loaded from controller: 2 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 5 artifacts, 4 groups
+ArtifactsController.js:791 [ArtifactsController] 💾 Persisted artifact 99cea65f-1d1c-4eae-b... → PostgreSQL ID: 9fdc6d41-985b-4392-87d0-789feeedbc5d
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 27 chunks, 123 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 28 chunks, 131 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 29 chunks, 139 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 30 chunks, 144 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 31 chunks, 151 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 32 chunks, 153 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 33 chunks, 155 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 34 chunks, 158 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 35 chunks, 162 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 36 chunks, 166 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 37 chunks, 176 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 38 chunks, 180 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 39 chunks, 187 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 40 chunks, 190 chars
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+ArtifactsController.js:729 [ArtifactsController] ✅ Stream complete: 40 chunks, 190 chars, role=assistant, type=code
+ArtifactSessionManager.js:34 [ArtifactSessionManager] Added artifact 99cea65f to session e92b9a96
+core.js:2300 Element previously highlighted. To highlight again, first unset `dataset.highlighted`. <code class=​"language-python" data-highlighted=​"yes">​…​</code>​
+2FileManager.js:162 [FileManager] Loaded from session manager: 2 artifacts
+FileManager.js:178 [FileManager] Loaded from storage API: 4 artifacts
+FileManager.js:194 [FileManager] Loaded from controller: 2 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 6 artifacts, 5 groups
+FileManager.js:178 [FileManager] Loaded from storage API: 4 artifacts
+FileManager.js:194 [FileManager] Loaded from controller: 2 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 6 artifacts, 5 groups
+ArtifactsController.js:791 [ArtifactsController] 💾 Persisted artifact 99cea65f-1d1c-4eae-b... → PostgreSQL ID: 5bb21ff7-26a6-4a36-81df-46e2060b82a6
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 5 chunks, 4364 chars
+ArtifactsController.js:705 [ArtifactsController] 📝 Streaming: 6 chunks, 6843 chars
+GuruConnection.js:143 [GuruConnection] ✅ Sent ping 
+ArtifactsController.js:729 [ArtifactsController] ✅ Stream complete: 6 chunks, 6843 chars, role=computer, type=console
+ArtifactSessionManager.js:34 [ArtifactSessionManager] Added artifact 99cea65f to session e92b9a96
+2FileManager.js:162 [FileManager] Loaded from session manager: 2 artifacts
+FileManager.js:178 [FileManager] Loaded from storage API: 5 artifacts
+FileManager.js:194 [FileManager] Loaded from controller: 2 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 7 artifacts, 6 groups
+FileManager.js:178 [FileManager] Loaded from storage API: 5 artifacts
+FileManager.js:194 [FileManager] Loaded from controller: 2 artifacts
+FileManager.js:207 [FileManager] ✅ Loaded 7 artifacts, 6 groups
+ArtifactsController.js:791 [ArtifactsController] 💾 Persisted artifact 99cea65f-1d1c-4eae-b... → PostgreSQL ID: 301b9140-bec5-4862-94fd-9815dc374ed4
