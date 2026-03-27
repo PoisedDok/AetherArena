@@ -1,3 +1,0 @@
-transformers>=4.57.1
-qwen-tts>=0.1.1
-kokoro==0.9.4
