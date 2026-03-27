@@ -55,9 +55,9 @@ jobs:
       
     - name: Run Jest unit tests
       working-directory: ./aether-frontend
-      run: npx jest tests/unit --runInBand --coverage=false --testTimeout=30000 --maxWorkers=1 --verbose
+      run: npx jest tests/unit --runInBand --coverage=false --testTimeout=30000 --verbose
       
     - name: Run Jest integration tests
       working-directory: ./aether-frontend
-      run: npx jest tests/integration --runInBand --coverage=false --testTimeout=30000 --maxWorkers=1 --verbose
+      run: npx jest tests/integration --runInBand --coverage=false --testTimeout=30000 --verbose
       
