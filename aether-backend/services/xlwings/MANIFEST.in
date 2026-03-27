@@ -1,0 +1,19 @@
+include LICENSE.txt
+include README.rst
+include xlwings/*.xlsm
+include xlwings/*.xlam
+include xlwings/addin/xlwings.xlam
+include xlwings??-*.dll
+include xlwings/xlwings*.applescript
+include xlwings/addin/*.cls
+include xlwings/addin/WebHelpers.bas
+include xlwings/addin/Remote.bas
+include xlwings/js/xlwings.*
+include xlwings/html/*.*
+include xlwings/quickstart_fastapi/*.*
+include Cargo.toml
+include Cargo.lock
+recursive-include src *
+
+recursive-include docs *
+prune docs

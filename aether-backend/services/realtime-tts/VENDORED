@@ -1,0 +1,19 @@
+VENDORED LIBRARY
+================
+Name:       RealtimeTTS
+Version:    0.4.x (vendored snapshot)
+Upstream:   https://github.com/KoljaB/RealtimeTTS
+License:    MIT
+
+Purpose:
+  Provides real-time text-to-speech streaming for Aether's
+  hands-free voice interface.  Vendored to integrate Aether's
+  custom TTS engines (Qwen3, Qwen3-MLX, Kokoro) and to bundle
+  with the production binary.
+
+Modification policy:
+  - Aether adds custom engines under RealtimeTTS/engines/.
+  - The core RealtimeTTS/ library is upstream code.
+  - TODO/FIXME/HACK comments inside RealtimeTTS/ are upstream
+    issues, NOT Aether technical debt.
+  - Aether-authored engines are clearly marked with @.architecture.

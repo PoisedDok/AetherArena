@@ -1,0 +1,17 @@
+version: "2.0.0"
+name: "Backend Security & Compliance Standard"
+last_updated: "2026-01-11"
+controls:
+  telemetry:
+    - "All persistence and cache access must attach request/correlation metadata."
+    - "Sensitive identifiers (tokens, keys) never logged."
+  data_privacy:
+    - "Domain entities remain serialization-agnostic; interfaces redact PII before logging."
+  runtime:
+    - "External integrations must run in sandboxed adapters with health + audit events."
+  validation:
+    - "Inputs validated at interfaces; application layer enforces authorization per use-case."
+references:
+  - ".architecture/data_flow_standard.yaml"
+  - ".architecture/module_structure_standard.yaml"
+

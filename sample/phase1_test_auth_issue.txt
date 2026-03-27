@@ -1,0 +1,12 @@
+JWT Authentication Token Refresh Error Investigation
+
+User reported authentication failures after 15 minutes of inactivity.
+Symptoms:
+- 401 Unauthorized errors
+- Token refresh endpoint not being called
+- Silent logout without warning
+
+Need to debug:
+1. Token expiration time configuration
+2. Refresh token rotation logic
+3. Frontend token storage mechanism

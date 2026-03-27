@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aether/contracts/ws_trail_events.schema.json",
+  "title": "Aether WebSocket Trail Events",
+  "description": "Defines all trail.* WebSocket events emitted by backend (server role, type = trail.*)",
+  "definitions": {
+    "trail.group_created": {
+      "type": "object",
+      "required": ["role", "type", "chat_id", "group_id", "sequence_number", "backend_id"],
+      "properties": {
+        "role": { "type": "string", "const": "server" },
+        "type": { "type": "string", "const": "trail.group_created" },
+        "chat_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "group_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "sequence_number": { "type": "integer", "minimum": 1 },
+        "backend_id": { "type": "string", "minLength": 1 },
+        "frontend_id": { "type": "string" },
+        "correlation_id": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "trail.subgroup_created": {
+      "type": "object",
+      "required": [
+        "role",
+        "type",
+        "chat_id",
+        "group_id",
+        "subgroup_id",
+        "sequence_number",
+        "sequence_in_chat",
+        "execution_group",
+        "nodes",
+        "backend_id"
+      ],
+      "properties": {
+        "role": { "type": "string", "const": "server" },
+        "type": { "type": "string", "const": "trail.subgroup_created" },
+        "chat_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "group_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "subgroup_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "sequence_number": { "type": "integer", "minimum": 1 },
+        "subgroup_sequence": { "type": "integer", "minimum": 1 },
+        "sequence_in_chat": { "type": "integer", "minimum": 1 },
+        "execution_group": { "type": "string", "minLength": 1 },
+        "backend_id": { "type": "string", "minLength": 1 },
+        "frontend_id": { "type": "string" },
+        "nodes": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["node_id", "type", "sequence", "status", "clickable"],
+            "properties": {
+              "node_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+              "type": { "type": "string", "enum": ["writing", "executing", "output"] },
+              "sequence": { "type": "integer", "minimum": 1, "maximum": 3 },
+              "status": { "type": "string", "enum": ["pending", "active", "completed", "error"] },
+              "clickable": { "type": "boolean" },
+              "artifact_id": {
+                "type": ["string", "null"],
+                "description": "Non-null when status=completed"
+              },
+              "artifact_type": { "type": ["string", "null"], "enum": ["code", "output", null] }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "trail.node_status_updated": {
+      "type": "object",
+      "required": ["role", "type", "chat_id", "group_id", "node_id", "subgroup_id", "status"],
+      "properties": {
+        "role": { "type": "string", "const": "server" },
+        "type": { "type": "string", "const": "trail.node_status_updated" },
+        "chat_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "group_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "node_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "subgroup_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "status": { "type": "string", "enum": ["pending", "active", "completed", "error"] },
+        "error": {
+          "type": ["string", "null"],
+          "description": "Error message if status=error"
+        }
+      },
+      "additionalProperties": false
+    },
+    "trail.artifact_linked": {
+      "type": "object",
+      "required": [
+        "role",
+        "type",
+        "chat_id",
+        "group_id",
+        "artifact_id",
+        "node_id",
+        "subgroup_id",
+        "artifact_type",
+        "backend_id"
+      ],
+      "properties": {
+        "role": { "type": "string", "const": "server" },
+        "type": { "type": "string", "const": "trail.artifact_linked" },
+        "chat_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "group_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable artifact ID from stream (format: {backend_id}:{type}:{counter})"
+        },
+        "node_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "subgroup_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "artifact_type": { "type": "string", "enum": ["code", "output"] },
+        "backend_id": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "trail.subgroup_completed": {
+      "type": "object",
+      "required": ["role", "type", "chat_id", "group_id", "subgroup_id", "status"],
+      "properties": {
+        "role": { "type": "string", "const": "server" },
+        "type": { "type": "string", "const": "trail.subgroup_completed" },
+        "chat_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "group_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "subgroup_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "status": { "type": "string", "enum": ["completed", "error"] }
+      },
+      "additionalProperties": false
+    },
+    "trail.agent_message_sequence": {
+      "type": "object",
+      "required": ["role", "type", "chat_id", "sequence_in_chat", "backend_id"],
+      "properties": {
+        "role": { "type": "string", "const": "server" },
+        "type": { "type": "string", "const": "trail.agent_message_sequence" },
+        "chat_id": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "sequence_in_chat": { "type": "integer", "minimum": 1 },
+        "backend_id": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/definitions/trail.group_created" },
+    { "$ref": "#/definitions/trail.subgroup_created" },
+    { "$ref": "#/definitions/trail.node_status_updated" },
+    { "$ref": "#/definitions/trail.artifact_linked" },
+    { "$ref": "#/definitions/trail.subgroup_completed" },
+    { "$ref": "#/definitions/trail.agent_message_sequence" }
+  ]
+}
+

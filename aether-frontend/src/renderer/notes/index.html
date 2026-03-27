@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- CSP injected by main-preload.js -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aether Notes</title>
+  
+  <link rel="stylesheet" href="../shared/vendor/fontawesome/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-color: #1e1e1e;
+      --header-bg: #252526;
+      --toolbar-bg: #1e1e1e;
+      --border-color: #333;
+      --text-primary: #ffffff;
+      --text-secondary: #aaaaaa;
+      --accent-color: #007acc;
+      --hover-bg: rgba(255, 255, 255, 0.1);
+      --btn-hover-bg: #2d2d2d;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: transparent;
+      color: var(--text-primary);
+    }
+    
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    
+    /* Title bar - Drag region */
+    .titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 42px;
+      background-color: var(--header-bg);
+      border-bottom: 1px solid var(--border-color);
+      -webkit-app-region: drag;
+      padding: 0 12px;
+      user-select: none;
+    }
+    
+    .titlebar-left {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .titlebar-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      background: transparent;
+      border: none;
+      outline: none;
+      width: 100%;
+      -webkit-app-region: no-drag;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 4px 0;
+      font-family: inherit;
+    }
+
+    .titlebar-title::placeholder {
+      color: var(--text-secondary);
+    }
+    
+    .titlebar-controls {
+      display: flex;
+      -webkit-app-region: no-drag;
+      gap: 6px;
+      margin-left: 10px;
+    }
+    
+    .control-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      width: 26px;
+      height: 26px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-size: 12px;
+    }
+    
+    .control-btn:hover {
+      background-color: var(--hover-bg);
+      color: var(--text-primary);
+    }
+    
+    .control-btn.close:hover {
+      background-color: #e81123;
+      color: white;
+    }
+    
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      padding: 8px 12px;
+      background-color: var(--toolbar-bg);
+      border-bottom: 1px solid var(--border-color);
+      gap: 8px;
+    }
+    
+    .toolbar-btn {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    
+    .toolbar-btn i {
+      font-size: 11px;
+      color: var(--text-secondary);
+      transition: color 0.15s ease;
+    }
+    
+    .toolbar-btn:hover {
+      background: var(--btn-hover-bg);
+      border-color: #444;
+    }
+    
+    .toolbar-btn:hover i {
+      color: var(--text-primary);
+    }
+    
+    /* Editor */
+    .editor-container {
+      flex: 1;
+      display: flex;
+      position: relative;
+    }
+    
+    .editor {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      padding: 16px;
+      padding-bottom: 32px;
+      font-size: 14px;
+      line-height: 1.6;
+      resize: none;
+      outline: none;
+      font-family: inherit;
+    }
+    
+    .editor::placeholder {
+      color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .word-counter {
+      position: absolute;
+      bottom: 12px;
+      right: 20px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      pointer-events: none;
+      user-select: none;
+      opacity: 0.6;
+    }
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #444;
+      border-radius: 4px;
+      border: 2px solid var(--bg-color);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+    
+    /* Native Window Material Support (Win/Mac) */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: transparent;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="titlebar">
+      <div class="titlebar-left">
+        <input type="text" id="note-title" class="titlebar-title" placeholder="Untitled Note" />
+      </div>
+      <div class="titlebar-controls">
+        <button id="btn-minimize" class="control-btn" title="Minimize"><i class="fas fa-minus"></i></button>
+        <button id="btn-maximize" class="control-btn" title="Maximize"><i class="far fa-square"></i></button>
+        <button id="btn-close" class="control-btn close" title="Close"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+    
+    <div class="toolbar">
+      <button id="btn-open" class="toolbar-btn" title="Open text file"><i class="fas fa-folder-open"></i> Open</button>
+      <button id="btn-save" class="toolbar-btn" title="Save as text file"><i class="fas fa-save"></i> Save</button>
+      <button id="btn-clear" class="toolbar-btn" title="Clear note"><i class="fas fa-trash-alt"></i> Clear</button>
+    </div>
+    
+    <div class="editor-container">
+      <textarea id="note-editor" class="editor" placeholder="Type your notes here..."></textarea>
+      <div id="word-counter" class="word-counter">0 words</div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Notes Logic
+    document.addEventListener('DOMContentLoaded', () => {
+      const titleInput = document.getElementById('note-title');
+      const editorInput = document.getElementById('note-editor');
+      
+      const btnOpen = document.getElementById('btn-open');
+      const btnSave = document.getElementById('btn-save');
+      const btnClear = document.getElementById('btn-clear');
+      
+      const btnMinimize = document.getElementById('btn-minimize');
+      const btnMaximize = document.getElementById('btn-maximize');
+      const btnClose = document.getElementById('btn-close');
+      const wordCounter = document.getElementById('word-counter');
+
+      // Local storage persistence fallback
+      const STORAGE_KEY = 'aether-study-notes-detached';
+      let saveTimeout = null;
+
+      function updateWordCount() {
+        const text = editorInput.value.trim();
+        const words = text ? text.split(/\s+/).length : 0;
+        wordCounter.textContent = `${words} word${words === 1 ? '' : 's'}`;
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const data = JSON.parse(raw);
+            titleInput.value = data.title || '';
+            editorInput.value = data.content || '';
+          }
+        } catch (e) {
+          console.error('Failed to load local state', e);
+        }
+        updateWordCount();
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            title: titleInput.value,
+            content: editorInput.value
+          }));
+        } catch (e) {
+          console.error('Failed to save local state', e);
+        }
+      }
+
+      function scheduleSave() {
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(saveState, 500);
+      }
+
+      // Initial load
+      loadState();
+
+      // Setup IPC Listeners
+      if (window.aether && window.aether.ipc) {
+        window.aether.ipc.on('notes:init', (data) => {
+          if (data && data.title) titleInput.value = data.title;
+          if (data && data.content) editorInput.value = data.content;
+          updateWordCount();
+          saveState();
+        });
+      }
+
+      // Event Listeners for inputs
+      titleInput.addEventListener('input', scheduleSave);
+      editorInput.addEventListener('input', () => {
+        scheduleSave();
+        updateWordCount();
+      });
+
+      // Toolbar Actions
+      btnOpen.addEventListener('click', async () => {
+        if (window.aether && window.aether.dialog && window.aether.dialog.readTextFile) {
+          const result = await window.aether.dialog.readTextFile();
+          if (result && result.content !== undefined) {
+            editorInput.value = result.content;
+            titleInput.value = result.filename || 'Opened Note';
+            updateWordCount();
+            saveState();
+          }
+        } else {
+          console.error('Dialog API not available');
+        }
+      });
+
+      btnSave.addEventListener('click', async () => {
+        if (window.aether && window.aether.dialog && window.aether.dialog.saveTextFile) {
+          const content = editorInput.value;
+          const title = titleInput.value || 'notes';
+          const defaultPath = title.endsWith('.txt') || title.endsWith('.md') ? title : `${title}.md`;
+          
+          const result = await window.aether.dialog.saveTextFile(content, defaultPath);
+          if (result && result.success) {
+            // Typical notepad behavior keeps it open
+            saveState();
+          }
+        } else {
+          console.error('Dialog API not available');
+        }
+      });
+
+      btnClear.addEventListener('click', () => {
+        if (confirm('Are you sure you want to clear this note?')) {
+          editorInput.value = '';
+          titleInput.value = '';
+          updateWordCount();
+          saveState();
+        }
+      });
+
+      // Window Controls
+      btnMinimize.addEventListener('click', () => {
+         if (window.aether && window.aether.ipc) {
+           window.aether.ipc.send('notes:window-control', 'minimize');
+         }
+      });
+      
+      btnMaximize.addEventListener('click', () => {
+         if (window.aether && window.aether.ipc) {
+           window.aether.ipc.send('notes:window-control', 'maximize');
+         }
+      });
+      
+      btnClose.addEventListener('click', () => {
+         if (window.aether && window.aether.ipc) {
+           window.aether.ipc.send('notes:window-control', 'close');
+         }
+      });
+    });
+  </script>
+</body>
+</html>

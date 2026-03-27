@@ -1,0 +1,213 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'PP Editorial';
+  src: url('/fonts/pp-ed-ul.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  /* Aether-inspired crystal glassmorphism variables */
+  :root {
+    /* Glass surface colors (translucent) */
+    --glass-bg: rgba(16, 18, 24, 0.36);
+    --glass-bg-strong: rgba(16, 18, 24, 0.54);
+    --glass-window-bg: rgba(16, 18, 24, 0.22);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-stroke: 0 0 0 1px rgba(255, 255, 255, 0.14);
+    --glass-shadow: 0 24px 72px rgba(0, 0, 0, 0.45);
+    --backdrop-blur: 40px;
+    --backdrop-saturate: 150%;
+    
+    /* Caustics for depth */
+    --glass-caustics:
+      radial-gradient(140% 160% at 16% 0%, rgba(255, 255, 255, 0.08), transparent 60%),
+      radial-gradient(120% 140% at 88% 18%, rgba(110, 168, 255, 0.015), transparent 70%),
+      radial-gradient(160% 180% at 50% 120%, rgba(176, 136, 255, 0.012), transparent 70%);
+  }
+  
+  /* Light mode glass (for light theme support) */
+  :root.light,
+  html.light,
+  body.light {
+    --glass-bg: rgba(255, 255, 255, 0.42);
+    --glass-bg-strong: rgba(255, 255, 255, 0.62);
+    --glass-window-bg: rgba(255, 255, 255, 0.26);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --glass-shadow: 0 18px 54px rgba(0, 0, 0, 0.18);
+  }
+
+  .overflow-hidden-scrollable {
+    -ms-overflow-style: none;
+  }
+
+  .overflow-hidden-scrollable::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Aether-style scrollbar: softer, rounder */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+    transition: background 0.2s ease;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.30);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    * {
+      scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.30);
+    }
+  }
+
+  :root.dark *,
+  html.dark *,
+  body.dark * {
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  }
+
+  :root.dark *::-webkit-scrollbar-thumb,
+  html.dark *::-webkit-scrollbar-thumb,
+  body.dark *::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  :root.dark *::-webkit-scrollbar-thumb:hover,
+  html.dark *::-webkit-scrollbar-thumb:hover,
+  body.dark *::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.30);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Aether glass effect on body (subtle ambient depth) */
+  body {
+    position: relative;
+    background: transparent;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -2;
+    opacity: 0.8;
+    background:
+      radial-gradient(800px 520px at 18% 18%, rgba(110, 168, 255, 0.06), transparent 62%),
+      radial-gradient(700px 480px at 82% 24%, rgba(176, 136, 255, 0.04), transparent 64%),
+      radial-gradient(900px 700px at 55% 88%, rgba(253, 224, 71, 0.02), transparent 66%),
+      linear-gradient(180deg, rgba(10, 10, 10, 0.28), rgba(10, 10, 10, 0.12));
+  }
+
+  /* Subtle grain texture for premium feel */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background: var(--glass-caustics);
+    opacity: 0.3;
+    mix-blend-mode: overlay;
+  }
+}
+
+/* Glass utility classes */
+@layer utilities {
+  .glass-surface {
+    background: var(--glass-caustics), var(--glass-window-bg);
+    backdrop-filter: blur(var(--backdrop-blur)) saturate(var(--backdrop-saturate));
+    -webkit-backdrop-filter: blur(var(--backdrop-blur)) saturate(var(--backdrop-saturate));
+    border: 1px solid var(--glass-border);
+  }
+  
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--backdrop-blur)) saturate(var(--backdrop-saturate));
+    -webkit-backdrop-filter: blur(var(--backdrop-blur)) saturate(var(--backdrop-saturate));
+    border: 1px solid var(--glass-border);
+  }
+  
+  .glass-strong {
+    background: var(--glass-bg-strong);
+    backdrop-filter: blur(var(--backdrop-blur)) saturate(var(--backdrop-saturate));
+    -webkit-backdrop-filter: blur(var(--backdrop-blur)) saturate(var(--backdrop-saturate));
+    border: 1px solid var(--glass-border);
+  }
+  
+  /* Glass with 3D depth (for chat boxes, cards) */
+  .glass-depth {
+    background: var(--glass-caustics), var(--glass-bg);
+    backdrop-filter: blur(var(--backdrop-blur)) saturate(var(--backdrop-saturate));
+    -webkit-backdrop-filter: blur(var(--backdrop-blur)) saturate(var(--backdrop-saturate));
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Glass card with strong depth */
+  .glass-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)), var(--glass-bg);
+    backdrop-filter: blur(var(--backdrop-blur)) saturate(var(--backdrop-saturate));
+    -webkit-backdrop-filter: blur(var(--backdrop-blur)) saturate(var(--backdrop-saturate));
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 
+      0 4px 24px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  }
+}
+
+@layer utilities {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+}
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  select,
+  textarea,
+  input {
+    font-size: 16px !important;
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "setupComplete": false,
+  "preferences": {},
+  "personalization": {},
+  "modelProviders": [
+    {
+      "id": "0de66d8f-7fa3-4eed-847f-e67e2fd68bf5",
+      "name": "Transformers",
+      "type": "transformers",
+      "chatModels": [],
+      "embeddingModels": [],
+      "config": {},
+      "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    }
+  ],
+  "search": {
+    "searxngURL": "http://searxng:8080"
+  }
+}

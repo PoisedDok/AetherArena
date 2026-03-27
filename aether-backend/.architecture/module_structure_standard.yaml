@@ -1,0 +1,57 @@
+Incoming: Architecture standards (module_structure_standard, backend_architecture_standard) --- {Dict[str, Any], yaml}
+Processing: map canonical layering responsibilities to backend modules, codify enforcement groups --- {3 jobs: JOB_LOG, JOB_TRACE, JOB_VALIDATE_SCHEMA}
+Outgoing: Backend manifest --- {Dict[str, Any], yaml}
+
+version: "2.0.0"
+name: "Backend Module Structure Standard"
+last_updated: "2026-01-11"
+layers:
+  - layer: interfaces
+    responsibilities:
+      - "Expose FastAPI, WebSocket, CLI, or SDK entrypoints."
+      - "Perform request validation and orchestrate application services."
+  - layer: application
+    responsibilities:
+      - "Compose domain logic and platform adapters via unit-of-work."
+      - "Coordinate side effects and enforce cross-cutting policies."
+  - layer: domains
+    responsibilities:
+      - "Hold pure entities / value objects with no IO dependencies."
+      - "Express invariants and transformations on domain data."
+  - layer: platform
+    responsibilities:
+      - "Wrap infrastructure providers (Supabase, Redis, integrations)."
+      - "Expose request-scoped helpers for application/services."
+guidelines:
+  - "All module docstrings reference .architecture/data_flow_standard.yaml."
+  - "Interfaces depend on application; application depends on domains + platform; domains depend on nothing."
+
+layer_groups:
+  interfaces:
+    description: "Inbound interface surfaces translating external clients into application commands."
+    members:
+      - "presentation_api"
+      - "websocket_hub"
+  application:
+    description: "Coordinators and services that enforce business workflows across domains and providers."
+    members:
+      - "application_runtime"
+  domains:
+    description: "Pure domain entities and invariants with zero infrastructure dependencies."
+    members:
+      - "domains"
+  platform:
+    description: "Infrastructure adapters, persistence, security, and observability layers."
+    members:
+      - "integrations"
+      - "data_persistence"
+      - "storage_pipeline"
+      - "security_controls"
+      - "configuration"
+      - "monitoring"
+      - "cache_layer"
+  shared:
+    description: "Cross-cutting utilities shared across layers without owning business logic."
+    members:
+      - "utils"
+

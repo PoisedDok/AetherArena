@@ -1,0 +1,184 @@
+Incoming: Frontend manifest and module structure standard --- {Dict[str, Any], yaml}
+Processing: Define renderer/main data-flow taxonomy and registry-backed documentation template --- {3 jobs: JOB_AGGREGATE, JOB_TRACE, JOB_VALIDATE_SCHEMA}
+Outgoing: Frontend manifest and job tracer scripts --- {Dict[str, Any], yaml}
+
+version: "2.0.0"
+name: "Aether Frontend Data Flow Standard"
+last_updated: "2026-01-11"
+description: >
+  Canonical guide for documenting renderer, preload, and application-main
+  flows. Every @.architecture block for frontend modules MUST align with
+  these patterns and pull job identifiers from the frontend job registry.
+
+documentation_template:
+  description: "Three-line documentation template, no additions"
+  lines:
+    - "Incoming: <source refs> --- {<data_type ref>, <format>}"
+    - "Processing: <operations summary> --- {<N> jobs: <job_types>}"
+    - "Outgoing: <dest refs> --- {<data_type ref>, <format>}"
+  rules:
+    - "Sources/destinations are absolute module paths, IPC channels, WebSocket endpoints, or 'none'."
+    - "Data types reference canonical data structures and schemas."
+    - "Job lists use registry identifiers, alphabetical order, and correct counts."
+    - "If a section does not apply, record 'none'."
+
+job_types:
+  - name: "JOB_ACCUMULATE_TEXT"
+    layers: ["renderer"]
+    description: "Accumulate streaming text chunks into message buffers."
+  - name: "JOB_APPEND_TO_CONTAINER"
+    layers: ["renderer"]
+    description: "Append sanitized DOM elements to message containers."
+  - name: "JOB_ATTACH_TO_WINDOW"
+    layers: ["main_process"]
+    description: "Attach resources or handlers to Electron windows."
+  - name: "JOB_CACHE_LOCALLY"
+    layers: ["domain"]
+    description: "Cache data in local storage or memory with eviction policies."
+  - name: "JOB_CLEAR_STATE"
+    layers: ["core"]
+    description: "Clear session or application state."
+  - name: "JOB_CREATE_DOM_ELEMENT"
+    layers: ["renderer"]
+    description: "Create sanitized DOM elements from data."
+  - name: "JOB_DEDUPLICATE_CHUNK"
+    layers: ["renderer"]
+    description: "Deduplicate streaming chunks by correlation ID."
+  - name: "JOB_DETECT_NEW_STREAM"
+    layers: ["application_main"]
+    description: "Detect new streaming sessions and initialize state."
+  - name: "JOB_DISPOSE"
+    layers: ["domain", "renderer"]
+    description: "Cleanup resources, event listeners, and timers."
+  - name: "JOB_EMIT_EVENT"
+    layers: ["application_main"]
+    description: "Emit sanitized IPC/EventBus payloads and telemetry markers for downstream modules."
+  - name: "JOB_ESCAPE_HTML"
+    layers: ["core"]
+    description: "Escape HTML entities in user input."
+  - name: "JOB_FINALIZE_STREAM"
+    layers: ["application_main"]
+    description: "Finalize streaming workflows and cleanup resources."
+  - name: "JOB_GENERATE_ARTIFACT_ID"
+    layers: ["core"]
+    description: "Generate deterministic artifact identifiers."
+  - name: "JOB_GENERATE_SESSION_ID"
+    layers: ["core"]
+    description: "Generate session identifiers for traceability."
+  - name: "JOB_HTTP_REQUEST"
+    layers: ["infrastructure"]
+    description: "Execute HTTP requests with retry and circuit breaker."
+  - name: "JOB_INITIALIZE"
+    layers: ["application_main", "main_process"]
+    description: "Initialize services, windows, or resources."
+  - name: "JOB_PARSE_JSON"
+    layers: ["application_main", "infrastructure"]
+    description: "Parse JSON payloads from HTTP/WebSocket/IPC before routing or persistence."
+  - name: "JOB_PARSE_THINK_TAGS"
+    layers: ["renderer"]
+    description: "Parse and style <think> tags in assistant responses."
+  - name: "JOB_RENDER_MARKDOWN"
+    layers: ["renderer"]
+    description: "Transform streaming Markdown into sanitized DOM fragments before display."
+  - name: "JOB_RESTORE_ID"
+    layers: ["domain"]
+    description: "Restore frontend-generated IDs from backend responses."
+  - name: "JOB_ROUTE_BY_TYPE"
+    layers: ["application_main"]
+    description: "Route payloads to chat, artifacts, telemetry, or persistence pipelines based on type metadata."
+  - name: "JOB_SANITIZE_MARKDOWN"
+    layers: ["renderer"]
+    description: "Apply Sanitizer + HtmlRenderer sandbox policies before DOM insertion."
+  - name: "JOB_SAVE_TO_DB"
+    layers: ["domain"]
+    description: "Persist data to backend via IPC or HTTP."
+  - name: "JOB_SEND_IPC"
+    layers: ["application_main", "preload"]
+    description: "Dispatch typed payloads across whitelisted IPC channels with correlation metadata."
+  - name: "JOB_START"
+    layers: ["domain", "application_main"]
+    description: "Start services, streams, or background tasks."
+  - name: "JOB_STOP"
+    layers: ["domain", "application_main"]
+    description: "Stop services, streams, or background tasks with cleanup."
+  - name: "JOB_TRACK_ENTITY"
+    layers: ["domain"]
+    description: "Track entity lifecycle for traceability."
+  - name: "JOB_UPDATE_DOM_ELEMENT"
+    layers: ["renderer"]
+    description: "Update existing DOM elements with new data."
+  - name: "JOB_UPDATE_STATE"
+    layers: ["application_main", "domain"]
+    description: "Apply reducer semantics to local state stores with immutable updates and telemetry."
+  - name: "JOB_VALIDATE_SCHEMA"
+    layers: ["application_main", "preload", "domain"]
+    description: "Validate payload envelopes against strict schemas prior to transport or render."
+  - name: "JOB_WRITE_FILE"
+    layers: ["domain"]
+    description: "Write files to disk via IPC."
+  - name: "JOB_WS_RECEIVE"
+    layers: ["infrastructure", "application_main"]
+    description: "Receive WebSocket chunks, enforce schema invariants, and surface correlation mismatches."
+  - name: "JOB_WS_SEND"
+    layers: ["infrastructure", "application_main"]
+    description: "Send outbound WebSocket payloads with {frontendId, correlationId, requestId} headers."
+
+flow_patterns:
+  - id: "entry_point"
+    summary: "WebSocket chunk enters GuruConnection and is validated before orchestration."
+    incoming: ["websocket.stream_chunk"]
+    processing_jobs: ["JOB_WS_RECEIVE", "JOB_PARSE_JSON", "JOB_VALIDATE_SCHEMA"]
+    outgoing: ["ipc.chat_stream_event"]
+    notes: "Reject payloads missing {frontendId, correlationId, requestId}."
+  - id: "relay"
+    summary: "Main-process relays payloads across IPC channels."
+    incoming: ["ipc.chat_stream_event", "event.custom"]
+    processing_jobs: ["JOB_ROUTE_BY_TYPE", "JOB_SEND_IPC", "JOB_EMIT_EVENT"]
+    outgoing: ["renderer controllers", "artifacts window"]
+    notes: "Whitelisted channels defined in preload/common/bridge-factory.js."
+  - id: "orchestrator"
+    summary: "Application-main orchestrators coordinate transports, telemetry, and persistence."
+    incoming: ["renderer commands", "HTTP responses", "WebSocket control messages"]
+    processing_jobs: ["JOB_VALIDATE_SCHEMA", "JOB_ROUTE_BY_TYPE", "JOB_EMIT_EVENT", "JOB_UPDATE_STATE"]
+    outgoing: ["IPC", "state.chat_session", "TelemetryBus"]
+    notes: "No DOM access; state mutations go through reducers."
+  - id: "processor"
+    summary: "Renderer processors transform streaming data prior to DOM work."
+    incoming: ["ipc.chat_stream_event"]
+    processing_jobs: ["JOB_DEDUPLICATE_CHUNK", "JOB_ACCUMULATE_TEXT", "JOB_PARSE_JSON", "JOB_SANITIZE_MARKDOWN"]
+    outgoing: ["dom.chat_message_node", "state.chat_session"]
+    notes: "Buffers keyed by {chatId, requestId}; flush on completion."
+  - id: "renderer"
+    summary: "Render sanitized DOM output and maintain viewport."
+    incoming: ["dom.chat_message_node", "renderer events"]
+    processing_jobs: ["JOB_RENDER_MARKDOWN", "JOB_SANITIZE_MARKDOWN", "JOB_UPDATE_STATE"]
+    outgoing: ["DOM", "TelemetryBus"]
+    notes: "All DOM writes occur inside requestAnimationFrame."
+  - id: "persister"
+    summary: "Repositories and storage adapters persist state through backend APIs."
+    incoming: ["state.chat_session", "artifact payloads"]
+    processing_jobs: ["JOB_VALIDATE_SCHEMA", "JOB_SEND_IPC", "JOB_HTTP_REQUEST", "JOB_UPDATE_STATE"]
+    outgoing: ["backend HTTP routes", "state.settings_snapshot"]
+    notes: "ApiClient injects Supabase trace metadata for every call."
+  - id: "id_generator"
+    summary: "Core SessionManager and TraceabilityService mint deterministic identifiers."
+    incoming: ["state.chat_session", "artifact detection events"]
+    processing_jobs: ["JOB_GENERATE_SESSION_ID", "JOB_GENERATE_ARTIFACT_ID", "JOB_TRACK_ENTITY"]
+    outgoing: ["domain repositories", "TelemetryBus"]
+    notes: "Identifier formats documented in session_identity pipeline specification."
+
+validation:
+  automation:
+    - "node scripts/job_tracer.js list --domain frontend"
+    - "node scripts/job_tracer.js export architecture_index.json"
+    - "node scripts/validate_job_types.js --strict"
+  manual:
+    - "Confirm @.architecture blocks mirror latest pipelines before merge."
+    - "Cross-check data types with canonical schemas when adding flows."
+
+references:
+  - ".architecture/frontend_manifest.yaml"
+  - ".architecture/module_structure_standard.yaml"
+  - ".architecture/security_compliance_standard.yaml"
+
+

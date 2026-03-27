@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aether/contracts/ws_message.schema.json",
+  "title": "Aether WebSocket Message",
+  "description": "Base WebSocket envelope for Aether. Supports both client → server and server → client payloads.",
+  "type": "object",
+  "required": ["type"],
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": ["user", "assistant", "computer", "server", "system"]
+    },
+    "type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Message/event type. Specific types are validated by specialized schemas."
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Frontend-generated message/request ID (client → server)"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F-]{36}$",
+      "description": "Backend-generated request ID (server → client)"
+    },
+    "backend_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Backend correlation identifier used by trail events"
+    },
+    "content": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object"
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "error_details": {
+      "type": "object"
+    },
+    "image": {
+      "type": "string"
+    },
+    "audio": {
+      "type": "string"
+    },
+    "format": {
+      "type": "string"
+    },
+    "start": {
+      "type": "boolean",
+      "default": false
+    },
+    "end": {
+      "type": "boolean",
+      "default": false
+    },
+    "frontend_id": {
+      "type": "string"
+    },
+    "correlation_id": {
+      "type": "string"
+    },
+    "chat_id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F-]{36}$"
+    },
+    "sequence": {
+      "type": "integer"
+    },
+    "sequence_in_chat": {
+      "type": "integer"
+    },
+    "sequence_number": {
+      "type": "integer"
+    },
+    "subgroup_sequence": {
+      "type": "integer"
+    },
+    "recipient": {
+      "type": "string"
+    },
+    "execution_group": {
+      "type": "string"
+    },
+    "artifact_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "node_id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F-]{36}$"
+    },
+    "subgroup_id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F-]{36}$"
+    },
+    "group_id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F-]{36}$"
+    },
+    "message_id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F-]{36}$"
+    },
+    "status": {
+      "type": "string"
+    },
+    "artifact_type": {
+      "type": "string"
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F-]{36}$"
+          },
+          "type": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "integer"
+          },
+          "clickable": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "timestamp": {
+      "type": ["number", "string"]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": { "enum": ["ping", "pong", "heartbeat"] }
+        }
+      },
+      "then": {}
+    },
+    {
+      "if": {
+        "properties": {
+          "role": { "const": "user" },
+          "type": { "const": "message" }
+        }
+      },
+      "then": {
+        "required": ["id", "content"]
+      }
+    }
+  ],
+  "additionalProperties": true
+}
+
+

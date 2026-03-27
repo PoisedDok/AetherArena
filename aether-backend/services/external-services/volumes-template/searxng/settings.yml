@@ -1,0 +1,484 @@
+# Aether SearXNG Configuration
+# Curated from backup for robust multi-source research.
+# This file is used as a template during onboarding (setup_engine.py).
+
+use_default_settings: true
+
+general:
+  instance_name: 'aether-searxng'
+  enable_metrics: true
+
+search:
+  # Autocomplete providers: "google", "duckduckgo", "brave", "wikipedia", etc.
+  autocomplete: 'google'
+  autocomplete_min: 3
+  favicon_resolver: 'google'
+  default_lang: 'auto'
+  safe_search: 0
+  formats:
+    - html
+    - json  # Required for Perplexica integration
+
+  # Porting 'Gold' suspension logic from backup to prevent engine thrashing
+  ban_time_on_fail: 5
+  max_ban_time_on_fail: 120
+  suspended_times:
+    SearxEngineAccessDenied: 60
+    SearxEngineCaptcha: 60
+    SearxEngineTooManyRequests: 60
+    cf_SearxEngineCaptcha: 300 # 5 mins for Cloudflare bans
+    cf_SearxEngineAccessDenied: 300
+    recaptcha_SearxEngineCaptcha: 300
+
+server:
+  # The secret_key is overwritten by SEARXNG_SECRET environment variable.
+  secret_key: "YX9o9ls0U4GES5cPOkNnVPj7LaQMhl"
+  limiter: false
+  image_proxy: true
+  method: "POST"
+
+outgoing:
+  # Default timeouts
+  request_timeout: 10.0
+  max_request_timeout: 45.0
+  pool_connections: 100
+  pool_maxsize: 20
+  enable_http2: true
+
+  # No global proxy: surface web traffic connects directly to avoid bans
+  using_tor_proxy: false
+
+plugins:
+  searx.plugins.calculator.SXNGPlugin:
+    active: true
+  searx.plugins.hash_plugin.SXNGPlugin:
+    active: true
+  searx.plugins.unit_converter.SXNGPlugin:
+    active: true
+  searx.plugins.time_zone.SXNGPlugin:
+    active: true
+  searx.plugins.tracker_url_remover.SXNGPlugin:
+    active: true
+  searx.plugins.ahmia_filter.SXNGPlugin:
+    active: true
+  searx.plugins.hostnames.SXNGPlugin:
+    active: true
+  searx.plugins.self_info.SXNGPlugin:
+    active: true
+
+# --- Categories ---
+categories_as_tabs:
+  general:
+  images:
+  videos:
+  news:
+  map:
+  music:
+  it:
+  science:
+  files:
+  social media:
+
+# --- Hostnames Plugin Config ---
+hostnames:
+  remove:
+    - '(.*\.)?facebook.com$'
+  low_priority:
+    - '(.*\.)?google(\..*)?$'
+  high_priority:
+    - '(.*\.)?wikipedia.org$'
+
+# ==============================================================================
+# ENGINES
+# Enabled: primary high-quality sources for Aether's research modes.
+# Disabled: secondary sources included for future scale/user customization.
+# ==============================================================================
+engines:
+  # --- General ---
+  - name: google
+    engine: google
+    shortcut: go
+    weight: 0.5
+    disabled: false
+
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+    weight: 3.0
+    disabled: false
+
+  - name: brave
+    engine: brave
+    shortcut: br
+    weight: 2.5
+    disabled: false
+
+  - name: startpage
+    engine: startpage
+    shortcut: sp
+    disabled: false
+
+  - name: wikipedia
+    engine: wikipedia
+    shortcut: wp
+    disabled: false
+
+  - name: wikidata
+    engine: wikidata
+    shortcut: wd
+    disabled: false
+
+  - name: qwant
+    engine: qwant
+    shortcut: qw
+    disabled: false
+
+  - name: mojeek
+    engine: mojeek
+    shortcut: mjk
+    disabled: false
+
+  - name: yandex
+    engine: yandex
+    shortcut: yd
+    disabled: false
+
+  - name: naver
+    engine: naver
+    shortcut: nvr
+    disabled: false
+
+  - name: seznam
+    engine: seznam
+    shortcut: szn
+    disabled: false
+
+  - name: wiby
+    engine: json_engine
+    shortcut: wib
+    disabled: false
+
+  # --- IT / Development ---
+  - name: github
+    engine: github
+    shortcut: gh
+    disabled: false
+
+  - name: stackoverflow
+    engine: stackexchange
+    api_site: 'stackoverflow'
+    shortcut: st
+    disabled: false
+
+  - name: docker hub
+    engine: docker_hub
+    shortcut: dh
+    disabled: false
+
+  - name: pypi
+    engine: pypi
+    shortcut: pypi
+    disabled: false
+
+  - name: crates.io
+    engine: crates
+    shortcut: crates
+    disabled: false
+
+  - name: mdn
+    engine: json_engine
+    shortcut: mdn
+    disabled: false
+
+  - name: npm
+    engine: npm
+    shortcut: npm
+    disabled: false
+
+  - name: rubygems
+    engine: xpath
+    shortcut: rbg
+    disabled: false
+
+  - name: hackernews
+    engine: hackernews
+    shortcut: hn
+    disabled: false
+
+  - name: gitlab
+    engine: gitlab
+    shortcut: gl
+    disabled: false
+
+  - name: codeberg
+    engine: gitea
+    shortcut: cb
+    disabled: false
+
+  - name: pkg.go.dev
+    engine: pkg_go_dev
+    shortcut: pgo
+    disabled: false
+
+  # --- Science / Academic ---
+  - name: arxiv
+    engine: arxiv
+    shortcut: arx
+    disabled: false
+
+  - name: google scholar
+    engine: google_scholar
+    shortcut: gos
+    disabled: false
+
+  - name: pubmed
+    engine: pubmed
+    shortcut: pub
+    disabled: false
+
+  - name: semantic scholar
+    engine: semantic_scholar
+    shortcut: se
+    disabled: false
+
+  - name: openairepublications
+    engine: json_engine
+    shortcut: oap
+    disabled: false
+
+  - name: openalex
+    engine: openalex
+    shortcut: oa
+    disabled: false
+
+  # --- News ---
+  - name: google news
+    engine: google_news
+    shortcut: gon
+    disabled: false
+
+  - name: bing news
+    engine: bing_news
+    shortcut: bin
+    disabled: false
+
+  - name: reuters
+    engine: reuters
+    shortcut: reu
+    disabled: false
+
+  - name: wikinews
+    engine: mediawiki
+    shortcut: wn
+    disabled: false
+
+  # --- Social ---
+  - name: reddit
+    engine: reddit
+    shortcut: re
+    disabled: false
+
+  - name: lemmy posts
+    engine: lemmy
+    shortcut: lepo
+    disabled: false
+
+  - name: mastodon users
+    engine: mastodon
+    shortcut: mau
+    disabled: false
+
+  # --- Files / Torrents ---
+  - name: solidtorrents
+    engine: solidtorrents
+    shortcut: solid
+    disabled: false
+
+  - name: piratebay
+    engine: piratebay
+    shortcut: tpb
+    disabled: false
+
+  - name: kickass
+    engine: kickass
+    shortcut: kc
+    disabled: false
+
+  - name: 1337x
+    engine: 1337x
+    shortcut: 1337x
+    disabled: false
+
+  - name: annas archive
+    engine: annas_archive
+    shortcut: aa
+    disabled: false
+
+  - name: library genesis
+    engine: xpath
+    shortcut: lg
+    disabled: false
+
+  - name: fdroid
+    engine: fdroid
+    shortcut: fd
+    disabled: false
+
+  # --- Multimedia ---
+  - name: unsplash
+    engine: unsplash
+    shortcut: us
+    disabled: false
+
+  - name: youtube
+    engine: youtube_noapi
+    shortcut: yt
+    disabled: false
+
+  - name: vimeo
+    engine: vimeo
+    shortcut: vm
+    disabled: false
+
+  - name: soundcloud
+    engine: soundcloud
+    shortcut: sc
+    disabled: false
+
+  - name: dailymotion
+    engine: dailymotion
+    shortcut: dm
+    disabled: false
+
+  - name: mixcloud
+    engine: mixcloud
+    shortcut: mc
+    disabled: false
+
+  - name: deezer
+    engine: deezer
+    shortcut: dz
+    disabled: false
+
+  - name: radio browser
+    engine: radio_browser
+    shortcut: rb
+    disabled: false
+
+  # --- Movies/TV ---
+  - name: imdb
+    engine: imdb
+    shortcut: imdb
+    disabled: false
+
+  - name: rottentomatoes
+    engine: rottentomatoes
+    shortcut: rt
+    disabled: false
+
+  # --- Specialized ---
+  - name: wolframalpha
+    engine: wolframalpha_noapi
+    shortcut: wa
+    disabled: false
+
+  - name: wttr.in
+    engine: wttr
+    shortcut: wttr
+    disabled: false
+
+  - name: currency
+    engine: currency_convert
+    shortcut: cc
+    disabled: false
+
+  - name: openstreetmap
+    engine: openstreetmap
+    shortcut: osm
+    disabled: false
+
+  # --- Tor / Onion ---
+  - name: ahmia
+    engine: ahmia
+    shortcut: ah
+    timeout: 30.0
+    categories: onions
+    enable_http: true
+    disabled: false
+    using_tor_proxy: true
+    proxies:
+      all://:
+        - socks5h://tor:9050
+
+  - name: torch
+    engine: xpath
+    shortcut: tch
+    paging: true
+    search_url: 'http://xmh57jrknzkhv6y3ls3ubitzfqnkrwxhopf5aygthi7d6rplyvk3noyd.onion/cgi-bin/omega/omega?P={query}&DEFAULTOP=and'
+    results_xpath: '//table//tr'
+    url_xpath: './td[2]/a'
+    title_xpath: './td[2]/b'
+    content_xpath: './td[2]/small'
+    categories: onions
+    enable_http: true
+    disabled: false
+    using_tor_proxy: true
+    proxies:
+      all://:
+        - socks5h://tor:9050
+
+  - name: duckduckgo onion
+    engine: duckduckgo
+    shortcut: ddgo
+    weight: 3.0
+    base_url: 'https://duckduckgogg42xjoc72x3sjasowoarfbgcm249vuz7r6lb4hcl37yd.onion/'
+    categories: general, onions
+    disabled: false
+    using_tor_proxy: true
+    proxies:
+      all://:
+        - socks5h://tor:9050
+
+  # --- Extra News / Images ---
+  - name: duckduckgo images
+    engine: duckduckgo_extra
+    categories: [images, web]
+    ddg_category: images
+    shortcut: ddi
+    disabled: false
+
+  - name: duckduckgo news
+    engine: duckduckgo_extra
+    categories: [news, web]
+    ddg_category: news
+    shortcut: ddn
+    disabled: false
+
+  - name: startpage news
+    engine: startpage
+    startpage_categ: news
+    categories: [news, web]
+    shortcut: spn
+    disabled: false
+
+  - name: yahoo news
+    engine: yahoo_news
+    shortcut: yhn
+    disabled: false
+
+  - name: brave.news
+    engine: brave
+    network: brave
+    shortcut: brnews
+    categories: news
+    brave_category: news
+    disabled: false
+
+doi_resolvers:
+  oadoi.org: 'https://oadoi.org/'
+  doi.org: 'https://doi.org/'
+  sci-hub.se: 'https://sci-hub.se/'
+  sci-hub.st: 'https://sci-hub.st/'
+  sci-hub.ru: 'https://sci-hub.ru/'
+
+default_doi_resolver: 'oadoi.org'

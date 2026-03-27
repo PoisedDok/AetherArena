@@ -1,0 +1,841 @@
+# Incoming: Architecture standards (data_flow_standard, module_structure_standard, security_compliance_standard) --- {Dict[str, Any], yaml}
+# Processing: Map backend layers to canonical contracts, enforce pipeline invariants --- {3 jobs: JOB_LOG, JOB_TRACE, JOB_VALIDATE_SCHEMA}
+# Outgoing: Scripts enforcement (job_tracer, validate_config) --- {Dict[str, Any], yaml}
+
+version: "3.1.0"
+last_updated: "2026-01-11"
+purpose: "Operational manifest aligning backend implementation with canonical architecture"
+changelog:
+  "3.1.0":
+    - "Added external_services documentation for services/ directory"
+    - "Added database models documentation"
+    - "Added TTS library note for active handsfree development"
+    - "Removed device-specific paths"
+  "3.0.0":
+    - "Initial comprehensive manifest"
+
+extends:
+  data_flow: ".architecture/data_flow_standard.yaml"
+  module_structure: ".architecture/module_structure_standard.yaml"
+  security: ".architecture/security_compliance_standard.yaml"
+
+layer_groups:
+  interfaces:
+    description: "Interface surfaces translating HTTP and WebSocket ingress into runtime
+      orchestration"
+    members:
+      - "presentation_api"
+      - "websocket_hub"
+  application:
+    description: "Coordinators and services that drive conversational workflows and
+      runtime lifecycles"
+    members:
+      - "application_runtime"
+      - "application_services"
+      - "background_workers"
+  platform:
+    description: "Infrastructure adapters, persistence gateways, and security overlays"
+    members:
+      - "integrations"
+      - "data_persistence"
+      - "security_controls"
+      - "configuration"
+      - "monitoring"
+      - "cache_layer"
+  shared:
+    description: "Cross-cutting utilities reusable by any canonical layer"
+    members:
+      - "utils"
+
+group_dependencies:
+  interfaces:
+    - interfaces
+    - application
+    - platform
+    - shared
+  application:
+    - application
+    - platform
+    - shared
+  platform:
+    - platform
+    - shared
+  shared:
+    - shared
+
+layers:
+  presentation_api:
+    entrypoints:
+      - "api/v1/router.py"
+    modules:
+      endpoints:
+        - api/v1/endpoints/agents.py
+        - api/v1/endpoints/api_docs.py
+        - api/v1/endpoints/backends.py
+        - api/v1/endpoints/chat.py
+        - api/v1/endpoints/chat_references.py
+        - api/v1/endpoints/context.py
+        - api/v1/endpoints/document.py
+        - api/v1/endpoints/files.py
+        - api/v1/endpoints/health.py
+        - api/v1/endpoints/indexes.py
+        - api/v1/endpoints/inference.py
+        - api/v1/endpoints/llm.py
+        - api/v1/endpoints/llm_providers.py
+        - api/v1/endpoints/mcp.py
+        - api/v1/endpoints/memories.py
+        - api/v1/endpoints/models.py
+        - api/v1/endpoints/notebook.py
+        - api/v1/endpoints/omni.py
+        - api/v1/endpoints/preferences.py
+        - api/v1/endpoints/proactive.py
+        - api/v1/endpoints/profiles.py
+        - api/v1/endpoints/research.py
+        - api/v1/endpoints/search.py
+        - api/v1/endpoints/services.py
+        - api/v1/endpoints/settings.py
+        - api/v1/endpoints/setup.py
+        - api/v1/endpoints/skills.py
+        - api/v1/endpoints/sources.py
+        - api/v1/endpoints/storage.py
+        - api/v1/endpoints/terminal.py
+        - api/v1/endpoints/toolrunner.py
+        - api/v1/endpoints/tts.py
+        - api/v1/endpoints/user_credentials.py
+        - api/v1/endpoints/utils.py
+        - api/v1/endpoints/workers.py
+        - api/v1/endpoints/xlwings_api.py
+      schemas:
+        - api/v1/schemas/agent.py
+        - api/v1/schemas/chat.py
+        - api/v1/schemas/chat_context.py
+        - api/v1/schemas/common.py
+        - api/v1/schemas/context.py
+        - api/v1/schemas/files.py
+        - api/v1/schemas/health.py
+        - api/v1/schemas/mcp.py
+        - api/v1/schemas/memory.py
+        - api/v1/schemas/models.py
+        - api/v1/schemas/research.py
+        - api/v1/schemas/settings.py
+      core:
+        - "api/dependencies.py"
+      middleware:
+        - "api/middleware/security.py"
+        - "api/middleware/rate_limiter.py"
+        - "api/middleware/error_handler.py"
+    responsibilities:
+      - "Expose HTTP REST API endpoints with OpenAPI documentation"
+      - "Apply middleware (security, rate limiting, error handling)"
+      - "Perform schema validation via Pydantic models"
+      - "Translate validated payloads into runtime commands with correlation metadata"
+      - "Emit structured responses and failure envelopes"
+    dependencies: ["application_runtime", "application_services", "integrations",
+      "monitoring", "security_controls", "data_persistence", "cache_layer"]
+    prohibitions:
+      - "No direct database calls; delegate to repositories"
+      - "No runtime orchestration inline; delegate to application layer"
+      - "No synchronous blocking I/O beyond 50ms"
+    instrumentation:
+      logs:
+        - "Structured JSON via monitoring/logging.py including request_id, frontend_id,
+          correlation_id"
+      metrics:
+        - "REQUEST_LATENCY histogram labelled by endpoint, method, status"
+      tracing:
+        - "api.<endpoint> spans recorded via monitoring/tracing.py with baggage propagation"
+
+  websocket_hub:
+    entrypoints:
+      - "ws/factory.py::create_websocket_hub"
+    architecture: "Clean 4-layer architecture (Domain → Application → Presentation
+      → Infrastructure)"
+    factory:
+      - "ws/factory.py (dependency injection and component wiring)"
+    config:
+      - "ws/config/constants.py (PRESENCE_TTL, SESSION_TTL, COUNTER_TTL)"
+    layers:
+      presentation:
+        modules:
+          - "ws/presentation/hub.py"
+          - "ws/presentation/router.py"
+          - "ws/presentation/handlers/message_handler.py"
+          - "ws/presentation/handlers/control_handler.py"
+          - "ws/presentation/handlers/audio_handler.py"
+          - "ws/presentation/handlers/context_handler.py"
+          - "ws/presentation/emitters/stream_emitter.py"
+          - "ws/presentation/emitters/trail_emitter.py"
+          - "ws/presentation/control_handlers.py"
+          - "ws/presentation/command_executor.py"
+        responsibilities:
+          - "Manage WebSocket client lifecycles (register, unregister, heartbeat)"
+          - "Route messages to appropriate handlers"
+          - "Emit stream chunks and control messages"
+          - "Handle audio binary streams and control messages"
+          - "Execute commands from application layer"
+      application:
+        modules:
+          - "ws/application/stream_orchestrator.py"
+          - "ws/application/trail_coordinator.py"
+          - "ws/application/session_builder.py"
+          - "ws/application/artifact_processor.py"
+          - "ws/application/cache_service.py"
+          - "ws/application/lifecycle/task_manager.py"
+          - "ws/application/lifecycle/request_mapper.py"
+        responsibilities:
+          - "Orchestrate streaming workflows (yields commands)"
+          - "Coordinate trail hierarchy creation (Group → Subgroup → Nodes)"
+          - "Manage request lifecycle and task cancellation"
+          - "Build session maps and handle artifact detection"
+          - "Manage task lifecycle with proper cleanup"
+          - "Map requests to backend identifiers"
+      domain:
+        modules:
+          - "ws/domain/entities/stream_event.py"
+          - "ws/domain/entities/trail_hierarchy.py"
+          - "ws/domain/entities/session_timeline.py"
+          - "ws/domain/services/message_accumulator.py"
+          - "ws/domain/services/artifact_tracker.py"
+          - "ws/domain/services/phase_state_machine.py"
+          - "ws/domain/builders/event_enricher.py"
+          - "ws/domain/builders/artifact_detector.py"
+          - "ws/domain/builders/phase_detector.py"
+          - "ws/domain/commands/stream_commands.py"
+          - "ws/domain/commands/trail_commands.py"
+          - "ws/domain/validators/message_validator.py"
+          - "ws/domain/validators/trail_validator.py"
+          - "ws/domain/audio/services/stt_service.py"
+          - "ws/domain/audio/services/vad_service.py"
+          - "ws/domain/audio/services/wake_word_service.py"
+          - "ws/domain/audio/services/audio_decoder.py"
+          - "ws/domain/audio/services/audio_processor.py"
+          - "ws/domain/event_builder.py"
+        responsibilities:
+          - "Pure business logic: entities, value objects"
+          - "Event enrichment and artifact detection"
+          - "Phase detection and state machines"
+          - "Audio processing (STT, VAD, wake word detection)"
+          - "Message accumulation and validation"
+          - "Trail hierarchy modeling and validation"
+      infrastructure:
+        modules:
+          - "ws/infrastructure/cache/redis_adapter.py"
+          - "ws/infrastructure/cache/memory_fallback.py"
+          - "ws/infrastructure/persistence/trail_repository_adapter.py"
+        responsibilities:
+          - "Redis cache adapter with memory fallback"
+          - "Trail repository persistence adapter"
+    protocols:
+      - "ws/protocols.py::HeartbeatMessage"
+      - "ws/protocols.py::AudioControlMessage"
+      - "ws/protocols.py::AudioMessage"
+      - "ws/protocols.py::StopMessage"
+      - "ws/protocols.py::ContextResetMessage"
+      - "ws/protocols.py::ClientMessage"
+    responsibilities:
+      - "Manage WebSocket lifecycles, inbound validation, outbound fan-out"
+      - "Bridge runtime stream tasks to frontend via correlation metadata"
+      - "Maintain cancellation semantics and cleanup"
+      - "Orchestrate trail hierarchy and session timeline tracking"
+      - "Handle audio streaming (STT, TTS, VAD, wake word detection)"
+    dependencies: ["application_runtime", "data_persistence", "monitoring", "security_controls",
+      "cache_layer"]
+    prohibitions:
+      - "Reject payloads failing ws/protocols schema validation"
+      - "No WebSocket operations in application layer (use commands pattern)"
+      - "No business logic in presentation layer"
+      - "Disallow unsanitized tool output"
+    instrumentation:
+      logs:
+        - "Emit START/STOP/ERROR events with backend_id, correlation_id"
+      metrics:
+        - "STREAM_ACTIVE_GAUGE and WebSocket heartbeat metrics"
+        - "AUDIO_SESSION_ACTIVE_GAUGE for audio streaming"
+      tracing:
+        - "ws.hub.* spans with correlation baggage"
+
+  application_runtime:
+    modules:
+      - "core/runtime/engine.py"
+      - "core/runtime/streaming.py"
+      - "core/runtime/coordinator.py"
+      - "core/runtime/interpreter.py"
+      - "core/runtime/interpreter_adapter.py"
+      - "core/runtime/document.py"
+      - "core/runtime/session.py"
+      - "core/runtime/request.py"
+      - "core/runtime/memory_injector.py"
+      - "core/runtime/config.py"
+      - "core/runtime/media.py"
+      - "core/runtime/workers/docling_watchdog.py"
+      - "core/runtime/workers/job_worker_watchdog.py"
+    responsibilities:
+      - "Coordinate chat execution, tool routing, and artifact commands"
+      - "Manage streaming workflows (ChatStreamer, DocumentProcessor)"
+      - "Handle interpreter integration and memory injection"
+      - "Manage background queues, timeouts, and cancellation"
+      - "Expose interfaces for settings reload and health status"
+      - "Process media payloads and document analysis"
+    dependencies: ["integrations", "data_persistence", "monitoring", "security_controls"]
+    prohibitions:
+      - "No direct HTTP response manipulation"
+      - "No filesystem writes outside persistence layer"
+    instrumentation:
+      logs:
+        - "Lifecycle START/STOP entries with correlation metadata"
+      metrics:
+        - "STREAM_ACTIVE_GAUGE and queue depth metrics"
+      tracing:
+        - "runtime.<component> spans via monitoring/tracing.py"
+
+  application_services:
+    modules:
+      - "application/agents/agent_service.py"
+      - "application/agents/agent_seeder.py"
+      - "application/agents/proactive_service.py"
+      - "application/agents/proactive_config_service.py"
+      - "application/chat/service.py"
+      - "application/chat/history_service.py"
+      - "application/chat/memory_service.py"
+      - "application/chat/summary_service.py"
+      - "application/chat/session_builder.py"
+      - "application/chat/entities.py"
+      - "application/context/context_manager.py"
+      - "application/daemons/daemon_service.py"
+      - "application/files/file_service.py"
+      - "application/indexing/index_service.py"
+      - "application/notebook/notebook_service.py"
+      - "application/omni/service.py"
+      - "application/research/research_service.py"
+      - "application/search/orchestrator.py"
+      - "application/search/providers/unified_search_provider.py"
+      - "application/services/source_indexing_service.py"
+      - "application/settings/preferences_service.py"
+      - "application/settings/runtime_settings_service.py"
+      - "application/setup/setup_service.py"
+      - "application/setup/setup_orchestrator.py"
+      - "application/skills/skill_service.py"
+      - "application/storage/storage_service.py"
+      - "application/terminal/terminal_service.py"
+      - "application/tools/tool_service.py"
+    responsibilities:
+      - "Orchestrate domain and persistence layer interactions"
+      - "Expose application DTOs (ChatSummary, ChatMessage, ChatArtifact)"
+      - "Transform repository models into serializable responses"
+      - "Manage chat history, memory, and summary generation"
+      - "Handle context management and omni services"
+    dependencies: ["data_persistence", "monitoring"]
+    prohibitions:
+      - "No direct HTTP/WebSocket handling; delegate to presentation layer"
+    instrumentation:
+      logs:
+        - "Service-level logs with correlation metadata"
+      metrics:
+        - "SERVICE_OPERATION_DURATION for orchestration latency"
+      tracing:
+        - "application.<service> spans via monitoring/tracing.py"
+
+  background_workers:
+    modules:
+      - "workers/__main__.py"
+      - "workers/job_processor.py"
+      - "workers/scheduler.py"
+      - "workers/handlers/base_handler.py"
+      - "workers/handlers/extract_memories.py"
+      - "workers/handlers/proactive_agent_handler.py"
+      - "workers/handlers/promote_memories.py"
+      - "workers/handlers/summarize_chat.py"
+    responsibilities:
+      - "Process background jobs from the database queue"
+      - "Schedule recurring tasks (e.g., proactive sweeps)"
+      - "Handle asynchronous orchestration (proactive agents, memory extraction, summaries)"
+    dependencies: ["application_services", "data_persistence", "monitoring"]
+    instrumentation:
+      logs:
+        - "Worker lifecycle logs and handler execution outcomes"
+
+  integrations:
+    architecture: "4-layer integration framework (providers, libraries, framework,
+      runtime)"
+    external_services:
+      directory: "services/"
+      services:
+        - "docling - Document parsing and conversion"
+        - "embeddings - Vector embedding service"
+        - "file_indexing - File indexing daemon with Aether-RAG integration"
+        - "aether-rag - Local vector search and RAG"
+        - "omniparser - Document structure parsing"
+        - "open-interpreter - Code execution runtime"
+        - "perplexica - Search aggregation"
+        - "realtime-tts - Text-to-speech service"
+        - "searxng - Meta search engine"
+        - "supabase - Database and authentication (Dockerized)"
+        - "xlwings - Excel automation"
+      note: "External services run as separate processes with HTTP/IPC integration"
+    modules:
+      providers:
+        open_interpreter:
+          - "core/integrations/providers/open_interpreter/client.py"
+        docling:
+          - "core/integrations/providers/docling/service.py"
+          - "core/integrations/providers/docling/wrapper.py"
+        perplexica:
+          - "core/integrations/providers/perplexica/search.py"
+        aether-rag:
+          - "core/integrations/providers/aether_rag/mcp_client.py"
+          - "core/integrations/providers/aether_rag/health.py"
+        mcp:
+          - "core/integrations/providers/mcp/bridge.py"
+        chat_context:
+          - "core/integrations/providers/chat_context/tools.py"
+        memory_context:
+          - "core/integrations/providers/memory_context/tools.py"
+        other:
+          - "core/integrations/providers/supabase_docker.py"
+      libraries:
+        notebook:
+          - "core/integrations/libraries/notebook/runtime.py"
+        ocr:
+          - "core/integrations/libraries/ocr/base.py"
+          - "core/integrations/libraries/ocr/registry.py"
+          - "core/integrations/libraries/ocr/docling_backend.py"
+          - "core/integrations/libraries/ocr/paddleocr_backend.py"
+          - "core/integrations/libraries/ocr/paddleocr_vl.py"
+        omni:
+          - "core/integrations/libraries/omni/tools.py"
+        tts:
+          - "core/integrations/libraries/tts/realtime_tts.py"
+        note_tts: "TTS integration for handsfree voice mode - active development"
+        xlwings:
+          - "core/integrations/libraries/xlwings/excel.py"
+      framework:
+        - "core/integrations/framework/base.py"
+        - "core/integrations/framework/loader.py"
+        - "core/integrations/framework/health.py"
+        - "core/integrations/framework/validator.py"
+        - "core/integrations/framework/tool_tracker.py"
+        - "core/integrations/framework/tool_wrapper.py"
+        - "core/integrations/framework/oi_catalog.py"
+        - "core/integrations/framework/markdown_formatter.py"
+        - "core/integrations/framework/yaml_generator.py"
+    mcp_support:
+      - "core/mcp/manager.py"
+      - "core/mcp/server.py"
+      - "core/mcp/sandbox.py"
+      - "core/mcp/context.py"
+      - "core/mcp/database.py"
+      - "core/mcp/bridge.py (via providers/mcp/)"
+    profiles:
+      - "core/profiles/manager.py"
+      - "core/profiles/enrichment.py"
+      - "core/profiles/templates/default.yaml"
+      - "core/profiles/templates/GURU.yaml"
+    responsibilities:
+      - "Register external tools and provide uniform adapters"
+      - "Expose health checks and configuration handshake"
+      - "Stream provider outputs with correlation metadata"
+      - "Manage MCP (Model Context Protocol) integrations"
+      - "Handle profile-based tool registration and enrichment"
+    dependencies: ["monitoring", "security_controls", "configuration"]
+    prohibitions:
+      - "Cannot import api/ modules"
+    instrumentation:
+      logs:
+        - "Provider-specific logs tagged with provider_id"
+      metrics:
+        - "INTEGRATION_HEALTH_GAUGE labelled by provider"
+      tracing:
+        - "integration.<provider> spans capturing latency"
+
+  data_persistence:
+    modules:
+      database:
+        - "data/database/clients/supabase.py"
+        - "data/database/repositories/chat.py"
+        - "data/database/repositories/trail.py"
+        - "data/database/repositories/storage.py"
+        - "data/database/repositories/mcp.py"
+        - "data/database/repositories/files.py"
+        - "data/database/repositories/health.py"
+        - "data/database/repositories/preferences.py"
+        - "data/database/concurrency.py"
+        - "data/database/persistence_gateway.py"
+        - "data/database/uow.py"
+        - "data/database/events.py"
+        - "data/database/migration_runner.py"
+      models:
+        - "data/database/models/chat.py"
+        - "data/database/models/mcp.py"
+      files:
+        - "data/files/*"
+      note_files: "File storage for test artifacts and temporary files"
+      migrations:
+        - "data/database/migrations/000_base_schema.sql"
+        - "data/database/migrations/001_audit_system.sql"
+        - "data/database/migrations/002_trail_system_complete.sql"
+        - "data/database/migrations/003_mcp_system.sql"
+        - "data/database/migrations/004_memory_system.sql"
+        - "data/database/migrations/005_chat_summaries_and_automation.sql"
+        - "data/database/migrations/006_file_indexing_complete.sql"
+        - "data/database/migrations/007_user_preferences.sql"
+        - "data/database/migrations/008_artifact_search_fix.sql"
+    experimental:
+      note_experimental: "Experimental media table storage - currently unused, candidate
+        for removal"
+    responsibilities:
+      - "Provide Supabase/PostgreSQL access with concurrency protection"
+      - "Implement repositories for chats, messages, artifacts, trails, and MCP resources"
+      - "Implement typed models for database entities"
+      - "Maintain audit and traceability columns"
+      - "Run database migrations and schema management"
+      - "Implement Unit of Work pattern for transactional consistency"
+      - "Manage file storage for test artifacts and temporary data"
+    dependencies: ["monitoring", "security_controls", "configuration"]
+    prohibitions:
+      - "Integrations must not bypass repositories"
+    instrumentation:
+      logs:
+        - "INFO-level mutation logs with table and record id"
+      metrics:
+        - "SUPABASE_ERROR_COUNTER labelled by table"
+      tracing:
+        - "database.repository spans for CRUD operations"
+
+  cache_layer:
+    modules:
+      - "data/cache/redis.py"
+      - "data/cache/redis_session.py"
+      - "ws/infrastructure/cache/memory_fallback.py"
+      - "ws/infrastructure/cache/redis_adapter.py"
+    responsibilities:
+      - "Provide Redis-backed presence map, session metadata, and rate limiting primitives"
+      - "Expose health + telemetry and degrade to in-process stores when Redis unavailable"
+      - "Cache WebSocket session state and connection metadata"
+    dependencies: ["monitoring", "security_controls", "configuration"]
+    prohibitions:
+      - "May not store database-governed records or secrets"
+    instrumentation:
+      logs:
+        - "cache_activity logger captures operation, namespace, ttl, correlationId"
+      metrics:
+        - "redis_presence_active gauge, redis_connection_retries counter, redis_rate_limit_fallback
+          counter"
+      tracing:
+        - "cache.* spans wrap Redis commands with key + outcome attributes"
+
+  security_controls:
+    modules:
+      - "security/auth.py"
+      - "security/crypto.py"
+      - "security/permissions.py"
+      - "security/rate_limit.py"
+      - "security/sanitization.py"
+    responsibilities:
+      - "Authentication/authorization, rate limiting, sanitization, cryptography"
+      - "Enforce security overlays for HTTP, WebSocket, and storage"
+      - "Input validation and output sanitization"
+    dependencies: ["configuration", "monitoring"]
+    prohibitions:
+      - "Never log secrets or sensitive payloads"
+    instrumentation:
+      logs:
+        - "Security decisions logged at WARN with sanitized payloads"
+      metrics:
+        - "Security enforcement counters via monitoring/metrics.py"
+
+  configuration:
+    modules:
+      - "config/settings.py"
+      - "config/dynamic_settings.py"
+      - "config/audio_config.py"
+      - "config/integrations_registry.yaml"
+      - "config/models.toml"
+    environments:
+      - "config/environments/development.yaml"
+      - "config/environments/production.yaml"
+      - "config/environments/test.yaml"
+    responsibilities:
+      - "Load environment profiles, tool registries, and integration metadata"
+      - "Expose typed settings to the rest of the system"
+      - "Manage dynamic settings and audio configuration"
+    dependencies: ["monitoring"]
+    prohibitions:
+      - "No mutation of settings at runtime without validation"
+    instrumentation:
+      logs:
+        - "Configuration reload events with diff summary"
+
+  monitoring:
+    modules:
+      - "monitoring/logging.py"
+      - "monitoring/metrics.py"
+      - "monitoring/tracing.py"
+      - "monitoring/health.py"
+    responsibilities:
+      - "Central logging, metrics, tracing, and health checks"
+      - "Background workers for service monitoring"
+      - "Structured JSON logging with correlation metadata"
+    dependencies: []
+    instrumentation:
+      logs:
+        - "Structured JSON emission"
+      metrics:
+        - "Prometheus exporter via METRICS_APP"
+      tracing:
+        - "OpenTelemetry exporter configuration"
+
+  utils:
+    modules:
+      - "utils/config.py"
+      - "utils/crypto.py"
+      - "utils/http.py"
+      - "utils/validation.py"
+      - "utils/oi_paths.py"
+    responsibilities:
+      - "Cross-cutting utilities for configuration, crypto, HTTP, validation"
+      - "Open Interpreter path resolution"
+    dependencies: []
+
+channels:
+  http:
+    endpoint: "http://{settings.security.bind_host}:{settings.security.bind_port}"
+    middleware:
+      - "api/middleware/security.py"
+      - "api/middleware/rate_limiter.py"
+      - "api/middleware/error_handler.py"
+    obligations:
+      - "All responses JSON with status, detail, correlationId"
+      - "Headers include x-frontend-id, x-correlation-id, x-operator-id"
+      - "RateLimiter enforces sliding window (100 req/min default)"
+    failure_modes:
+      - "Return 503 with structured payload when downstream dependency fails"
+      - "Log WARN with dependency_name and correlationId"
+
+  websocket:
+    endpoint: "ws://{settings.security.bind_host}:{settings.security.bind_port}"
+    handlers:
+      - "ws/presentation/hub.py"
+      - "ws/presentation/handlers/message_handler.py"
+      - "ws/presentation/handlers/control_handler.py"
+      - "ws/presentation/handlers/audio_handler.py"
+      - "ws/presentation/handlers/context_handler.py"
+      - "ws/protocols.py"
+    obligations:
+      - "Envelope schema from ws/protocols.py must validate"
+      - "StopController communicates stopRequest before closing"
+      - "Hub returns STOPPED and COMPLETION for all terminations"
+    limits:
+      max_clients: 8
+      send_timeout_seconds: 10
+      heartbeat_interval_seconds: 30
+    failure_modes:
+      - "Runtime exceptions emit system.error chunk and STOPPED; hub cancels tasks"
+
+  supabase:
+    base: "{settings.supabase.url}"
+    client: "data/database/clients/supabase.py"
+    obligations:
+      - "Repositories include request_id and frontend_id metadata in payload columns"
+      - "Retry transient errors with exponential backoff (max 3)"
+      - "Persist audit trail in traceability_data table"
+    failure_modes:
+      - "Raise HTTPException 503 and surface offline state to frontend"
+      - "Trigger SUPABASE_ERROR_COUNTER metric"
+
+  redis:
+    endpoint: "{settings.redis.url}"
+    client: "data/cache/redis.py::RedisCache"
+    obligations:
+      - "All keys namespaced and include TTL"
+      - "Presence/session payloads store only identifiers, counters, timestamps, and
+        correlation metadata"
+      - "Cache health registered; failures degrade to in-process fallbacks"
+    failure_modes:
+      - "Log cache_status=degraded, increment redis_connection_retries, continue with
+        fallback caches"
+
+pipelines:
+  chat_streaming:
+    outcome: "Primary conversational streaming path from HTTP request to frontend
+      WebSocket emission"
+    lifecycle:
+      - stage: "http_entry"
+        owner: "presentation_api"
+        responsibilities:
+          - "Validate payload via Pydantic models and enforce required identifiers"
+          - "Issue correlation metadata and invoke runtime dispatcher"
+        jobs: ["JOB_AUTHORIZE", "JOB_ROUTE", "JOB_VALIDATE", "JOB_VALIDATE_SCHEMA"]
+      - stage: "runtime_dispatch"
+        owner: "application_runtime"
+        responsibilities:
+          - "Ensure runtime startup completes and delegate streaming to ChatStreamer"
+          - "Manage request tracker lifecycle and honor cancellation signals"
+        jobs: ["JOB_CACHE_WRITE", "JOB_CANCEL_STREAM", "JOB_LOG", "JOB_ORCHESTRATE"]
+      - stage: "presence_cache"
+        owner: "cache_layer"
+        responsibilities:
+          - "Persist presence entries with TTL, update connection counters, record
+            session metadata"
+        jobs: ["JOB_CACHE_WRITE", "JOB_CACHE_READ", "JOB_CACHE_EVICT", "JOB_TRACK_CONNECTION"]
+      - stage: "tool_integration"
+        owner: "integrations"
+        responsibilities:
+          - "Execute provider-specific requests, stream generator outputs"
+        jobs: ["JOB_EXECUTE_TOOL", "JOB_LOG", "JOB_ROUTE"]
+      - stage: "stream_broadcast"
+        owner: "websocket_hub"
+        responsibilities:
+          - "Send JSON chunks to client, enforce ordering, cleanup tasks"
+        jobs: ["JOB_CANCEL_STREAM", "JOB_LOG", "JOB_WEBSOCKET_SEND"]
+      - stage: "audit_trail"
+        owner: "data_persistence"
+        responsibilities:
+          - "Expose repository utilities for message and artifact persistence"
+        jobs: ["JOB_LOG", "JOB_SAVE_TO_DB", "JOB_TRACE"]
+
+  audio_streaming:
+    outcome: "Real-time audio streaming for STT/TTS with handsfree coordination"
+    lifecycle:
+      - stage: "audio_ingress"
+        owner: "websocket_hub"
+        responsibilities:
+          - "Receive binary audio frames, validate format"
+          - "Route to audio domain services"
+        jobs: ["JOB_WS_RECEIVE", "JOB_VALIDATE", "JOB_ROUTE"]
+      - stage: "audio_processing"
+        owner: "websocket_hub::domain::audio"
+        responsibilities:
+          - "VAD (Voice Activity Detection) for speech detection"
+          - "Wake word detection for activation"
+          - "STT (Speech-to-Text) transcription"
+          - "Audio decoding and preprocessing"
+        jobs: ["JOB_EXECUTE_TOOL", "JOB_TRANSFORM_DATA", "JOB_PARSE"]
+      - stage: "text_routing"
+        owner: "application_runtime"
+        responsibilities:
+          - "Route transcribed text to chat streaming pipeline"
+          - "Generate TTS audio from LLM responses"
+        jobs: ["JOB_ROUTE", "JOB_ORCHESTRATE"]
+      - stage: "audio_egress"
+        owner: "websocket_hub"
+        responsibilities:
+          - "Stream TTS audio chunks to frontend"
+          - "Emit audio control messages"
+        jobs: ["JOB_WEBSOCKET_SEND", "JOB_LOG"]
+
+  trail_hierarchy:
+    outcome: "Track conversation trails with hierarchical structure (Groups → Subgroups
+      → Nodes)"
+    lifecycle:
+      - stage: "trail_detection"
+        owner: "websocket_hub::domain"
+        responsibilities:
+          - "Detect trail hierarchy from stream events"
+          - "Build trail commands (create group, subgroup, node)"
+        jobs: ["JOB_ROUTE_BY_TYPE", "JOB_VALIDATE"]
+      - stage: "trail_coordination"
+        owner: "websocket_hub::application"
+        responsibilities:
+          - "Coordinate trail hierarchy creation"
+          - "Manage trail state and relationships"
+        jobs: ["JOB_ORCHESTRATE", "JOB_UPDATE_STATE"]
+      - stage: "trail_persistence"
+        owner: "data_persistence"
+        responsibilities:
+          - "Persist trail hierarchy to database"
+          - "Maintain trail relationships and metadata"
+        jobs: ["JOB_SAVE_TO_DB", "JOB_TRACE"]
+
+observability:
+  metrics:
+    exporter: "monitoring/metrics.py::METRICS_APP"
+    required:
+      - "REQUEST_LATENCY (labels: endpoint, method, status)"
+      - "STREAM_ACTIVE_GAUGE (labels: stream_type)"
+      - "SUPABASE_ERROR_COUNTER (labels: table)"
+      - "INTEGRATION_HEALTH_GAUGE (labels: provider)"
+      - "REDIS_PRESENCE_ACTIVE (labels: namespace)"
+      - "REDIS_CONNECTION_RETRIES (labels: namespace)"
+      - "AUDIO_SESSION_ACTIVE_GAUGE"
+  logging:
+    sink: "stdout JSON via monitoring/logging.py"
+    required_fields: ["request_id", "frontend_id", "correlation_id", "timestamp",
+      "level", "message"]
+    redaction: "security/sanitization.py::redact_sensitive_fields"
+  tracing:
+    exporter: "monitoring/tracing.py::configure_tracer"
+    obligations:
+      - "Wrap runtime orchestration with spans runtime.<component>.<operation>"
+      - "Propagate trace headers into integration clients"
+
+traceability:
+  identifiers:
+    backend_id:
+      issuer: "ws/presentation/handlers/message_handler.py::StreamRelay"
+      obligations:
+        - "Echo to frontend for telemetry overlays"
+        - "Persist in traceability_data table"
+    request_id:
+      issuer: "api/dependencies.py::request_context"
+      obligations:
+        - "Include in logs, metrics, and responses"
+        - "Store in database audit columns"
+    correlation_id:
+      issuer: "api/dependencies.py::request_context"
+      obligations:
+        - "Propagate headers into runtime, integrations, repositories, and logs"
+    session_id:
+      issuer: "Frontend SessionManager (mirrored)"
+      obligations:
+        - "Backend verifies and never mutates value"
+
+resilience:
+  supabase_outage:
+    detection:
+      - "Repository exceptions raised by httpx"
+      - "SUPABASE_ERROR_COUNTER increments"
+    backend_response:
+      - "Return 503 to callers and surface offline flag"
+      - "Queue retries via with_retry for idempotent operations"
+  redis_outage:
+    detection:
+      - "RedisCache.health_check() unhealthy or redis_connection_retries counter increments"
+      - "cache_activity logs emit cache_status=degraded"
+    backend_response:
+      - "Switch rate limiting and presence tracking to in-process stores; keep HTTP/WS
+        online"
+      - "Throttle reconnect attempts with exponential backoff (<= 120s)"
+  runtime_engine_stall:
+    detection:
+      - "RuntimeEngine emits STOPPED with error_type"
+      - "STREAM_ACTIVE_GAUGE remains high without completion"
+    backend_response:
+      - "Restart orchestrator via RuntimeEngine.restart()"
+      - "Emit system.error chunk to clients"
+  websocket_saturation:
+    detection:
+      - "hub.py send timeout events"
+      - "security/rate_limit.py violations"
+    backend_response:
+      - "Close connection with 1011, emit STOPPED"
+      - "Log throttle event with client_id"
+
+validation:
+  automation:
+    - "scripts/job_tracer.py list --sort frequency"
+    - "scripts/job_tracer.py trace <JOB_TYPE>"
+    - "scripts/validate_config.py --check-services --check-db"
+    - "scripts/validate_job_types.py"
+    - "pytest tests/test_yaml_pipeline.py"
+    - "pytest tests/integration/test_all_endpoints.py"
+    - "pytest tests/e2e/test_stream_roundtrip.py"
+  manual:
+    - "Review manifest after modifying runtime or integrations"
+    - "Confirm database migrations preserve audit columns"
+
+change_management:
+  version_policy: "Bump manifest minor for lifecycle edits, major for new pipelines,
+    patch for corrections"
+  obligations:
+    - "Update .architecture/ standards alongside manifest changes"
+    - "Document rationale in architecture documentation"
