@@ -138,6 +138,7 @@ module.exports = {
     {
       displayName: 'unit:node',
       testEnvironment: 'node',
+      setupFiles: ['<rootDir>/tests/helpers/setup-early.js'],
       testMatch: [
         '**/tests/unit/core/**/*.test.js',
         '**/tests/unit/domain/**/*.test.js',
@@ -149,6 +150,7 @@ module.exports = {
     {
       displayName: 'unit:jsdom',
       testEnvironment: '<rootDir>/tests/helpers/jest-environment-jsdom-no-canvas.js',
+      setupFiles: ['<rootDir>/tests/helpers/setup-early.js'],
       testMatch: [
         '**/tests/unit/renderer/**/*.test.js',
         '**/tests/unit/preload/**/*.test.js',
@@ -157,6 +159,7 @@ module.exports = {
     {
       displayName: 'component',
       testEnvironment: '<rootDir>/tests/helpers/jest-environment-jsdom-no-canvas.js',
+      setupFiles: ['<rootDir>/tests/helpers/setup-early.js'],
       testMatch: [
         '**/tests/component/**/*.test.js',
       ],
@@ -164,6 +167,7 @@ module.exports = {
     {
       displayName: 'integration',
       testEnvironment: 'node',
+      setupFiles: ['<rootDir>/tests/helpers/setup-early.js'],
       testMatch: [
         '**/tests/integration/**/*.test.js',
       ],
@@ -171,6 +175,7 @@ module.exports = {
     {
       displayName: 'architecture',
       testEnvironment: 'node',
+      setupFiles: ['<rootDir>/tests/helpers/setup-early.js'],
       testMatch: [
         '**/tests/architecture/**/*.test.js',
       ],
