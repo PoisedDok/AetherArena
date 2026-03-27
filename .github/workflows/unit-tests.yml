@@ -65,12 +65,3 @@ jobs:
       # Use --runInBand for single-threaded execution
       run: npm run test:integration -- --runInBand --coverage=false --testTimeout=30000
       
-    - name: Upload coverage (optional)
-      working-directory: ./aether-frontend
-      # Only upload coverage if tests passed and COVERAGE_UPLOAD is enabled
-      if: always() && env.COVERAGE_UPLOAD == 'true'
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: coverage/
-        retention-days: 7
