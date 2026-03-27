@@ -267,9 +267,10 @@ poetry.lock
 *.p12
 *.pfx
 
-# Documentation builds
-docs/build/
-docs/.doctrees/
+# docs/: local / unpublished content (tracked: docs/architecture/ only)
+/docs/*
+!/docs/architecture/
+!/docs/architecture/**
 
 # Local configuration overrides
 config/environments/local.yaml
@@ -364,16 +365,8 @@ settings.yml.backup.*
 
 .cursor/plansaether_development_timeline.mp4
 .cursor/
-# Datasets
-docs/dataset/trec-covid/*.jsonl
-docs/dataset/trec-covid/qrels/
-docs/dataset/scifact.zip
-docs/dataset/scifact/
-docs/dataset/fiqa.zip
-docs/dataset/fiqa/
+# Datasets (under aether-backend service path, not root docs/)
 aether-backend/services/aether-rag/docs/dataset/
-docs/papers/*.pdf
-docs/dissertation/
 
 # Screen-recording masters (large); submission uses H.264 MP4 (scripts/compress_submission_videos.sh)
 videos/*.mov

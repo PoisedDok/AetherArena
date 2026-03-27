@@ -1,9 +1,10 @@
+<p align="center">
+  <img src="aether-frontend/assets/icons/icon.png" alt="AetherArena" width="128" height="128" />
+</p>
+
 # AetherArena
 
-AetherArena  
-License  
-Status  
-**AI Desktop Application**
+**AI desktop application**
 
 *Python backend orchestrating multiple AI services via Docker mesh • On-device inference • Proactive agent • Hardened security & privacy-first design*
 
