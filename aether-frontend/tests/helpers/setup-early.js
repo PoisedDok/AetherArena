@@ -8,7 +8,11 @@
 // Mock crypto.randomUUID for Node.js environments that don't have it
 // This runs BEFORE test files are loaded, so modules that use crypto.randomUUID
 // at the top level will see this mock.
-const mockRandomUUID = () => 'test-uuid-12345678-1234-1234-1234-123456789012';
+let uuidCounter = 0;
+const mockRandomUUID = () => {
+  uuidCounter += 1;
+  return `test-uuid-${uuidCounter.toString().padStart(12, '0')}-1234-1234-123456789012`;
+};
 
 // Polyfill globalThis
 if (typeof global.globalThis === 'undefined') {
