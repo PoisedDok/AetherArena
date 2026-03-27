@@ -24,6 +24,15 @@ global.console = {
   // error: jest.fn(),
 };
 
+// Mock crypto.randomUUID for Node.js environments that don't have it
+// (needed for tests running in CI with older Node or JSDOM environment)
+if (!global.crypto?.randomUUID) {
+  global.crypto = {
+    ...global.crypto,
+    randomUUID: () => 'test-uuid-12345678-1234-1234-1234-123456789012',
+  };
+}
+
 // Mock Electron modules (for unit tests)
 if (!process.env.E2E_TEST) {
   jest.mock('electron', () => ({
