@@ -1,0 +1,44 @@
+BREAKING: Critical Zero-Day Vulnerability in Node.js 20.x and 22.x
+
+SEVERITY: CRITICAL (CVSS 10.0)
+CVE: CVE-2026-00001
+DATE: January 31, 2026
+EXPLOIT STATUS: ACTIVE IN THE WILD
+
+A critical remote code execution vulnerability has been discovered in Node.js versions 20.x and 22.x that allows unauthenticated remote attackers to execute arbitrary code through malicious HTTP headers.
+
+AFFECTED VERSIONS:
+- Node.js 20.0.0 through 20.11.0
+- Node.js 22.0.0 through 22.1.0
+- ALL platforms (Linux, macOS, Windows)
+
+IMMEDIATE ACTION REQUIRED:
+1. **UPGRADE IMMEDIATELY** to Node.js 20.11.1 or 22.1.1
+2. Restart all Node.js services
+3. Check access logs for exploitation attempts since January 28, 2026
+4. Review npm packages for potential compromise
+
+TECHNICAL DETAILS:
+- Attack vector: Malformed HTTP headers in Express/Fastify applications
+- No authentication required
+- Exploitable remotely over network
+- Privilege escalation to root/SYSTEM possible
+- Wormable - can spread automatically
+
+INDICATORS OF COMPROMISE:
+- Unusual CPU spikes on Node.js processes
+- New files in /tmp/ or C:\Windows\Temp\
+- Outbound connections to unknown IPs on ports 4444, 5555
+- Modified package.json or node_modules
+
+CONFIRMED ATTACKS:
+- 2,000+ compromised servers detected in last 24 hours
+- Ransomware deployment observed
+- Credential harvesting active
+
+PATCH AVAILABILITY:
+- Node.js 20.11.1: https://nodejs.org/download/release/v20.11.1/
+- Node.js 22.1.1: https://nodejs.org/download/release/v22.1.1/
+- Security advisory: https://nodejs.org/en/blog/vulnerability/january-2026-security-releases/
+
+**THIS IS NOT A DRILL. PATCH IMMEDIATELY.**

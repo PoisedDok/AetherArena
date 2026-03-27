@@ -1,0 +1,186 @@
+# Aether Backend - Production Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core Framework
+fastapi==0.109.0
+uvicorn>=0.27.0
+python-multipart>=0.0.6
+
+# HTTP Client (compatible with MCP)
+httpx>=0.26.0
+
+# Database (Supabase ONLY - no direct PostgreSQL drivers)
+# Note: psycopg is NOT required for Aether - Supabase SDK handles all database operations
+# If psycopg is found in dependencies, it's only for external services (searxng, etc.)
+
+# Settings Management (compatible with MCP)
+pydantic>=2.5.3
+pydantic-settings>=2.1.0
+python-dotenv==1.0.0
+
+# Configuration
+toml==0.10.2
+pyyaml==6.0.1
+
+# Security
+cryptography==42.0.0
+bcrypt==4.1.2
+
+# Process Management (PID tracking, inference server lifecycle)
+psutil>=5.9.0
+
+# Monitoring
+prometheus-client==0.19.0
+opentelemetry-api>=1.22.0
+opentelemetry-sdk>=1.22.0
+opentelemetry-instrumentation-fastapi>=0.43b0
+
+# Rate Limiting
+slowapi==0.1.9
+
+# WebSockets
+websockets>=15.0
+python-socketio==5.11.0
+
+# Supabase Dependencies
+supabase==2.7.4
+redis==5.0.8
+
+# Async File I/O
+aiofiles==23.2.1
+
+# Data Validation
+email-validator==2.1.0
+
+# Utilities
+python-json-logger==2.0.7
+tenacity==8.2.3
+pynput>=1.7.7
+uv>=0.1.0  # Required for uvx command used by MCP Marketplace
+
+# MCP - Model Context Protocol
+mcp==1.20.0
+slack_sdk>=3.27.0
+telethon>=1.33.0
+
+# Open Interpreter Dependencies (from pyproject.toml)
+shortuuid>=1.0.0
+litellm>=1.0.0
+rich>=13.0.0
+inquirer>=3.1.3
+astor>=0.8.1
+git-python>=1.0.3
+six>=1.16.0
+tokentrim>=0.1.13
+wget>=3.2
+html2image>=2.0.4
+send2trash>=1.8.2
+ipykernel>=6.26.0
+jupyter-client>=8.6.0
+matplotlib>=3.8.2
+tiktoken>=0.7.0
+platformdirs>=4.2.0
+google-generativeai>=0.7.1
+pyperclip>=1.9.0
+yaspin>=3.0.2
+html2text>=2024.2.26
+selenium>=4.24.0
+webdriver-manager>=4.0.2
+anthropic>=0.37.1
+pyautogui>=0.9.54
+typer>=0.12.5
+scikit-learn>=1.0.0
+opencv-python>=4.8.0
+janus>=1.0.0
+
+# Open Interpreter (external server)
+# LEGAL-CLEAN: Open Interpreter runs as an external process with its own environment.
+# Do NOT install `open-interpreter` into the backend venv: it requires Starlette>=0.37, which conflicts
+# with this backend's FastAPI pin (0.109.x -> Starlette 0.35.x).
+#
+# Use: `scripts/setup_oi_server_venv.sh` (creates `venv-oi` and installs upstream Open Interpreter there).
+
+# TTS Integration
+# RealtimeTTS - installed from services/realtime-tts
+# Core dependencies for basic TTS engines
+stream2sentence==0.3.1
+resampy==0.4.3
+pydub==0.25.1
+pyttsx3==2.90
+gtts==2.4.0
+edge-tts==6.1.9
+
+# Audio Processing (Handsfree Voice Mode)
+# Dependency chain: pyannote.audio 4.x → torch 2.8.x → torchaudio 2.8.x
+# These versions are tested together. Do NOT change one without the others.
+pyannote.audio>=4.0.3     # Voice Activity Detection (requires torch 2.8+)
+torch>=2.8.0              # Required for pyannote, Whisper, Qwen3-TTS (MPS+SDPA+bfloat16)
+torchaudio>=2.8.0         # Required for audio processing
+torchvision>=0.23.0       # Required by torch for compatibility
+librosa>=0.10.2.post1     # Audio feature extraction
+soundfile>=0.12.1         # Audio I/O
+# Kokoro TTS dependencies (for handsfree mode)
+kokoro==0.9.4
+pyaudio==0.2.14
+# Japanese language support for Kokoro
+fugashi==1.4.0
+jaconv==0.4.0
+mojimoji==0.0.13
+pyopenjtalk==0.4.1
+# Chinese language support for Kokoro
+pypinyin==0.54.0
+ordered_set==4.1.0
+jieba==0.42.1
+cn2an==0.5.23
+
+# OCR Integration
+# Core dependencies for OCR
+filetype==1.2.0
+markdownify==1.1.0
+pypdfium2>=4.30.0
+qwen-vl-utils>=0.0.14
+qwen-tts>=0.1.1  # Qwen3-TTS PyTorch engine (requires torch, transformers, soundfile)
+# MLX TTS — Apple Silicon native inference, 3-6x faster than PyTorch MPS
+# Only installed on macOS arm64; pip will skip on Linux/Windows/Intel Mac
+mlx-audio~=0.2.10; sys_platform == 'darwin' and platform_machine == 'arm64'
+accelerate>=1.11.0
+transformers==4.57.3  # Required for Qwen3VL + Qwen3-TTS support
+easyocr>=1.7.0  # Cross-platform OCR engine for Docling (required for PDF processing)
+
+# Optional: Performance
+orjson==3.9.12
+ujson==5.9.0
+
+# Optional: Production server
+gunicorn==21.2.0
+
+# Development tools (commented out for production)
+# black==24.1.1
+# ruff==0.1.14
+# mypy==1.8.0
+openwakeword>=0.6.0
+
+# Backwards-compatible Keras required by transformers library (used by Docling for document processing)
+tf-keras>=2.16.0
+apscheduler==3.10.4
+
+# Embedding Service — runs inside Perplexica Docker (ONNX via Transformers.js)
+# sentence-transformers is NO LONGER needed. Removed in embedding consolidation.
+# The aether-rag library still supports sentence-transformers mode, but Aether uses openai mode exclusively.
+
+# BM25 Keyword Search (unified PyTerrier across daemons and Aether-RAG)
+python-terrier>=0.10.0  # PyTerrier for BM25 indexing (pure Python, no JDK required)
+
+# Aether-RAG chunking dependencies (aether-rag-core requires these for SentenceSplitter + file reading)
+# aether-rag-core is vendored at services/aether-rag/packages/aether-rag-core/ and imported via pathex.
+# Its transitive deps must be listed here so they are installed in the backend venv and bundled by PyInstaller.
+llama-index-core>=0.12.0          # SentenceSplitter, Document model, node parsers
+llama-index-readers-file>=0.4.0   # SimpleDirectoryReader for 40+ file types
+
+# Summarisation evaluation (offline experiment scripts)
+# Uses intrinsic metrics only (no external evaluation-model dependencies).
+sumy>=0.11.0
+# Sentence tokenization backend used by DocumentUtility (LexRank path).
+nltk>=3.9.0
+# Statistical significance testing for method comparison (Wilcoxon signed-rank).
+scipy>=1.11.0

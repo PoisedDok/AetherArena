@@ -1,0 +1,149 @@
+Incoming: Backend manifest and module structure standard --- {Dict[str, Any], yaml}
+Processing: Define backend-specific job flow overrides and descriptions --- {5 jobs: JOB_MANAGE_SESSIONS, JOB_MANAGE_STORAGE, JOB_ROUTE, JOB_TRACE, JOB_VALIDATE}
+Outgoing: Backend manifest and architecture validation scripts --- {Dict[str, Any], yaml}
+
+version: "2.0.0"
+name: "Aether Backend Data Flow Standard"
+last_updated: "2026-01-11"
+description: >
+  Each source file must declare exactly three architecture lines
+  describing incoming dependencies, processing behaviour, and outgoing
+  consumers. Jobs reference canonical identifiers (JOB_ROUTE, JOB_TRACE, etc.).
+job_types:
+  - name: JOB_APPLY_CONFIG
+    description: "Apply configuration settings to runtime components."
+  - name: JOB_AUTHORIZE
+    description: "Enforce authentication and authorization checks."
+  - name: JOB_CACHE_EVICT
+    description: "Remove entries from cache with TTL expiry."
+  - name: JOB_CACHE_READ
+    description: "Read presence, session, or rate limit data from cache."
+  - name: JOB_CACHE_WRITE
+    description: "Write presence, session, or rate limit data to cache with TTL."
+  - name: JOB_CANCEL_STREAM
+    description: "Cancel streaming tasks and cleanup resources."
+  - name: JOB_CLEANUP_RESOURCE
+    description: "Cleanup resources, connections, and handles."
+  - name: JOB_COLLECT_METRICS
+    description: "Collect metrics from services and components."
+  - name: JOB_DELETE_FROM_DB
+    description: "Delete records from database with audit trail."
+  - name: JOB_DISCOVER_TOOLS
+    description: "Discover and register integration tools."
+  - name: JOB_EXECUTE_TOOL
+    description: "Execute integration provider tools with timeout and retry."
+  - name: JOB_FILE_READ
+    description: "Read files from filesystem with validation."
+  - name: JOB_FILE_WRITE
+    description: "Write files to filesystem with validation."
+  - name: JOB_FILTER
+    description: "Filter data structures based on criteria."
+  - name: JOB_FORMAT_OUTPUT
+    description: "Format output for serialization or display."
+  - name: JOB_GENERATE_CONTENT
+    description: "Generate content via LLM or template."
+  - name: JOB_HASH_SECRET
+    description: "Hash secrets and sensitive data."
+  - name: JOB_HEALTH_CHECK
+    description: "Perform health checks on dependencies."
+  - name: JOB_HTTP_REQUEST
+    description: "Execute HTTP requests with retry and circuit breaker."
+  - name: JOB_INITIALIZE_COMPONENT
+    description: "Initialize components, services, or resources."
+  - name: JOB_LOAD_CONFIG
+    description: "Load configuration from files or environment."
+  - name: JOB_LOAD_DEFAULTS
+    description: "Load default configuration values."
+  - name: JOB_LOAD_OVERRIDES
+    description: "Load configuration overrides."
+  - name: JOB_LOG
+    description: "Emit structured logs with correlation metadata."
+  - name: JOB_MANAGE_API_KEYS
+    description: "Manage API key lifecycle and rotation."
+  - name: JOB_MANAGE_CLIENT
+    description: "Manage client connections and lifecycle."
+  - name: JOB_MANAGE_CONNECTION
+    description: "Manage connection pooling and lifecycle."
+  - name: JOB_MANAGE_RATE_LIMITS
+    description: "Enforce rate limiting policies."
+  - name: JOB_MANAGE_ROLES
+    description: "Manage role-based access control."
+  - name: JOB_MANAGE_SECRETS
+    description: "Manage secret storage and retrieval."
+  - name: JOB_MANAGE_SESSIONS
+    description: "Manage scoped resources (DB, cache, UoW) per request."
+  - name: JOB_MANAGE_STORAGE
+    description: "Persist, retrieve, or mutate storage records."
+  - name: JOB_MANAGE_TASK
+    description: "Manage background task lifecycle."
+  - name: JOB_MANAGE_TOKENS
+    description: "Manage authentication token lifecycle."
+  - name: JOB_MATCH_MODEL
+    description: "Match and resolve model identifiers."
+  - name: JOB_MERGE_SETTINGS
+    description: "Merge configuration settings from multiple sources."
+  - name: JOB_METRIC
+    description: "Record metrics and telemetry."
+  - name: JOB_ORCHESTRATE
+    description: "Coordinate multi-step workflows across layers."
+  - name: JOB_PARSE
+    description: "Parse structured data formats (JSON, YAML, etc.)."
+  - name: JOB_PARSE_CONFIG
+    description: "Parse configuration files and validate structure."
+  - name: JOB_QUERY_DB
+    description: "Query database with filters and pagination."
+  - name: JOB_REGISTER_PROVIDER
+    description: "Register integration providers and tools."
+  - name: JOB_RESOLVE_PATH
+    description: "Resolve filesystem paths with validation."
+  - name: JOB_RETRIEVE_DATA
+    description: "Retrieve data from storage or cache."
+  - name: JOB_RETRY
+    description: "Retry failed operations with backoff."
+  - name: JOB_ROUTE
+    description: "Route requests or data between layers without mutation."
+  - name: JOB_ROUTE_BY_TYPE
+    description: "Route payloads based on type metadata."
+  - name: JOB_SANITIZE
+    description: "Sanitize input data and remove dangerous content."
+  - name: JOB_SAVE_TO_DB
+    description: "Persist data to Supabase/PostgreSQL with audit trail."
+  - name: JOB_SCHEDULE_TASK
+    description: "Schedule background tasks for execution."
+  - name: JOB_SEARCH_INDEX
+    description: "Search indexed data structures."
+  - name: JOB_SERIALIZE
+    description: "Serialize data structures for transport."
+  - name: JOB_TIMEOUT
+    description: "Apply timeout constraints to operations."
+  - name: JOB_TRACK_CONNECTION
+    description: "Track WebSocket connection metadata in cache."
+  - name: JOB_TRACE
+    description: "Emit observability events or tracing spans."
+  - name: JOB_TRANSFORM_DATA
+    description: "Transform data structures between layers."
+  - name: JOB_TYPE
+    description: "Type checking and conversion operations."
+  - name: JOB_UPDATE_DB
+    description: "Update database records with concurrency protection."
+  - name: JOB_UPDATE_STATE
+    description: "Update stateful resources with concurrency protection."
+  - name: JOB_UPSERT_DATA
+    description: "Upsert data with conflict resolution."
+  - name: JOB_VALIDATE
+    description: "Validate payload structure or enforce invariants."
+  - name: JOB_VALIDATE_CONFIG
+    description: "Validate configuration against schemas."
+  - name: JOB_VALIDATE_CREDENTIALS
+    description: "Validate authentication credentials."
+  - name: JOB_VALIDATE_INPUT
+    description: "Validate user input against constraints."
+  - name: JOB_VALIDATE_SCHEMA
+    description: "Validate payloads against Pydantic schemas."
+  - name: JOB_VECTOR_SEARCH
+    description: "Perform vector similarity search."
+  - name: JOB_WEBSOCKET_SEND
+    description: "Send WebSocket chunks with correlation metadata."
+  - name: JOB_WS_RECEIVE
+    description: "Receive and validate WebSocket messages."
+

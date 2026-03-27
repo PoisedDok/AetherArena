@@ -1,0 +1,230 @@
+# Development Environment Configuration
+# Optimized for local development with verbose logging and hot-reload
+
+environment: development
+
+# Application settings
+app:
+  name: "Aether Backend (Development)"
+  version: "2.0.0"
+  debug: true
+  reload: true
+
+# Server configuration
+server:
+  host: "127.0.0.1"
+  port: 8765
+  workers: 1
+
+# Security settings (relaxed for development)
+security:
+  cors_enabled: true
+  cors_origins:
+    - "http://localhost"
+    - "http://localhost:3000"
+    - "http://localhost:5173"
+    - "http://127.0.0.1"
+    - "http://127.0.0.1:3000"
+    - "http://127.0.0.1:5173"
+  cors_credentials: true
+  cors_methods: ["*"]
+  cors_headers: ["*"]
+  rate_limit_enabled: false
+  auth_required: false
+
+# Supabase configuration (ONLY database backend)
+supabase:
+  enabled: true
+  url: "http://localhost:54321"
+  anon_key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlLWFldGhlciIsImlhdCI6MTc2MzI4Njk0MSwiZXhwIjo0OTE2ODg2OTQxfQ.MhODb6M4KgnM04jFhDkaepaz3oA1FHJh8GId1y3Zlso"
+  service_role_key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UtYWV0aGVyIiwiaWF0IjoxNzYzMjg2OTQxLCJleHAiOjQ5MTY4ODY5NDF9.LtTlUQA-NWc86RE7MIV2_u3jF22DaLLI9sKWXqID2EE"
+  schema: "public"
+  realtime_enabled: true
+
+# Logging configuration (clean event-based logging)
+logging:
+  level: "INFO"  # Changed from DEBUG to reduce noise
+  format: "text"  # text for human readability
+  file_enabled: true
+  file_path: "./logs/aether-dev.log"
+  file_rotation: "10 MB"
+  file_retention: "7 days"
+  console_enabled: true
+  json_logs: false
+
+# Monitoring configuration
+monitoring:
+  metrics_enabled: true
+  metrics_port: 9090
+  tracing_enabled: true
+  tracing_endpoint: "http://localhost:4317"
+  health_check_interval: 30
+  profiling_enabled: true
+
+# Integration services (local development)
+integrations:
+  perplexica:
+    url: "http://localhost:3000"
+    enabled: true
+    timeout: 120
+  
+  searxng:
+    url: "http://127.0.0.1:4040"
+    enabled: true
+    timeout: 30
+  
+  docling:
+    enabled: true
+  
+  xlwings:
+    enabled: true
+    base_dir: "~/.aetherarena/xlwings"
+  
+  lm_studio:
+    url: "http://localhost:1234/v1"
+    enabled: true
+    timeout: 600
+  
+  openrouter:
+    url: "https://openrouter.ai/api/v1"
+    enabled: true
+    timeout: 60
+  
+  aether_rag:
+    enabled: true
+    mcp_command: "${AETHER_RAG_MCP_COMMAND:python}"
+    mcp_args: ["-m", "aether_rag.mcp"]
+  
+  mcp:
+    enabled: true
+    auto_start: true
+    health_check_interval: 30
+
+# Aether Inference (native process-managed vllm-mlx / vLLM / Ollama)
+# Requires venv-inference setup: run core/system/setup_engine.py or manually:
+#   python3 -m venv venv-inference
+#   venv-inference/bin/pip install -r services/aether_inference/requirements-apple-silicon.txt  # macOS arm64
+#   venv-inference/bin/pip install --upgrade "mlx-vlm>=0.3.11"  # force correct version
+inference:
+  enabled: true
+  port: 7090  # Avoids 8010-8099 (OI), 8765 (backend), Docker mesh
+  auto_start: true
+  default_model: ""  # Platform-resolved at runtime (mlx-community/GLM-OCR-8bit on Mac, zai-org/GLM-OCR on CUDA)
+  default_text_model: ""   # Auto-discovered from models_dir at runtime; set explicitly to override
+  default_vision_model: "" # Platform-resolved via detect_platform() if empty
+  health_check_interval: 30
+  idle_timeout: 600  # Seconds idle before unloading a model (default 10 min). 0 = never unload.
+  # venv_path: ""  # Dynamic: ~/Library/Application Support/Aether/venv-inference (macOS) or ./venv-inference (Linux)
+  # models_dir: ""  # Dynamic: ./models (dev) or ~/Library/Application Support/Aether/models (packaged)
+  #                  # Drop model folders (org/model-name/) or .gguf files here to serve them
+
+# LLM configuration (main chat model)
+# Default: aether_inference (built-in at :7090). LM Studio (:1234) is fallback if user configures it.
+llm:
+  provider: "aether_inference"
+  api_base: "http://127.0.0.1:7090/v1"
+  model: "lmstudio-community/Qwen3-4b-Instruct-2507-MLX-8bit"
+  context_window: 100000
+  max_tokens: 4096
+  temperature: 0.7
+  stream: true
+
+# Per-service AI provider overrides
+# Each service defaults to aether_inference (provider: "" means use default).
+# Users can override per service from the Settings UI.
+# Supported providers: "aether_inference", "openai-compatible", "ollama"
+#
+# summary_service:
+#   provider_config:
+#     provider: ""              # "" = aether_inference (text model from config)
+#     api_base: ""              # "" = auto-resolve from provider
+#     model: ""                 # "" = inference.default_text_model -> llm.summarizer_model
+#
+# vetting_service:
+#   provider_config:
+#     provider: ""              # "" = aether_inference (text model from config)
+#
+# vision_document:
+#   provider_config:
+#     provider: ""              # "" = aether_inference (vision model from config)
+#
+# proactive.query_generation:
+#   provider_config:
+#     provider: ""              # "" = aether_inference (text model from config)
+
+# Open Interpreter configuration
+interpreter:
+  auto_run: true  # Must be true for external server mode (no OI-level confirmation protocol)
+  safe_mode: "off"
+  loop: false
+  profile: "GURU.py"
+  offline: true
+  disable_telemetry: true
+  debug: true
+
+# Storage configuration
+storage:
+  base_path: "./data/storage"
+  max_upload_size_mb: 100
+  allowed_extensions:
+    - ".pdf"
+    - ".txt"
+    - ".md"
+    - ".doc"
+    - ".docx"
+    - ".xls"
+    - ".xlsx"
+    - ".csv"
+    - ".json"
+    - ".yaml"
+    - ".yml"
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".gif"
+    - ".webp"
+
+# Memory/retrieval configuration
+memory:
+  enabled: true
+  type: "sqlite"
+  path: "./data/memory_dev.db"
+  embedder: "local-minilm"
+  top_k: 5
+
+# Cache configuration
+cache:
+  enabled: true
+  type: "memory"  # Use in-memory cache for development
+  ttl_seconds: 3600
+
+# Development-specific features
+development:
+  # Auto-reload on code changes
+  auto_reload: true
+  
+  # Show detailed error pages
+  detailed_errors: true
+  
+  # Enable API documentation
+  docs_enabled: true
+  docs_url: "/docs"
+  redoc_url: "/redoc"
+  openapi_url: "/openapi.json"
+  
+  # Mock external services when unavailable
+  mock_external_services: false
+  
+  # Disable request validation for testing
+  strict_validation: false
+  
+  # Allow all file types for testing
+  allow_all_file_types: false
+
+# Performance (development optimized)
+performance:
+  worker_count: 1
+  thread_pool_size: 10
+  max_concurrent_requests: 5
+  request_queue_size: 50
+

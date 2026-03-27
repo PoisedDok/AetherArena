@@ -1,0 +1,126 @@
+# Model Configuration
+# Single source of truth for all model and provider settings
+
+[MODELS]
+# Primary models for production use (user-configurable from frontend)
+primary_chat_model = "lmstudio-community/Qwen3-4b-Instruct-2507-MLX-8bit"  # Main chat LLM
+primary_embedding_model = "text-embedding-nomic-embed-text-v1.5"
+
+
+
+# Specialized models (resolved dynamically via provider_config)
+# vision_model resolved at runtime via resolve_service_provider()
+
+[INFERENCE]
+# Aether Inference service (native process-managed vllm-mlx / vLLM / Ollama)
+# Port 7090: avoids 8010-8099 (OI), 8765 (backend), 3000/4040 (Docker mesh)
+enabled = true
+port = 7090
+auto_start = true
+default_model = ""  # Platform-resolved at runtime (mlx-community/GLM-OCR-8bit on Mac, zai-org/GLM-OCR on CUDA)
+health_check_interval = 30
+
+[VISION_DOCUMENT]
+# Vision/doc processing defaults (central config)
+# Vision model is resolved at runtime via provider_config (ServiceProviderConfig).
+# Default: aether-inference with default_vision_model. Override per-service in settings UI.
+# Legacy fields kept for backward compat but no longer drive pipeline branching.
+vision_model = ""
+vision_model_lmstudio = ""
+# ocr_engine: glm-ocr uses VLM pipeline (inference server), others are in-process Docling OCR
+ocr_engine = "glm-ocr"
+ocr_languages = "en"
+max_tokens = 512
+temperature = 0.2
+
+[PROVIDERS]
+# Aether Inference (built-in, default — always available at port 7090)
+aether_inference_url = "http://127.0.0.1:7090/v1"
+aether_inference_api_key = "not-needed"
+
+# LM Studio (fallback LLM provider — user-installed, requires explicit opt-in)
+lm_studio_url = "http://localhost:1234/v1"
+lm_studio_api_key = "not-needed"
+openrouter_url = "https://openrouter.ai/api/v1"
+openrouter_api_key = ""
+
+# Ollama (alternative LLM provider)
+ollama_url = "http://127.0.0.1:11434"
+
+# External service integrations
+perplexica_url = "http://localhost:3000"
+searxng_url = "http://127.0.0.1:4040"
+
+xlwings_base_dir = "~/.aetherarena/xlwings"
+
+[EMBEDDINGS]
+# Primary: Perplexica ONNX (always available via Docker mesh, fast, lightweight)
+primary_provider = "perplexica"
+primary_model = "Xenova/bge-small-en-v1.5"
+primary_api_base = "http://localhost:3000/api"
+primary_api_key = "not-needed"
+primary_dimensions = 384
+timeout_seconds = 30.0
+
+# Fallback: LM Studio / OpenAI-compatible (higher quality, requires LM Studio running)
+fallback_provider = "lmstudio"
+fallback_model = "text-embedding-nomic-embed-text-v1.5"
+fallback_api_base = "http://localhost:1234/v1"
+fallback_api_key = "not-needed"
+fallback_dimensions = 768
+fallback_app_name = "Aether Backend"
+fallback_site_url = "http://localhost:8765"
+
+[OPEN_INTERPRETER]
+# Open Interpreter runtime configuration
+# Execution behavior (single source of truth for both in-process + external-server modes)
+auto_run = true
+loop = false
+context_window = 100000
+max_tokens = 4096
+supports_vision = false
+supports_functions = false
+offline = true
+disable_telemetry = true
+
+[PERPLEXICA]
+# Perplexica search configuration
+similarity_measure = "cosine"
+keep_alive = "5m"
+optimization_mode = "balanced"
+timeout = 120
+
+[PROVIDER_PREFERENCES]
+# Provider selection priority order (aether_inference is built-in default)
+chat_providers = ["aether_inference", "lmstudio", "custom_openai", "ollama"]
+embedding_providers = ["transformers", "lmstudio", "ollama"]
+
+[DOCLING]
+# Docling document processing configuration
+default_pipeline = "standard"
+enable_ocr = true
+enable_table_extraction = true
+enable_vision = true
+max_pages = 1000
+timeout = 300
+
+[SECURITY]
+# Security-related model settings
+enable_content_filtering = false
+enable_pii_detection = false
+max_prompt_tokens = 50000
+max_completion_tokens = 4096
+
+[PERFORMANCE]
+# Performance tuning
+batch_size = 1
+num_workers = 4
+enable_caching = true
+cache_ttl_seconds = 3600
+
+[LIMITS]
+# Resource limits
+max_concurrent_requests = 10
+max_queue_size = 100
+request_timeout_seconds = 600
+

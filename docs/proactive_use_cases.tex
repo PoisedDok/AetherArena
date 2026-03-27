@@ -1,0 +1,335 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{fancyhdr}
+
+% Header setup
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textit{Aether Proactive System - Use Cases}}
+\lhead{\textit{Research Implementation}}
+\rfoot{\thepage}
+
+\title{\textbf{Proactive Information Retrieval System:} \\
+\large Real-World Use Cases from Multi-Source Activity Monitoring}
+\author{AetherArena Implementation}
+\date{January 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We present a production implementation of proactive information retrieval (PIR) based on \textit{Generating Queries from User Contexts via In-Context Learning for Proactive Retrieval}. Our system operates in two phases: Phase 1 continuously monitors browser history (threshold: 3 logs), filesystem changes (threshold: 1 log), and email activity (threshold: 1 log) to generate 0-3 queries using pattern analysis with ICL (previous 3 batches as evolutionary context); Phase 2 employs a ReAct-based scouting agent with 8 specialized tools to assess relevance and make binary \texttt{intervene}/\texttt{defer} decisions. The LLM can choose to generate NO queries if activity is routine. We demonstrate realistic use cases across single-source and cross-source scenarios using actual data structures from production implementation.
+\end{abstract}
+
+\section{System Architecture Overview}
+
+\subsection{Phase 1: Background Query Generation}
+\textbf{Operates independently} of the main application—runs 24/7 as system daemons monitoring user activity across three primary sources:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Browser Daemon:} Scans Chromium-based browser history every 5 seconds, capturing URL, title, visit count, and profile name. Uses incremental timestamp tracking to prevent duplicate processing.
+    
+    \item \textbf{Email Daemon:} Monitors macOS Mail.app via AppleScript (no Full Disk Access required), extracting subject, sender, and 500-character body preview from recent emails.
+    
+    \item \textbf{Filesystem Daemon:} Watchdog-based real-time monitoring of configured directories, logging file created/modified/deleted/moved events with 500-character content preview extraction for text files (40+ extensions supported: .py, .js, .md, .txt, .sql, etc.).
+\end{enumerate}
+
+When any source accumulates \texttt{threshold} unprocessed logs (browser: 3, email: 1, filesystem: 1), it signals the \textbf{Query Generation Daemon}, which:
+\begin{itemize}
+    \item Fetches unprocessed logs from all active sources
+    \item Builds context window including current batch + last 3 batches (ICL continuity)
+    \item Generates 0-3 queries via LLM using pattern analysis (paper Figure 3 methodology)
+    \item LLM can choose to generate NO queries if activity is routine/non-interesting
+    \item Stores queries in SQLite with bidirectional linking to source documents
+    \item Updates BM25 index for agent retrieval
+\end{itemize}
+
+\subsection{Phase 2: Proactive Agent Worker}
+\textbf{In-application worker} (10-second heartbeat) monitors Phase 1 query database:
+
+\begin{enumerate}[leftmargin=*]
+    \item Fetches most recent unprocessed query (single-query processing, marks older queries as stale)
+    \item Calls ReAct agent with query + source documents + activity context
+    \item Agent uses tool budget (max 2 calls per tool, max 10 total, early stop after 2 high signals):
+    \begin{itemize}
+        \item \texttt{retriever}: Unified local search across 6 sources
+        \begin{itemize}
+            \item BM25 mode: Daemon PyTerrier indexes (browser, email, filesystem, query\_gen)
+            \item Semantic mode: Aether-RAG with FAISS-HNSW (browser, email, filesystem)
+            \item \texttt{query\_gen}: Search Phase 1 generated queries + context\_doc\_ids (links to source logs)
+            \item \texttt{proactive\_cache}: Past agent runs (Supabase semantic search)
+            \item \texttt{chat}: Chat history (Aether-RAG)
+        \end{itemize}
+        \item \texttt{web\_search}: Live web search (DuckDuckGo/SearxNG)
+        \item \texttt{scrape\_url}: Extract content from specific URLs
+        \item \texttt{academic\_search}: Search academic papers and publications
+        \item \texttt{social\_search}: Search Reddit, YouTube, and social platforms
+        \item \texttt{legal\_search}: Search legal documents and case law
+        \item \texttt{uploads\_search}: Search uploaded files and documents
+        \item \texttt{done}: Signal completion of research phase
+    \end{itemize}
+    \item Decision logic: \texttt{intervene} if (highSignalCount $\geq$ 2) OR (highSignalCount = 1 AND timely AND actionable); else \texttt{defer}
+    \item Relevance score (0-1) calculated for monitoring/logging, not primary decision factor
+    \item If \texttt{intervene}: Generate response via LLM using gathered context from tool results
+    \item Stores run in Supabase with decision, embeddings, and tool calls
+    \item Emits WebSocket notification if \texttt{intervene}
+\end{enumerate}
+
+\section{Use Case Taxonomy}
+
+We demonstrate two categories: \textbf{Single-Source} (activity in one daemon) and \textbf{Cross-Source} (correlated activity across multiple daemons with overlapping semantic content).
+
+\section{Use Cases}
+
+\subsection{Use Case 1: Online Shopping Price Comparison (Browser-Only)}
+
+\textbf{Scenario:} User shopping for a laptop, visiting multiple retailer websites.
+
+\textbf{Phase 1 Activity:}
+\begin{tcolorbox}[colback=gray!5,colframe=gray!80,title=Browser Logs (3 visits in 5 minutes)]
+\begin{verbatim}
+[
+  {
+    "url": "bestbuy.com/laptops/dell-xps-15",
+    "title": "Dell XPS 15 - $1,899 | Best Buy",
+    "visit_count": 2,
+    "profile": "Default",
+    "timestamp": "2026-01-31T14:22:45Z"
+  },
+  {
+    "url": "amazon.com/dp/B09XYZ/dell-xps-15",
+    "title": "Dell XPS 15 Laptop - Amazon.com",
+    "visit_count": 1,
+    "timestamp": "2026-01-31T14:24:30Z"
+  },
+  {
+    "url": "dell.com/en-us/shop/laptops/xps-15",
+    "title": "XPS 15 Laptop | Dell USA Official",
+    "visit_count": 1,
+    "timestamp": "2026-01-31T14:27:10Z"
+  }
+]
+\end{verbatim}
+\end{tcolorbox}
+
+\textbf{Phase 1 Output:}
+\begin{tcolorbox}[colback=blue!5,colframe=blue!80]
+\texttt{"dell xps 15 laptop price comparison best deal"}
+\end{tcolorbox}
+
+\textbf{Phase 2 Agent Execution:}
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Tool Calls:}
+    \begin{itemize}
+        \item \texttt{retriever(sources=["browser"], query="dell xps 15", mode="bm25")} → 8 past visits
+        \item \texttt{web\_search("Dell XPS 15 best price 2026")} → 12 docs (price aggregators, student discounts)
+        \item Early stop triggered (2 high relevance signals)
+    \end{itemize}
+    \item \textbf{Decision:} \texttt{intervene} (highSignalCount=2: \texttt{repeatedBrowserActivity} + high web search relevance)
+\end{enumerate}
+
+\textbf{Recommendation:}
+\begin{tcolorbox}[colback=green!5,colframe=green!80]
+\textit{I noticed you're shopping for a Dell XPS 15. Here's what I found:}
+\begin{itemize}
+    \item \textbf{Best Buy:} \$1,899 (in stock)
+    \item \textbf{Amazon:} \$1,749 (Prime eligible, arrives in 2 days)
+    \item \textbf{Dell Direct:} \$1,799 (student discount available: 10\% off = \$1,619)
+\end{itemize}
+\textit{Tip:} If you're a student, Dell's education store offers the best price. Also check if your credit card has price protection.
+\end{tcolorbox}
+
+\textbf{Outcome:} User saves \$280 by learning about student discount, making informed purchase decision.
+
+\subsection{Use Case 2: Travel Planning from Email Confirmation (Email + Browser Cross-Source)}
+
+\textbf{Scenario:} User receives hotel confirmation email, starts researching destination.
+
+\textbf{Phase 1 Activity - Email (t=0):}
+\begin{tcolorbox}[colback=gray!5,colframe=gray!80,title=Email Log]
+\begin{verbatim}
+{
+  "subject": "Your Tokyo Stay is Confirmed - March 15-20, 2026",
+  "sender": "reservations@hyatt.com",
+  "body_preview": "Thank you for booking! Hyatt Regency Tokyo, 
+                   5 nights, Check-in: March 15, 2026. Located in 
+                   Shinjuku district. Confirmation #HTK-928475...",
+  "file_path": "Mail.app",
+  "timestamp": "2026-01-31T09:15:00Z"
+}
+\end{verbatim}
+\end{tcolorbox}
+
+\textbf{Phase 1 Activity - Browser (t+10min):}
+\begin{tcolorbox}[colback=gray!5,colframe=gray!80,title=Browser Logs]
+\begin{verbatim}
+[
+  {
+    "url": "japan-guide.com/tokyo/shinjuku",
+    "title": "Shinjuku Guide - Tokyo Travel",
+    "timestamp": "2026-01-31T09:25:30Z"
+  },
+  {
+    "url": "tripadvisor.com/restaurants-shinjuku-tokyo",
+    "title": "Best Restaurants in Shinjuku",
+    "timestamp": "2026-01-31T09:27:15Z"
+  },
+  {
+    "url": "google.com/flights?departure=SFO&arrival=NRT",
+    "title": "Flights from San Francisco to Tokyo",
+    "timestamp": "2026-01-31T09:30:00Z"
+  }
+]
+\end{verbatim}
+\end{tcolorbox}
+
+\textbf{Phase 1 Output:}
+\begin{tcolorbox}[colback=blue!5,colframe=blue!80]
+\texttt{"tokyo travel shinjuku restaurants things to do march 2026"}
+\end{tcolorbox}
+
+\textbf{Phase 2 Agent Execution:}
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Signal Detection:}
+    \begin{itemize}
+        \item \texttt{multiple\_source\_overlap=True} (email "Tokyo, March 15" + browser "Tokyo travel")
+        \item \texttt{temporal\_keywords=True} ("March 15, 2026" - upcoming trip)
+    \end{itemize}
+    \item \textbf{Tool Calls:}
+    \begin{itemize}
+        \item \texttt{retriever(sources=["email"], query="Tokyo stay", mode="bm25")} → 1 doc
+        \item \texttt{retriever(sources=["browser"], query="Shinjuku Tokyo", mode="bm25")} → 7 docs
+        \item \texttt{web\_search("Tokyo travel tips March 2026")} → 15 docs
+    \end{itemize}
+    \item \textbf{Decision:} \texttt{intervene} (highSignalCount=2: \texttt{multiple\_source\_overlap} + \texttt{temporal\_keywords})
+\end{enumerate}
+
+\textbf{Recommendation:}
+\begin{tcolorbox}[colback=green!5,colframe=green!80]
+\textit{I see you're planning your Tokyo trip (March 15-20). Here's a starter checklist:}
+\begin{itemize}
+    \item \textbf{Weather:} Early spring, 10-15°C, pack layers + light jacket
+    \item \textbf{Transit:} Get Suica/Pasmo card at airport for trains/subways (hotel is 5 min from Shinjuku Station)
+    \item \textbf{Cherry blossoms:} Peak season! Shinjuku Gyoen Park (15 min walk from hotel) will be in full bloom
+    \item \textbf{Don't miss:} Omoide Yokocho (food alley), Tokyo Metropolitan Govt Building (free observation deck)
+\end{itemize}
+\textit{Reminder:} Book flights soon for better prices (your search shows SFO→NRT).
+\end{tcolorbox}
+
+\textbf{Outcome:} User gets personalized travel prep checklist based on confirmed hotel location and dates.
+
+\subsection{Use Case 3: Recipe Gathering for Dinner Party (Email + Filesystem Cross-Source)}
+
+\textbf{Scenario:} User receives dinner party invitation email, saves recipes to local folder.
+
+\textbf{Phase 1 Activity - Email (t=0):}
+\begin{tcolorbox}[colback=gray!5,colframe=gray!80]
+\begin{verbatim}
+{
+  "subject": "Dinner Party Next Saturday!",
+  "sender": "maria@friends.com",
+  "body_preview": "Hey! Hosting a small dinner party next Sat 
+                   (Feb 8) at 7pm. Would love if you could 
+                   bring an appetizer! Theme is Mediterranean. 
+                   Let me know if you can make it!",
+  "timestamp": "2026-01-31T15:30:00Z"
+}
+\end{verbatim}
+\end{tcolorbox}
+
+\textbf{Phase 1 Activity - Filesystem (t+30min):}
+\begin{tcolorbox}[colback=gray!5,colframe=gray!80]
+\begin{verbatim}
+[
+  {
+    "action": "created",
+    "file_path": "/Users/jane/Documents/Recipes/hummus_recipe.txt",
+    "content_preview": "Mediterranean Hummus
+                         Ingredients: chickpeas, tahini, lemon, 
+                         garlic, olive oil, cumin
+                         Prep time: 10 minutes...",
+    "timestamp": "2026-01-31T16:00:00Z"
+  },
+  {
+    "action": "created",
+    "file_path": "/Users/jane/Documents/Recipes/bruschetta.txt",
+    "content_preview": "Classic Bruschetta
+                         Tomatoes, basil, garlic, balsamic, 
+                         baguette slices
+                         Serves: 8-10 people...",
+    "timestamp": "2026-01-31T16:05:00Z"
+  }
+]
+\end{verbatim}
+\end{tcolorbox}
+
+\textbf{Phase 1 Output:}
+\begin{tcolorbox}[colback=blue!5,colframe=blue!80]
+\texttt{"mediterranean appetizers recipes dinner party hummus bruschetta"}
+\end{tcolorbox}
+
+\textbf{Phase 2 Agent Execution:}
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Signals:} \texttt{multiple\_source\_overlap=True} (email "Mediterranean appetizer" + filesystem "hummus bruschetta recipes")
+    \item \textbf{Tool Calls:}
+    \begin{itemize}
+        \item \texttt{retriever(sources=["email"], query="dinner party", mode="bm25")} → 1 doc (Maria's invitation)
+        \item \texttt{retriever(sources=["filesystem"], query="recipes Mediterranean", mode="bm25")} → 2 docs (hummus + bruschetta)
+        \item \texttt{web\_search("Mediterranean appetizers easy prep timeline")} → 10 docs (grocery, timing guides)
+    \end{itemize}
+    \item \textbf{Decision:} \texttt{intervene} (highSignalCount=2: \texttt{multiple\_source\_overlap} + \texttt{emailWithPublicUrls})
+\end{enumerate}
+
+\textbf{Recommendation:}
+\begin{tcolorbox}[colback=green!5,colframe=green!80]
+\textit{I see you're preparing for Maria's dinner party (Feb 8). You've saved hummus \& bruschetta recipes:}
+\begin{itemize}
+    \item \textbf{Grocery list:} Chickpeas (2 cans), tahini, tomatoes (6-8), fresh basil, baguette (2 loaves), olive oil, garlic, lemon
+    \item \textbf{Timeline:} Both recipes are quick (10-15 min prep). You can make hummus 2 days ahead; bruschetta should be assembled fresh day-of
+    \item \textbf{Serving tip:} Hummus serves 8-10, bruschetta serves 8-10—perfect for small party
+\end{itemize}
+\textit{Don't forget to reply to Maria's email!}
+\end{tcolorbox}
+
+\textbf{Outcome:} User gets shopping list + prep timeline generated from saved recipes and email context.
+
+
+
+\section{Conclusion}
+
+This report demonstrates three realistic use cases for our proactive information retrieval system: single-source browser activity (online shopping price comparison), cross-source email+browser correlation (travel planning from confirmation email), and email+filesystem integration (dinner party recipe preparation). Each use case illustrates the complete system flow from Phase 1 pattern-based query generation (0-3 queries with ICL from previous 3 batches) to Phase 2 ReAct-based agent scouting with tool budget constraints (max 2 calls per tool, max 10 total, early stop after 2 high signals). The system uses signal-based decision logic (highSignalCount $\geq$ 2 triggers intervention) rather than threshold-based relevance scoring.
+
+All examples use actual tool signatures and data structures from production implementation.
+
+\vspace{0.5cm}
+\noindent\rule{\textwidth}{0.4pt}
+\subsection*{Paper Alignment Note: Two-Agent ICL Architecture}
+
+\textbf{Paper's Approach:} Uses rank-biased overlap (RBO) to precompute ICL query-pair examples from MS MARCO (8.8M docs, 400K queries), selecting reformulations with intermediate overlap (RBO $\sim$ 0.5) before query generation.
+
+\textbf{Our Implementation:} Provides ICL to both agents via unified data flow:
+
+\textbf{Phase 1 (Intra-Generation ICL):} LLM receives last 3 batches (query + source\_logs) in prompt. When generating Query N, sees:
+\begin{itemize}
+    \item \texttt{Batch N-2}: "laptop recommendations \$2000" + 3 logs (Reddit, YouTube, Best Buy)
+    \item \texttt{Batch N-1}: "dell xps 15 student discount" + 3 logs (Dell site, reviews, sale email)
+    \item \texttt{Current}: 3 new logs (checkout, credit card, specs PDF)
+\end{itemize}
+
+Stores complete context in SQLite (11 docs): current logs (3) + previous queries N-1, N-2 with their contexts (4 each).
+
+\textbf{Phase 2 (Cross-Generation ICL):} Receives Query N with all 11 evolutionary context documents. Immediately sees progression (broad research → model selection → purchase prep) without tool calls. Can avoid redundancy (knows N-2 covered comparisons, N-1 covered Dell specifics). Has \texttt{retriever(query\_gen)} tool for deeper history beyond last 3 batches.
+
+\textbf{Advantages:} Bidirectional ICL (both agents), no static corpus (uses user history), two-level memory (built-in + BM25 index), redundancy avoidance, on-demand expansion, real-time updates.
+
+\noindent\rule{\textwidth}{0.4pt}
+
+\end{document}

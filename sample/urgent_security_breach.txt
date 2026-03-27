@@ -1,0 +1,33 @@
+URGENT: Critical Security Vulnerability Discovered in OpenSSL 3.4.0
+
+SEVERITY: CRITICAL (CVSS 9.8)
+DATE: January 30, 2026
+CVE: CVE-2026-12345
+
+A critical remote code execution vulnerability has been discovered in OpenSSL 3.4.0 affecting millions of servers worldwide. The vulnerability allows unauthenticated attackers to execute arbitrary code on affected systems.
+
+AFFECTED VERSIONS:
+- OpenSSL 3.4.0 (all platforms)
+- Released in December 2025
+- Affects web servers, VPNs, email servers
+
+IMMEDIATE ACTION REQUIRED:
+1. Update to OpenSSL 3.4.1 immediately
+2. Restart all affected services
+3. Review server logs for suspicious activity since December 15, 2025
+4. Regenerate SSL certificates if compromise suspected
+
+EXPLOIT STATUS: 
+Proof-of-concept exploit code was published on GitHub 2 hours ago.
+Active exploitation detected in the wild targeting AWS, Azure, and GCP infrastructure.
+
+INDICATORS OF COMPROMISE:
+- Unusual outbound connections on port 443
+- Unexpected SSL handshake errors in logs
+- New admin accounts created
+- Modified SSL certificate files
+
+For technical details: https://nvd.nist.gov/vuln/detail/CVE-2026-12345
+Patch download: https://www.openssl.org/source/
+
+This is a wormable vulnerability. Urgent patching recommended within next 4 hours.

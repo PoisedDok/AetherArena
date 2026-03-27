@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "setupComplete": true,
+  "preferences": {
+    "chatModel": {
+      "provider": "aether-inference-default",
+      "model": "lmstudio-community/Qwen3-4b-Instruct-2507-MLX-8bit"
+    },
+    "embeddingModel": {
+      "provider": "transformers-default",
+      "model": "Xenova/bge-small-en-v1.5"
+    }
+  },
+  "personalization": {},
+  "modelProviders": [
+    {
+      "id": "aether-inference-default",
+      "name": "Aether Inference (Built-in)",
+      "type": "lmstudio",
+      "chatModels": [],
+      "embeddingModels": [],
+      "config": {
+        "baseURL": "http://host.docker.internal:7090"
+      },
+      "hash": "fe60b3a42987d7a87513a7bbabce25835d47b0bae0ddea69a5447fd074f1a491"
+    },
+    {
+      "id": "transformers-default",
+      "name": "Transformers (ONNX)",
+      "type": "transformers",
+      "chatModels": [],
+      "embeddingModels": [],
+      "config": {},
+      "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    }
+  ],
+  "search": {
+    "searxngURL": "http://searxng:8080"
+  }
+}

@@ -1,0 +1,254 @@
+# Production Environment Configuration
+# Optimized for production deployment with security and performance
+
+environment: production
+
+# Application settings
+app:
+  name: "Aether Backend"
+  version: "2.0.0"
+  debug: false
+  reload: false
+
+# Server configuration
+server:
+  host: "127.0.0.1"
+  port: 5002
+  workers: 4
+
+# Security settings (strict for production)
+security:
+  cors_enabled: true
+  cors_origins:
+    - "https://aether.yourdomain.com"
+    - "https://app.yourdomain.com"
+  cors_credentials: true
+  cors_methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+  cors_headers: ["Content-Type", "Authorization"]
+  rate_limit_enabled: true
+  rate_limit_requests_per_minute: 60
+  auth_required: true
+  auth_secret_key: "${AUTH_SECRET_KEY}"  # From environment variable
+
+# Supabase configuration (ONLY database backend)
+supabase:
+  enabled: true
+  url: "${SUPABASE_URL}"  # From environment variable
+  anon_key: "${SUPABASE_ANON_KEY}"
+  service_role_key: "${SUPABASE_SERVICE_ROLE_KEY}"
+  schema: "public"
+  realtime_enabled: true
+
+# Logging configuration (structured for production)
+logging:
+  level: "INFO"
+  format: "json"  # JSON for log aggregation systems
+  file_enabled: true
+  file_path: "/var/log/aether/backend.log"
+  file_rotation: "100 MB"
+  file_retention: "30 days"
+  console_enabled: true
+  json_logs: true
+
+# Monitoring configuration
+monitoring:
+  metrics_enabled: true
+  metrics_port: 9090
+  tracing_enabled: true
+  tracing_endpoint: "${TRACING_ENDPOINT}"
+  tracing_sample_rate: 0.1  # Sample 10% of requests
+  health_check_interval: 60
+  profiling_enabled: false
+
+# Integration services (production URLs)
+integrations:
+  perplexica:
+    url: "${PERPLEXICA_URL}"
+    enabled: true
+    timeout: 120
+  
+  searxng:
+    url: "${SEARXNG_URL}"
+    enabled: true
+    timeout: 30
+  
+  docling:
+    enabled: true
+  
+  xlwings:
+    enabled: true
+    base_dir: "${XLWINGS_BASE_DIR}"
+  
+  lm_studio:
+    url: "${LM_STUDIO_URL}"
+    enabled: true
+    timeout: 600
+  
+  aether_rag:
+    enabled: true
+    # Prefer in-env Python module execution over relying on a PATH-installed console script.
+    mcp_command: "${AETHER_RAG_MCP_COMMAND:python}"
+    mcp_args: ["-m", "aether_rag.mcp"]
+  
+  mcp:
+    enabled: true
+    auto_start: false  # Manually managed in production
+    health_check_interval: 60
+
+# Aether Inference (native process-managed vllm-mlx / vLLM / Ollama)
+# Models stored in models_dir (local directory, not HF cache).
+# Drop model folders as org/model-name/ to make them available.
+inference:
+  enabled: true
+  port: 7090  # Avoids 8010-8099 (OI), 8765 (backend), Docker mesh
+  auto_start: true
+  default_model: ""  # Platform-resolved at runtime
+  default_text_model: ""   # Auto-discovered from models_dir at runtime; set explicitly to override
+  default_vision_model: "" # Platform-resolved via detect_platform() if empty
+  health_check_interval: 30
+  idle_timeout: 600  # Seconds idle before unloading a model (default 10 min). 0 = never unload.
+  # models_dir resolved dynamically: ./models (dev) or ~/Library/Application Support/Aether/models (packaged)
+  # Drop model folders (org/model-name/) or .gguf files into models_dir to serve them
+
+# LLM configuration (main chat model)
+# Default: aether_inference (built-in at :7090). LM Studio is fallback if user configures it.
+llm:
+  provider: "aether_inference"
+  api_base: "http://127.0.0.1:7090/v1"
+  api_key: "not-needed"
+  model: "lmstudio-community/Qwen3-4b-Instruct-2507-MLX-8bit"
+  context_window: 100000
+  max_tokens: 4096
+  temperature: 0.7
+  stream: true
+
+# Per-service AI provider overrides
+# Each service defaults to aether_inference (provider: "" means use default).
+# Users can override per service from the Settings UI.
+# Supported providers: "aether_inference", "openai-compatible", "ollama"
+#
+# summary_service:
+#   provider_config:
+#     provider: ""              # "" = aether_inference (text model from config)
+#
+# vetting_service:
+#   provider_config:
+#     provider: ""              # "" = aether_inference (text model from config)
+#
+# vision_document:
+#   provider_config:
+#     provider: ""              # "" = aether_inference (vision model from config)
+#
+# proactive.query_generation:
+#   provider_config:
+#     provider: ""              # "" = aether_inference (text model from config)
+
+# Open Interpreter configuration
+interpreter:
+  auto_run: true  # Must be true for external server mode (no OI-level confirmation protocol)
+  safe_mode: "off"  # Safety handled at Aether trail layer, not OI level
+  loop: false
+  profile: "GURU.py"
+  offline: true
+  disable_telemetry: true
+  debug: false
+
+# Storage configuration
+storage:
+  base_path: "/var/lib/aether/storage"
+  max_upload_size_mb: 100
+  allowed_extensions:
+    - ".pdf"
+    - ".txt"
+    - ".md"
+    - ".doc"
+    - ".docx"
+    - ".xls"
+    - ".xlsx"
+    - ".csv"
+    - ".json"
+    - ".yaml"
+    - ".yml"
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".gif"
+    - ".webp"
+
+# Memory/retrieval configuration
+memory:
+  enabled: true
+  type: "pgvector"  # Use PostgreSQL with pgvector in production
+  connection_url: "${MEMORY_DATABASE_URL}"
+  embedder: "remote"  # Use remote embedding service
+  embedder_url: "${EMBEDDING_SERVICE_URL}"
+  top_k: 5
+
+# Cache configuration
+cache:
+  enabled: true
+  type: "redis"  # Use Redis for production caching
+  redis_url: "${REDIS_URL}"
+  ttl_seconds: 3600
+  max_memory: "2gb"
+
+# Production-specific features
+production:
+  # Disable auto-reload
+  auto_reload: false
+  
+  # Hide detailed error pages
+  detailed_errors: false
+  
+  # Disable API documentation (or protect with auth)
+  docs_enabled: false
+  
+  # Never mock external services
+  mock_external_services: false
+  
+  # Strict request validation
+  strict_validation: true
+  
+  # Enforce allowed file types
+  allow_all_file_types: false
+  
+  # Enable request/response compression
+  compression_enabled: true
+  
+  # Enable response caching
+  response_caching: true
+
+# Performance (production optimized)
+performance:
+  worker_count: 4
+  thread_pool_size: 20
+  max_concurrent_requests: 100
+  request_queue_size: 1000
+  keepalive_timeout: 65
+  graceful_shutdown_timeout: 30
+
+# Resource limits
+limits:
+  max_request_size_mb: 100
+  max_response_size_mb: 100
+  max_execution_time_seconds: 600
+  max_memory_per_request_mb: 1024
+
+# Backup and disaster recovery
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention_days: 30
+  backup_path: "/var/backups/aether"
+
+# Alerting configuration
+alerting:
+  enabled: true
+  email_enabled: true
+  email_recipients:
+    - "ops@yourdomain.com"
+  slack_enabled: true
+  slack_webhook_url: "${SLACK_WEBHOOK_URL}"
+  error_threshold: 10  # Alert after 10 errors in 5 minutes
+  latency_threshold_ms: 5000  # Alert if p95 latency > 5s
+
