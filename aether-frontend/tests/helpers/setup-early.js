@@ -11,7 +11,9 @@
 let uuidCounter = 0;
 const mockRandomUUID = () => {
   uuidCounter += 1;
-  return `test-uuid-${uuidCounter.toString().padStart(12, '0')}-1234-1234-123456789012`;
+  // Generate valid UUID format (8-4-4-4-12 hex pattern) that tests expect
+  const counter = uuidCounter.toString(16).padStart(8, '0');
+  return `${counter}-1234-1234-1234-${counter.toString().padStart(12, '0')}`;
 };
 
 // Polyfill globalThis
