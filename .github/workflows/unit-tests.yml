@@ -55,9 +55,10 @@ jobs:
       
     - name: Run Jest unit tests
       working-directory: ./aether-frontend
-      run: npm run test:unit
+      # Use --forceExit to ensure Jest exits cleanly even if handles are open
+      run: npm run test:unit -- --forceExit
       
     - name: Run Jest integration tests
       working-directory: ./aether-frontend
       # Disable coverage for integration tests since they only touch a subset of files
-      run: npm run test:integration -- --coverage=false
+      run: npm run test:integration -- --coverage=false --forceExit
