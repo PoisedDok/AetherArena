@@ -53,18 +53,11 @@ jobs:
       working-directory: ./aether-frontend
       run: npm install
       
-    - name: Run Jest tests
+    - name: Run Jest unit tests
       working-directory: ./aether-frontend
-      # Run all tests sequentially with coverage disabled
-      # CI=true would auto-enable coverage via jest.config.js, so we explicitly disable it
-      run: |
-        echo "Running tests with coverage disabled..."
-        npx jest --testPathPattern="tests/(unit|integration)" --runInBand --coverage=false --testTimeout=30000 --verbose 2>&1 | tee test-output.log
-        exit_code=${PIPESTATUS[0]}
-        echo "Test exit code: $exit_code"
-        if [ $exit_code -ne 0 ]; then
-          echo "=== Last 50 lines of test output ==="
-          tail -50 test-output.log
-        fi
-        exit $exit_code
+      run: npx jest tests/unit --runInBand --coverage=false --testTimeout=30000 --maxWorkers=1 --verbose
+      
+    - name: Run Jest integration tests
+      working-directory: ./aether-frontend
+      run: npx jest tests/integration --runInBand --coverage=false --testTimeout=30000 --maxWorkers=1 --verbose
       
