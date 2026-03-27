@@ -8,8 +8,8 @@ pytest-cov==4.1.0
 pytest-timeout==2.2.0
 pytest-mock==3.12.0
 
-# HTTP testing
-httpx==0.26.0
+# HTTP testing - must match main requirements.txt
+httpx==0.27.2
 
 # Database testing
 pytest-postgresql==5.0.0

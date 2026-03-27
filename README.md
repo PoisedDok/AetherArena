@@ -14,11 +14,11 @@
 
 ## Current Status
 
-> **RELEASED** (March 2026)
+> **macOS app — download temporarily unavailable** (March 2026)
 >
-> AetherArena v1.0 is now available for macOS as a packaged DMG installer. The application includes all core subsystems: chat streaming, proactive agent pipeline, Docker service mesh, Aether Inference (on-device model routing), daemon-based activity monitoring, file indexing, and the Electron desktop frontend.
+> The packaged macOS DMG is **offline** while we complete **Apple code signing and notarization**. The application itself includes all core subsystems: chat streaming, proactive agent pipeline, Docker service mesh, Aether Inference (on-device model routing), daemon-based activity monitoring, file indexing, and the Electron desktop frontend.
 >
-> **Download**: Available at [aetherinc.xyz](https://aetherinc.xyz)
+> **Download**: Not available until signing ships — site: [aetherinc.xyz](https://aetherinc.xyz)
 
 ## Overview
 
@@ -264,7 +264,7 @@ npm run build
 | TTS synthesis (RealtimeTTS)                                | Released |
 
 
-**Download**: macOS DMG installer available at [aetherinc.xyz](https://aetherinc.xyz)
+**Download**: macOS DMG is temporarily unavailable (Apple signing/notarization in progress). [aetherinc.xyz](https://aetherinc.xyz)
 
 ## License
 
