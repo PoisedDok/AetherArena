@@ -26,11 +26,24 @@ global.console = {
 
 // Mock crypto.randomUUID for Node.js environments that don't have it
 // (needed for tests running in CI with older Node or JSDOM environment)
-if (!global.crypto?.randomUUID) {
-  global.crypto = {
-    ...global.crypto,
-    randomUUID: () => 'test-uuid-12345678-1234-1234-1234-123456789012',
-  };
+const mockRandomUUID = () => 'test-uuid-12345678-1234-1234-1234-123456789012';
+
+// For Node.js environment
+if (typeof global !== 'undefined') {
+  if (!global.crypto) {
+    global.crypto = {
+      randomUUID: mockRandomUUID,
+    };
+  } else if (!global.crypto.randomUUID) {
+    global.crypto.randomUUID = mockRandomUUID;
+  }
+}
+
+// For JSDOM environment
+if (typeof window !== 'undefined' && window.crypto) {
+  if (!window.crypto.randomUUID) {
+    window.crypto.randomUUID = mockRandomUUID;
+  }
 }
 
 // Mock Electron modules (for unit tests)
