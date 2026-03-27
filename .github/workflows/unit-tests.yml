@@ -53,8 +53,11 @@ jobs:
       working-directory: ./aether-frontend
       run: npm install
       
-    - name: Run Jest tests
+    - name: Run Jest unit tests
       working-directory: ./aether-frontend
-      run: |
-        npm run test:unit
-        npm run test:integration
+      run: npm run test:unit
+      
+    - name: Run Jest integration tests
+      working-directory: ./aether-frontend
+      # Disable coverage for integration tests since they only touch a subset of files
+      run: npm run test:integration -- --coverage=false
