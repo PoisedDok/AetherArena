@@ -93,6 +93,9 @@ module.exports = {
   ],
   
   // Setup files
+  // setupFiles runs before the test framework is installed (before test files are loaded)
+  setupFiles: ['<rootDir>/tests/helpers/setup-early.js'],
+  // setupFilesAfterEnv runs after the test framework is installed but before tests run
   setupFilesAfterEnv: ['<rootDir>/tests/helpers/setup.js'],
   
   // Module name mapper (for absolute imports)
