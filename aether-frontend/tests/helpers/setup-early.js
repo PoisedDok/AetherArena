@@ -38,3 +38,27 @@ if (!global.crypto) {
 }
 
 console.log('[Jest Early Setup] crypto.randomUUID mocked on globalThis and global');
+
+// Mock Performance API for Node.js environment
+// Make getEntriesByType writable so tests can mock it
+if (typeof global.performance !== 'undefined') {
+  const originalGetEntriesByType = global.performance.getEntriesByType;
+  Object.defineProperty(global.performance, 'getEntriesByType', {
+    value: originalGetEntriesByType,
+    writable: true,
+    configurable: true,
+  });
+  
+  // Also mock mark and measure if they don't exist
+  if (!global.performance.mark) {
+    global.performance.mark = jest.fn();
+  }
+  if (!global.performance.measure) {
+    global.performance.measure = jest.fn();
+  }
+  if (!global.performance.now) {
+    global.performance.now = () => Date.now();
+  }
+  
+  console.log('[Jest Early Setup] Performance API mocked for Node.js');
+}
