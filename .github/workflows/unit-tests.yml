@@ -55,10 +55,12 @@ jobs:
       
     - name: Run Jest unit tests
       working-directory: ./aether-frontend
+      # Use --runInBand for single-threaded execution (prevents memory issues in CI)
       # Use --forceExit to ensure Jest exits cleanly even if handles are open
-      run: npm run test:unit -- --forceExit
+      run: npm run test:unit -- --runInBand --forceExit --testTimeout=30000
       
     - name: Run Jest integration tests
       working-directory: ./aether-frontend
       # Disable coverage for integration tests since they only touch a subset of files
-      run: npm run test:integration -- --coverage=false --forceExit
+      # Use --runInBand for single-threaded execution
+      run: npm run test:integration -- --runInBand --forceExit --coverage=false --testTimeout=30000
