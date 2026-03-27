@@ -28,7 +28,18 @@ global.console = {
 // (needed for tests running in CI with older Node or JSDOM environment)
 const mockRandomUUID = () => 'test-uuid-12345678-1234-1234-1234-123456789012';
 
-// For Node.js environment
+// For Node.js environment - set up globalThis.crypto
+if (typeof globalThis !== 'undefined') {
+  if (!globalThis.crypto) {
+    globalThis.crypto = {
+      randomUUID: mockRandomUUID,
+    };
+  } else if (!globalThis.crypto.randomUUID) {
+    globalThis.crypto.randomUUID = mockRandomUUID;
+  }
+}
+
+// For legacy Node.js environments
 if (typeof global !== 'undefined') {
   if (!global.crypto) {
     global.crypto = {
@@ -37,11 +48,22 @@ if (typeof global !== 'undefined') {
   } else if (!global.crypto.randomUUID) {
     global.crypto.randomUUID = mockRandomUUID;
   }
+  // Also ensure globalThis is set for code that uses globalThis.crypto
+  if (!global.globalThis) {
+    global.globalThis = global;
+  }
+  if (!global.globalThis.crypto) {
+    global.globalThis.crypto = global.crypto;
+  }
 }
 
 // For JSDOM environment
-if (typeof window !== 'undefined' && window.crypto) {
-  if (!window.crypto.randomUUID) {
+if (typeof window !== 'undefined') {
+  if (!window.crypto) {
+    window.crypto = {
+      randomUUID: mockRandomUUID,
+    };
+  } else if (!window.crypto.randomUUID) {
     window.crypto.randomUUID = mockRandomUUID;
   }
 }
